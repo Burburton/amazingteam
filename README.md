@@ -9,6 +9,7 @@
 - 🤖 **七个 AI 角色**: Planner, Architect, Developer, QA, Reviewer, Triage, CI Analyst
 - 🧠 **分层记忆系统**: 全局记忆、角色记忆、任务记忆、失败库隔离
 - 📋 **任务系统**: task.yaml 任务清单，状态机驱动工作流
+- 🔀 **GitHub Issue 编排**: 大任务分解为子Issue，依赖追踪，逐个派发
 - 🔄 **可升级底座**: 项目开发期间可同步最新模板更新
 - 📦 **开箱即用**: 一键初始化新项目
 - 🔒 **安全可控**: 人工审批保留在关键节点，治理模型保护核心知识
@@ -68,18 +69,35 @@ ai-team init
 
 ```
 ai-team-foundation/
-├── .ai-team/                    # AI Team 核心配置 (升级时覆盖)
-│   ├── agents/                  # AI 角色定义
-│   │   ├── planner.md           # 任务分解和流程协调
-│   │   ├── architect.md         # 架构设计
-│   │   ├── developer.md         # 代码实现
-│   │   ├── qa.md                # 质量验证
-│   │   ├── reviewer.md          # 代码审查
-│   │   ├── triage.md            # Issue 分类和调试
-│   │   └── ci-analyst.md        # CI 失败分析
-│   ├── skills/                  # 可复用技能
-│   ├── commands/                # 工作流命令
-│   └── memory/                  # 角色记忆模板
+├── .opencode/                    # OpenCode 配置入口
+│   ├── agents/                   # Agent 入口文件 (YAML配置+简要描述)
+│   │   ├── planner.md            # 指向 .ai-team/agents/planner.md
+│   │   ├── architect.md          # 指向 .ai-team/agents/architect.md
+│   │   └── ...                   # 其他角色入口
+│   ├── skills/                   # 可复用技能
+│   └── commands/                 # 工作流命令
+│
+├── .ai-team/                     # AI Team 核心配置 (升级时覆盖)
+│   ├── agents/                   # AI 角色详细行为定义
+│   │   ├── planner.md            # 完整职责、约束、工作流程
+│   │   ├── architect.md          # 完整职责、约束、工作流程
+│   │   ├── developer.md          # 完整职责、约束、工作流程
+│   │   ├── qa.md                 # 完整职责、约束、工作流程
+│   │   ├── reviewer.md           # 完整职责、约束、工作流程
+│   │   ├── triage.md             # 完整职责、约束、工作流程
+│   │   └── ci-analyst.md         # 完整职责、约束、工作流程
+│   └── memory/                   # 角色记忆模板
+│       ├── planner/
+│       │   ├── flow_rules.md           # 状态机规则
+│       │   ├── decomposition_notes.md  # 分解模式
+│       │   └── github_issue_patterns.md # GitHub编排模式
+│       ├── architect/
+│       ├── developer/
+│       ├── qa/
+│       ├── reviewer/
+│       ├── triage/
+│       ├── ci-analyst/
+│       └── failures/            # 共享失败库
 │
 ├── scripts/                     # Bootstrap 脚本
 │   ├── init_project.sh          # 初始化新项目
@@ -166,11 +184,39 @@ ai-team init my-project \
 /opencode use architect to analyze this issue
 ```
 
+**推荐流程：**
+
+```
+新Issue → /triage → 判断是否需要分解
+                          │
+              ┌───────────┴───────────┐
+              ↓                       ↓
+         需要分解                  无需分解
+              │                       │
+              ↓                       ↓
+      /breakdown-issue            /design
+              │                       │
+              ↓                       ↓
+       创建子Issue               /implement
+              │                       │
+              ↓                       ↓
+       /dispatch-next                ...
+              │
+              ↓ (循环直到完成)
+              │
+       /close-parent-task
+```
+
 **可用命令：**
 
 | 命令 | 角色 | 作用 |
 |------|------|------|
-| `/triage` | Triage | Issue 分类和初步调试 |
+| `/triage` | Triage | Issue分类，确定是否需要分解 |
+| `/breakdown-issue` | Planner | 分解大任务为GitHub子Issue |
+| `/dispatch-next` | Planner | 派发下一个活跃子任务 |
+| `/show-blockers` | Planner | 显示被阻塞的任务 |
+| `/summarize-parent` | Planner | 汇总父任务进度 |
+| `/close-parent-task` | Planner | 验证并关闭父任务 |
 | `/design` | Architect | 分析需求，设计方案 |
 | `/implement` | Developer | 实现代码 |
 | `/test` | QA | 测试验证 |
@@ -180,14 +226,62 @@ ai-team init my-project \
 
 ### 4. 工作流程
 
-#### 功能开发流程
+#### 功能开发流程（大任务）
 
 ```
 Issue 创建
-     │
-     ▼
+      │
+      ▼
 ┌─────────────┐
-│   Planner   │ ─── 任务分解，派发给合适角色
+│   Triage    │ ─── 分类，判断是否需要分解
+└─────┬───────┘
+      │
+      ▼
+┌─────────────┐
+│   Planner   │ ─── 分解为子Issue，建立依赖关系
+└─────┬───────┘
+      │
+      ▼ (逐个派发子任务)
+      │
+┌─────────────┐
+│  Architect  │ ─── 分析需求，设计方案
+└─────┬───────┘
+      │
+      ▼
+┌─────────────┐
+│  Developer  │ ─── 实现代码，创建 PR
+└─────┬───────┘
+      │
+      ▼
+┌─────────────┐
+│     QA      │ ─── 测试验证
+└─────┬───────┘
+      │
+      ▼
+┌─────────────┐
+│  Reviewer   │ ─── 代码审查
+└─────┬───────┘
+      │
+      ▼
+┌─────────────┐
+│   Planner   │ ─── 验证子任务完成，派发下一个
+└─────┬───────┘
+      │
+      ▼ (循环直到所有子任务完成)
+      │
+┌─────────────┐
+│   Human     │ ─── 审批合并，关闭父Issue
+└─────────────┘
+```
+
+#### 功能开发流程（小任务）
+
+```
+Issue 创建
+      │
+      ▼
+┌─────────────┐
+│   Triage    │ ─── 分类，判断无需分解
 └─────┬───────┘
       │
       ▼
@@ -285,7 +379,41 @@ risk_level: medium
 module_scope:
   - auth
   - api
+
+github_issue: 123
+github_url: https://github.com/org/repo/issues/123
+parent_task: null
+requires_decomposition: false
+
+subtasks:
+  - id: issue-123-subtask-01
+    github_issue: 201
+    title: "[Subtask] 设计认证API"
+    type: design
+    owner_role: architect
+    status: done
+  - id: issue-123-subtask-02
+    github_issue: 202
+    title: "[Subtask] 实现登录接口"
+    type: implementation
+    owner_role: developer
+    status: in_progress
+    depends_on: [201]
 ```
+
+### 大任务分解原则
+
+**需要分解的情况：**
+- 涉及多个模块
+- 需要先设计再实现
+- 影响公共接口
+- 需要多个 PR
+- 有明显的依赖顺序
+
+**不需要分解的情况：**
+- 单模块变更
+- 范围清晰
+- 一个 PR 足够
 
 ### 任务状态机
 
@@ -293,6 +421,48 @@ module_scope:
 backlog → ready → in_analysis → in_design → in_implementation → in_validation → in_review → release_candidate → done
                               ↓                                              ↓
                            blocked ←───────────────────────────────────────── ←
+```
+
+### GitHub Issue 编排
+
+大任务通过 `/breakdown-issue` 命令分解为子Issue：
+
+```
+父Issue #120: 改进启动可靠性
+    │
+    ├── 子Issue #201: [Subtask] 隔离配置验证 (architect)
+    │       ↓
+    ├── 子Issue #202: [Subtask] 重构启动错误路径 (developer)
+    │       ↓
+    └── 子Issue #203: [Subtask] 添加回归测试 (qa)
+```
+
+**编排规则：**
+- 一个子任务一个 PR
+- 逐个派发，不并行（除非明确说明）
+- 依赖关系显式记录
+- 父Issue在所有子Issue完成后才关闭
+
+**常用命令流程：**
+
+```bash
+# 1. 分类新Issue
+/triage
+
+# 2. 分解大任务（如需要）
+/breakdown-issue
+
+# 3. 派发子任务
+/dispatch-next
+
+# 4. 查看阻塞情况
+/show-blockers
+
+# 5. 查看进度
+/summarize-parent
+
+# 6. 验证完成
+/close-parent-task
 ```
 
 ## 升级底座
@@ -312,9 +482,39 @@ ai-team upgrade --force
 
 **升级注意事项：**
 
-- `.ai-team/` 目录会被覆盖
-- 自定义配置 (`ai-team.config.yaml`, `AGENTS.md`) 不会被覆盖
-- 自动创建备份
+| 目录 | 升级行为 | 说明 |
+|------|---------|------|
+| `.opencode/agents/` | 覆盖 | 入口文件，通常不需要自定义 |
+| `.ai-team/agents/` | 覆盖 | 行为规范，自定义前先备份 |
+| `.ai-team/memory/` | 合并 | 保留现有记忆，添加新模式 |
+| `ai-team.config.yaml` | 跳过 | 项目自定义配置 |
+| `AGENTS.md` | 跳过 | 项目全局规则 |
+| `docs/` | 跳过 | 项目文档 |
+
+**升级流程：**
+
+```
+1. ai-team status          → 检查版本差异
+2. ai-team upgrade --dry-run  → 预览变更
+3. ai-team upgrade         → 执行升级
+4. 检查变更，恢复自定义行为（如有）
+5. 测试项目
+6. 提交变更
+```
+
+**自定义行为保护：**
+
+如果自定义了 `.ai-team/agents/` 中的行为规范：
+
+1. 升级前备份自定义内容
+2. 升级后合并新功能和自定义内容
+3. 或者在 `ai-team.config.yaml` 中标记：
+
+```yaml
+upgrade:
+  protected_files:
+    - ".ai-team/agents/developer.md"
+```
 
 ## Bootstrap 脚本
 
@@ -533,6 +733,33 @@ AI 不能直接修改以下区域，需要人工审批：
 
 ## 自定义配置
 
+### Agent 文件结构
+
+Agent 定义分为两部分：
+
+| 目录 | 职责 | 内容 |
+|------|------|------|
+| `.opencode/agents/` | 入口文件 | YAML配置、工具权限、简要描述 |
+| `.ai-team/agents/` | 行为规范 | 完整职责、约束、工作流程、输出格式 |
+
+**入口文件示例** (`.opencode/agents/planner.md`):
+```yaml
+---
+description: Decomposes tasks into GitHub sub-issues
+tools:
+  write: false
+  bash:
+    "gh issue*": allow
+---
+You are the Planner agent. See `.ai-team/agents/planner.md` for details.
+```
+
+**行为规范文件** (`.ai-team/agents/planner.md`):
+- 完整职责列表
+- 约束和反模式
+- 工作流程
+- 输出格式模板
+
 ### ai-team.config.yaml
 
 ```yaml
@@ -609,6 +836,27 @@ A: 以下文件不会被升级覆盖：
 - `src/`
 - `tests/`
 
+### Q: 如何自定义 Agent 行为？
+
+A: 两种方式：
+
+1. **修改行为规范** - 编辑 `.ai-team/agents/{role}.md`
+   - 添加项目特定的职责
+   - 修改输出格式
+   - 调整工作流程
+
+2. **修改入口权限** - 编辑 `.opencode/agents/{role}.md`
+   - 调整工具权限
+   - 添加/删除允许的 bash 命令
+
+示例：让 Developer 可以运行数据库迁移
+```yaml
+# .opencode/agents/developer.md
+permission:
+  bash:
+    "npm run db:migrate": allow
+```
+
 ### Q: 如何回滚升级？
 
 A: 升级时会自动创建备份目录 `.ai-team-backup-{timestamp}`，可以手动恢复。
@@ -619,11 +867,50 @@ A: 目前主要支持 GitHub。GitLab 支持计划中。
 
 ### Q: v1 升级到 v2 需要做什么？
 
-A: v2 新增了 3 个角色 (Planner, Triage, CI Analyst)、任务系统、治理模型。运行 `ai-team upgrade` 会自动添加新组件。
+A: v2 新增了：
+- Planner 角色（任务分解、GitHub Issue编排）
+- Triage 角色（Issue分类）
+- CI Analyst 角色（CI失败分析）
+- GitHub Issue 子任务编排
+- 任务系统
+
+运行 `ai-team upgrade` 会自动添加新组件。
+
+### Q: 大任务什么时候需要分解？
+
+A: 以下情况建议分解：
+- 涉及多个模块
+- 需要先设计再实现
+- 影响公共接口/API
+- 可能需要多个 PR
+- 有明显的依赖步骤
+
+以下情况无需分解：
+- 单模块、单 PR 足够
+- 范围清晰、验证简单
 
 ## 贡献
 
 欢迎提交 Issue 和 Pull Request！
+
+## 版本历史
+
+### v2.0.0 - GitHub Issue 编排
+
+**新增：**
+- Planner 角色增强：支持 GitHub Issue 分解和编排
+- `/breakdown-issue` 命令：分解大任务为子 Issue
+- `/dispatch-next` 命令：派发下一个子任务
+- `/show-blockers` 命令：显示阻塞任务
+- `/summarize-parent` 命令：汇总父任务进度
+- `/close-parent-task` 命令：验证并关闭父任务
+- task.yaml 增强：支持 `github_issue`、`parent_task`、`subtasks` 字段
+- Agent 文件结构优化：分离入口文件和行为规范
+
+**改进：**
+- Triage 命令增强：增加分解决策
+- 工作流程更新：大任务分解后再派发
+- 升级流程优化：保护自定义行为
 
 ## License
 
