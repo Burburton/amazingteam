@@ -8,13 +8,23 @@
     "framework": "{{FRAMEWORK}}"
   },
   "agents": {
+    "planner": {
+      "description": "Decomposes tasks and coordinates workflow progression",
+      "model": "default",
+      "skills": ["task-breakdown-and-dispatch"],
+      "commands": [],
+      "memory": {
+        "read": ["docs/", "AGENTS.md", ".ai-team/memory/planner/", ".ai-team/memory/architect/", ".ai-team/memory/triage/", ".ai-team/memory/failures/", "tasks/"],
+        "write": [".ai-team/memory/planner/", "tasks/{task_id}/task.yaml"]
+      }
+    },
     "architect": {
       "description": "Analyzes requirements and designs solutions",
       "model": "default",
       "skills": ["repo-architecture-reader"],
       "commands": ["/design"],
       "memory": {
-        "read": ["docs/", "AGENTS.md", ".ai-team/memory/architect/", ".ai-team/memory/developer/", "tasks/"],
+        "read": ["docs/", "AGENTS.md", ".ai-team/memory/planner/", ".ai-team/memory/architect/", ".ai-team/memory/developer/", ".ai-team/memory/failures/", "tasks/"],
         "write": [".ai-team/memory/architect/", "tasks/{task_id}/analysis.md", "tasks/{task_id}/design.md"]
       }
     },
@@ -24,28 +34,48 @@
       "skills": ["test-first-feature-dev", "bugfix-playbook"],
       "commands": ["/implement"],
       "memory": {
-        "read": ["docs/", "AGENTS.md", ".ai-team/memory/architect/", ".ai-team/memory/developer/", "tasks/{task_id}/"],
+        "read": ["docs/", "AGENTS.md", ".ai-team/memory/planner/", ".ai-team/memory/architect/", ".ai-team/memory/developer/", ".ai-team/memory/failures/", "tasks/{task_id}/"],
         "write": [".ai-team/memory/developer/", "tasks/{task_id}/implementation.md", "src/", "tests/"]
       }
     },
     "qa": {
       "description": "Validates implementations and ensures quality",
       "model": "default",
-      "skills": ["test-first-feature-dev"],
+      "skills": ["test-first-feature-dev", "regression-checklist"],
       "commands": ["/test"],
       "memory": {
-        "read": ["docs/", "AGENTS.md", ".ai-team/memory/architect/", ".ai-team/memory/qa/", "tasks/{task_id}/"],
+        "read": ["docs/", "AGENTS.md", ".ai-team/memory/planner/", ".ai-team/memory/architect/", ".ai-team/memory/qa/", ".ai-team/memory/failures/", "tasks/{task_id}/"],
         "write": [".ai-team/memory/qa/", "tasks/{task_id}/validation.md", "tests/"]
       }
     },
     "reviewer": {
       "description": "Reviews code for quality and correctness",
       "model": "default",
-      "skills": ["safe-refactor-checklist"],
-      "commands": ["/review"],
+      "skills": ["safe-refactor-checklist", "regression-checklist", "release-readiness-check"],
+      "commands": ["/review", "/release-check"],
       "memory": {
-        "read": ["docs/", "AGENTS.md", ".ai-team/memory/", "tasks/{task_id}/"],
-        "write": [".ai-team/memory/reviewer/", "tasks/{task_id}/review.md"]
+        "read": ["docs/", "AGENTS.md", ".ai-team/memory/", ".ai-team/memory/failures/", "tasks/{task_id}/"],
+        "write": [".ai-team/memory/reviewer/", "tasks/{task_id}/review.md", "tasks/{task_id}/release.md"]
+      }
+    },
+    "triage": {
+      "description": "Classifies issues and performs first-pass debug analysis",
+      "model": "default",
+      "skills": ["issue-triage", "bugfix-playbook"],
+      "commands": ["/triage"],
+      "memory": {
+        "read": ["docs/", "AGENTS.md", ".ai-team/memory/triage/", ".ai-team/memory/failures/", "tasks/{task_id}/"],
+        "write": [".ai-team/memory/triage/", "tasks/{task_id}/"]
+      }
+    },
+    "ci-analyst": {
+      "description": "Investigates CI failures and documents patterns",
+      "model": "default",
+      "skills": ["ci-failure-analysis", "bugfix-playbook"],
+      "commands": ["/ci-analyze"],
+      "memory": {
+        "read": ["docs/", "AGENTS.md", ".ai-team/memory/ci-analyst/", ".ai-team/memory/failures/", "tasks/{task_id}/", "docs/runbooks/ci/"],
+        "write": [".ai-team/memory/ci-analyst/", ".ai-team/memory/failures/", "tasks/{task_id}/"]
       }
     }
   },
@@ -61,9 +91,28 @@
     },
     "safe-refactor-checklist": {
       "path": ".ai-team/skills/safe-refactor-checklist/skill.md"
+    },
+    "task-breakdown-and-dispatch": {
+      "path": ".ai-team/skills/task-breakdown-and-dispatch/skill.md"
+    },
+    "issue-triage": {
+      "path": ".ai-team/skills/issue-triage/skill.md"
+    },
+    "ci-failure-analysis": {
+      "path": ".ai-team/skills/ci-failure-analysis/skill.md"
+    },
+    "regression-checklist": {
+      "path": ".ai-team/skills/regression-checklist/skill.md"
+    },
+    "release-readiness-check": {
+      "path": ".ai-team/skills/release-readiness-check/skill.md"
     }
   },
   "commands": {
+    "/triage": {
+      "path": ".ai-team/commands/triage.md",
+      "agent": "triage"
+    },
     "/design": {
       "path": ".ai-team/commands/design.md",
       "agent": "architect"
@@ -80,16 +129,21 @@
       "path": ".ai-team/commands/review.md",
       "agent": "reviewer"
     },
-    "/triage": {
-      "path": ".ai-team/commands/triage.md",
-      "agent": "architect"
+    "/ci-analyze": {
+      "path": ".ai-team/commands/ci-analyze.md",
+      "agent": "ci-analyst"
+    },
+    "/release-check": {
+      "path": ".ai-team/commands/release-check.md",
+      "agent": "reviewer"
     }
   },
   "workflows": {
-    "feature": ["architect", "developer", "qa", "reviewer"],
-    "bugfix": ["architect", "developer", "qa", "reviewer"],
+    "feature": ["planner", "architect", "developer", "qa", "reviewer"],
+    "bugfix": ["triage", "architect", "developer", "qa", "reviewer"],
     "refactor": ["architect", "developer", "reviewer"],
-    "triage": ["architect"]
+    "ci-failure": ["ci-analyst", "developer", "qa"],
+    "release": ["reviewer"]
   },
   "memory": {
     "global": {
@@ -99,6 +153,9 @@
     "role": {
       "base_path": ".ai-team/memory",
       "roles": {
+        "planner": {
+          "files": ["decomposition_notes.md", "flow_rules.md"]
+        },
         "architect": {
           "files": ["architecture_notes.md", "module_map.md", "design_rationale.md"]
         },
@@ -110,13 +167,24 @@
         },
         "reviewer": {
           "files": ["review_notes.md", "quality_rules.md", "recurring_risks.md"]
+        },
+        "triage": {
+          "files": ["classification_heuristics.md", "debug_notes.md"]
+        },
+        "ci-analyst": {
+          "files": ["failure_patterns.md", "runbook_references.md"]
         }
       }
+    },
+    "failures": {
+      "path": ".ai-team/memory/failures",
+      "files": ["failure_library.md"],
+      "writableBy": ["ci-analyst"]
     },
     "task": {
       "base_path": "tasks",
       "naming": "issue-{issue_id}",
-      "files": ["analysis.md", "design.md", "implementation.md", "validation.md", "review.md"],
+      "files": ["task.yaml", "analysis.md", "design.md", "implementation.md", "validation.md", "review.md", "release.md"],
       "autoCreate": true,
       "preserveAfterCompletion": true
     }
@@ -126,7 +194,9 @@
     "requireTests": true,
     "requireReview": true,
     "autoMerge": false,
-    "memoryIsolation": true
+    "memoryIsolation": true,
+    "protectedPaths": ["docs/architecture/", "docs/decisions/"],
+    "humanApprovalRequired": ["architecture changes", "release operations", "breaking changes"]
   },
   "integrations": {
     "github": {
@@ -136,7 +206,11 @@
     },
     "ci": {
       "enabled": true,
-      "requirePassing": true
+      "requirePassing": true,
+      "failureAnalysis": {
+        "enabled": true,
+        "agent": "ci-analyst"
+      }
     }
   }
 }

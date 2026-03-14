@@ -1,0 +1,59 @@
+id: issue-000
+title: Task Template
+type: feature
+status: backlog
+priority: medium
+owner_role: planner
+depends_on: []
+blocked_by: []
+acceptance_criteria:
+  - Acceptance criterion 1
+  - Acceptance criterion 2
+risk_level: low
+module_scope:
+  - module1
+  - module2
+estimated_effort: medium
+created_at: YYYY-MM-DD
+updated_at: YYYY-MM-DD
+
+subtasks:
+  - id: analysis
+    title: Analyze requirements
+    owner_role: architect
+    status: pending
+    depends_on: []
+  - id: design
+    title: Design solution
+    owner_role: architect
+    status: pending
+    depends_on: [analysis]
+  - id: implement
+    title: Implement changes
+    owner_role: developer
+    status: pending
+    depends_on: [design]
+  - id: validate
+    title: Validate implementation
+    owner_role: qa
+    status: pending
+    depends_on: [implement]
+  - id: review
+    title: Review code
+    owner_role: reviewer
+    status: pending
+    depends_on: [validate]
+
+notes: |
+  Additional notes about this task.
+  
+  - Context
+  - Assumptions
+  - Dependencies
+  - Constraints
+
+links:
+  - type: issue
+    url: https://github.com/org/repo/issues/000
+  - type: pr
+    url: https://github.com/org/repo/pull/000

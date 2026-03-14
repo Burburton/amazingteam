@@ -304,6 +304,12 @@ logger.info('User logged in', {
 
 ## Agent-Specific Rules
 
+### For Planner Agent (v2)
+- Decompose tasks into actionable subtasks
+- Coordinate workflow progression between roles
+- Track dependencies and blocking issues
+- Update task manifests and state
+
 ### For Architect Agent
 - Never modify code directly
 - Always provide implementation plans
@@ -328,6 +334,18 @@ logger.info('User logged in', {
 - Provide code examples
 - Consider long-term maintainability
 
+### For Triage Agent (v2)
+- Classify issues by type and priority
+- Perform initial root cause analysis
+- Route issues to appropriate roles
+- Update classification heuristics
+
+### For CI Analyst Agent (v2)
+- Investigate CI failures systematically
+- Document failure patterns
+- Update failure library with new patterns
+- Maintain CI runbook references
+
 ## Workflow Automation
 
 ### Issue Processing
@@ -343,10 +361,13 @@ logger.info('User logged in', {
 
 | Command | Agent | Action |
 |---------|-------|--------|
+| `/triage` | Triage | Classify and investigate issue |
 | `/design` | Architect | Analyze and design |
 | `/implement` | Developer | Implement changes |
 | `/test` | QA | Run tests and validate |
 | `/review` | Reviewer | Review code |
+| `/ci-analyze` | CI Analyst | Analyze CI failures |
+| `/release-check` | Reviewer | Validate release readiness |
 
 ## Safety Constraints
 
@@ -406,12 +427,15 @@ This project uses a **layered memory architecture** to prevent role contaminatio
 
 ### Memory Permissions Matrix
 
-| Role | Global Memory | Architect Memory | Developer Memory | QA Memory | Reviewer Memory | Task Memory |
-|------|---------------|------------------|------------------|-----------|-----------------|-------------|
-| Architect | Read | Read/Write | Read | None | None | Read/Write |
-| Developer | Read | Read | Read/Write | None | None | Read/Write |
-| QA | Read | Read | None | Read/Write | None | Read/Write |
-| Reviewer | Read | Read | Read | Read | Read/Write | Read/Write |
+| Role | Global Memory | Planner Memory | Architect Memory | Developer Memory | QA Memory | Reviewer Memory | Triage Memory | CI Analyst Memory | Failures Memory | Task Memory |
+|------|---------------|----------------|------------------|------------------|-----------|-----------------|---------------|-------------------|-----------------|-------------|
+| Planner | Read | Read/Write | Read | None | None | None | Read | None | Read | Read/Write |
+| Architect | Read | Read | Read/Write | Read | None | None | None | None | Read | Read/Write |
+| Developer | Read | Read | Read | Read/Write | None | None | None | None | Read | Read/Write |
+| QA | Read | Read | Read | None | Read/Write | None | None | None | Read | Read/Write |
+| Reviewer | Read | Read | Read | Read | Read | Read/Write | None | None | Read | Read/Write |
+| Triage | Read | None | None | None | None | None | Read/Write | None | Read | Read/Write |
+| CI Analyst | Read | None | None | None | None | None | None | Read/Write | Read/Write | Read/Write |
 
 ### Memory Update Rules
 
@@ -433,7 +457,11 @@ This project uses a **layered memory architecture** to prevent role contaminatio
 ### Memory Directory Structure
 
 ```
-.opencode/memory/
+.ai-team/memory/
+├── planner/
+│   ├── decomposition_notes.md  # Task decomposition patterns
+│   └── flow_rules.md           # Workflow state machine rules
+│
 ├── architect/
 │   ├── architecture_notes.md   # Architecture decisions
 │   ├── module_map.md           # Module relationships
@@ -449,18 +477,40 @@ This project uses a **layered memory architecture** to prevent role contaminatio
 │   ├── regression_cases.md     # Regression tests
 │   └── validation_notes.md     # Validation records
 │
-└── reviewer/
-    ├── review_notes.md         # Review observations
-    ├── quality_rules.md        # Quality standards
-    └── recurring_risks.md      # Common risk patterns
+├── reviewer/
+│   ├── review_notes.md         # Review observations
+│   ├── quality_rules.md        # Quality standards
+│   └── recurring_risks.md      # Common risk patterns
+│
+├── triage/
+│   ├── classification_heuristics.md  # Issue classification patterns
+│   └── debug_notes.md                # Debug investigation notes
+│
+├── ci-analyst/
+│   ├── failure_patterns.md     # CI failure patterns
+│   └── runbook_references.md   # Links to CI runbooks
+│
+└── failures/
+    └── failure_library.md      # Shared recurring failure patterns
 
 tasks/
-├── issue-{id}/
+├── _template/
+│   ├── task.yaml               # Task manifest template
 │   ├── analysis.md             # Architect's analysis
 │   ├── design.md               # Design document
 │   ├── implementation.md       # Developer's notes
 │   ├── validation.md           # QA's validation
-│   └── review.md               # Reviewer's findings
+│   ├── review.md               # Reviewer's findings
+│   └── release.md              # Release checklist
+│
+└── issue-{id}/
+    ├── task.yaml               # Task manifest
+    ├── analysis.md             # Architect's analysis
+    ├── design.md               # Design document
+    ├── implementation.md       # Developer's notes
+    ├── validation.md           # QA's validation
+    ├── review.md               # Reviewer's findings
+    └── release.md              # Release checklist
 ```
 
 ### Memory Guidelines
@@ -479,3 +529,89 @@ tasks/
    - Verify location is appropriate
    - Ensure permissions are correct
    - Check for duplication
+
+## Task System (v2)
+
+### Task Manifest
+
+Every task should have a `task.yaml` file:
+
+```yaml
+id: issue-123
+title: Task title
+type: feature | bug | refactor | docs | tech
+status: backlog | ready | in_analysis | in_design | in_implementation | in_validation | in_review | release_candidate | blocked | done
+priority: critical | high | medium | low
+owner_role: planner | architect | developer | qa | reviewer | triage
+depends_on: []
+blocked_by: []
+acceptance_criteria:
+  - Criterion 1
+  - Criterion 2
+risk_level: low | medium | high
+module_scope:
+  - module1
+  - module2
+```
+
+### Task States
+
+Standard state machine:
+
+```
+backlog → ready → in_analysis → in_design → in_implementation → in_validation → in_review → release_candidate → done
+                              ↓                                              ↓
+                           blocked ←───────────────────────────────────────── ←
+```
+
+### State Transitions
+
+| Current State | Valid Next States |
+|---------------|-------------------|
+| backlog | ready |
+| ready | in_analysis, blocked |
+| in_analysis | in_design, blocked, ready |
+| in_design | in_implementation, blocked, in_analysis |
+| in_implementation | in_validation, blocked, in_design |
+| in_validation | in_review, in_implementation, blocked |
+| in_review | release_candidate, in_implementation, blocked |
+| release_candidate | done, in_review, blocked |
+| blocked | (previous state) |
+
+## Governance Model (v2)
+
+### Change Scope Guard
+
+- Bug fixes should not perform unrelated refactoring
+- Features should not redesign public interfaces without approval
+- Refactors should preserve behavior
+- Reviewers should not silently mutate implementation
+
+### Protected Knowledge Guard
+
+AI should not directly modify durable truth areas without explicit approval:
+
+- `docs/architecture/`
+- `docs/decisions/`
+- Release policy
+- Standards docs
+
+### Human Approval Gates
+
+Humans should approve:
+
+- Architecture changes
+- Merge to protected branches
+- Release operations
+- Changes to global truth
+- Major task decomposition if risk is high
+
+### Release Gates
+
+| Gate | Blocking | Can Waive |
+|------|----------|-----------|
+| All tests pass | Yes | No |
+| No security vulnerabilities | Yes | No |
+| Code coverage met | Yes | With approval |
+| Documentation updated | Yes | With approval |
+| Code review approved | Yes | No |
