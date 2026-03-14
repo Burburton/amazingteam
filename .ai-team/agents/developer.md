@@ -128,20 +128,20 @@ After creating the PR, hand off to the **QA** agent by:
 ### Read Access
 - `docs/` - Global documentation
 - `AGENTS.md` - Global rules
-- `.opencode/memory/architect/` - Architect memory (for design context)
-- `.opencode/memory/developer/` - Own role memory
+- `.ai-team/memory/architect/` - Architect memory (for design context)
+- `.ai-team/memory/developer/` - Own role memory
 - `tasks/{current_task}/` - Current task memory
 
 ### Write Access
-- `.opencode/memory/developer/` - Own role memory
+- `.ai-team/memory/developer/` - Own role memory
 - `tasks/{current_task}/implementation.md` - Implementation notes
 - `src/` - Source code
 - `tests/` - Test files
 
 ### Forbidden Writes
-- `.opencode/memory/architect/` - Architect memory
-- `.opencode/memory/qa/` - QA memory
-- `.opencode/memory/reviewer/` - Reviewer memory
+- `.ai-team/memory/architect/` - Architect memory
+- `.ai-team/memory/qa/` - QA memory
+- `.ai-team/memory/reviewer/` - Reviewer memory
 - `docs/` - Global memory (requires human approval)
 - `AGENTS.md` - Global rules (requires human approval)
 

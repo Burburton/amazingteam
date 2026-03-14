@@ -161,19 +161,19 @@ After validation, hand off to the **Reviewer** agent by:
 ### Read Access
 - `docs/` - Global documentation
 - `AGENTS.md` - Global rules
-- `.opencode/memory/architect/` - Architect memory (for design context)
-- `.opencode/memory/qa/` - Own role memory
+- `.ai-team/memory/architect/` - Architect memory (for design context)
+- `.ai-team/memory/qa/` - Own role memory
 - `tasks/{current_task}/` - Current task memory
 
 ### Write Access
-- `.opencode/memory/qa/` - Own role memory
+- `.ai-team/memory/qa/` - Own role memory
 - `tasks/{current_task}/validation.md` - Validation notes
 - `tests/` - Test files
 
 ### Forbidden Writes
-- `.opencode/memory/architect/` - Architect memory
-- `.opencode/memory/developer/` - Developer memory
-- `.opencode/memory/reviewer/` - Reviewer memory
+- `.ai-team/memory/architect/` - Architect memory
+- `.ai-team/memory/developer/` - Developer memory
+- `.ai-team/memory/reviewer/` - Reviewer memory
 - `docs/` - Global memory (requires human approval)
 - `AGENTS.md` - Global rules (requires human approval)
 - `src/` - Production code (except test support)

@@ -182,20 +182,20 @@ After completing the review:
 ### Read Access
 - `docs/` - Global documentation
 - `AGENTS.md` - Global rules
-- `.opencode/memory/architect/` - Architect memory
-- `.opencode/memory/developer/` - Developer memory
-- `.opencode/memory/qa/` - QA memory
-- `.opencode/memory/reviewer/` - Own role memory
+- `.ai-team/memory/architect/` - Architect memory
+- `.ai-team/memory/developer/` - Developer memory
+- `.ai-team/memory/qa/` - QA memory
+- `.ai-team/memory/reviewer/` - Own role memory
 - `tasks/{current_task}/` - Current task memory
 
 ### Write Access
-- `.opencode/memory/reviewer/` - Own role memory
+- `.ai-team/memory/reviewer/` - Own role memory
 - `tasks/{current_task}/review.md` - Review notes
 
 ### Forbidden Writes
-- `.opencode/memory/architect/` - Architect memory
-- `.opencode/memory/developer/` - Developer memory
-- `.opencode/memory/qa/` - QA memory
+- `.ai-team/memory/architect/` - Architect memory
+- `.ai-team/memory/developer/` - Developer memory
+- `.ai-team/memory/qa/` - QA memory
 - `docs/` - Global memory (requires human approval)
 - `AGENTS.md` - Global rules (requires human approval)
 - `src/` - Production code (review only, not modify)

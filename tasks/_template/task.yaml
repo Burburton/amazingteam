@@ -17,32 +17,48 @@ estimated_effort: medium
 created_at: YYYY-MM-DD
 updated_at: YYYY-MM-DD
 
+github_issue: 000
+github_url: https://github.com/org/repo/issues/000
+parent_task: null
+parent_github_issue: null
+requires_decomposition: false
+
 subtasks:
-  - id: analysis
-    title: Analyze requirements
+  - id: issue-000-subtask-01
+    github_issue: null
+    title: "[Subtask] Analysis"
+    type: analysis
     owner_role: architect
     status: pending
     depends_on: []
-  - id: design
-    title: Design solution
+  - id: issue-000-subtask-02
+    github_issue: null
+    title: "[Subtask] Design"
+    type: design
     owner_role: architect
     status: pending
-    depends_on: [analysis]
-  - id: implement
-    title: Implement changes
+    depends_on: [issue-000-subtask-01]
+  - id: issue-000-subtask-03
+    github_issue: null
+    title: "[Subtask] Implementation"
+    type: implementation
     owner_role: developer
     status: pending
-    depends_on: [design]
-  - id: validate
-    title: Validate implementation
+    depends_on: [issue-000-subtask-02]
+  - id: issue-000-subtask-04
+    github_issue: null
+    title: "[Subtask] Validation"
+    type: validation
     owner_role: qa
     status: pending
-    depends_on: [implement]
-  - id: review
-    title: Review code
+    depends_on: [issue-000-subtask-03]
+  - id: issue-000-subtask-05
+    github_issue: null
+    title: "[Subtask] Review"
+    type: review
     owner_role: reviewer
     status: pending
-    depends_on: [validate]
+    depends_on: [issue-000-subtask-04]
 
 notes: |
   Additional notes about this task.
@@ -56,4 +72,4 @@ links:
   - type: issue
     url: https://github.com/org/repo/issues/000
   - type: pr
-    url: https://github.com/org/repo/pull/000
+    url: null

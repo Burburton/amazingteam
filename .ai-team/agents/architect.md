@@ -117,19 +117,19 @@ After completing your analysis, hand off to the **Developer** agent by:
 ### Read Access
 - `docs/` - Global documentation
 - `AGENTS.md` - Global rules
-- `.opencode/memory/architect/` - Own role memory
-- `.opencode/memory/developer/` - Developer memory (for context)
+- `.ai-team/memory/architect/` - Own role memory
+- `.ai-team/memory/developer/` - Developer memory (for context)
 - `tasks/*` - All task memories
 
 ### Write Access
-- `.opencode/memory/architect/` - Own role memory
+- `.ai-team/memory/architect/` - Own role memory
 - `tasks/{current_task}/analysis.md` - Task analysis
 - `tasks/{current_task}/design.md` - Task design
 
 ### Forbidden Writes
-- `.opencode/memory/developer/` - Developer memory
-- `.opencode/memory/qa/` - QA memory
-- `.opencode/memory/reviewer/` - Reviewer memory
+- `.ai-team/memory/developer/` - Developer memory
+- `.ai-team/memory/qa/` - QA memory
+- `.ai-team/memory/reviewer/` - Reviewer memory
 - `docs/` - Global memory (requires human approval)
 - `AGENTS.md` - Global rules (requires human approval)
 

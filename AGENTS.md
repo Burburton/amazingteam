@@ -305,10 +305,55 @@ logger.info('User logged in', {
 ## Agent-Specific Rules
 
 ### For Planner Agent (v2)
-- Decompose tasks into actionable subtasks
-- Coordinate workflow progression between roles
-- Track dependencies and blocking issues
-- Update task manifests and state
+
+**Core Principle:** Large issues should be decomposed into explicit GitHub subtasks before broad implementation begins.
+
+**Decomposition Responsibilities:**
+- Determine whether a task requires decomposition
+- Create child GitHub issues with narrow scope
+- Define acceptance criteria per subtask
+- Define dependency order between subtasks
+- Assign recommended owner role for each subtask
+- Record parent/child relationships explicitly
+
+**Dispatch Responsibilities:**
+- Dispatch one subtask at a time (not all at once)
+- Identify the next active subtask
+- Determine the correct role to dispatch to
+- Check dependency satisfaction before dispatch
+- Detect and record blocked states
+
+**What Planner Does NOT Do:**
+- Direct code implementation
+- Deep architecture design details (Architect's role)
+- Final code review (Reviewer's role)
+- CI debugging (CI Analyst's role)
+- Replace specialist role reasoning
+
+**Decomposition Decision Guide:**
+
+| Condition | Decompose? |
+|-----------|------------|
+| Touches multiple modules | Yes |
+| Requires design before implementation | Yes |
+| Impacts public interfaces/APIs | Yes |
+| Likely needs multiple PRs | Yes |
+| Contains several distinct steps | Yes |
+| Single module, one PR sufficient | No |
+| Simple validation, clear scope | No |
+
+**GitHub Issue Mapping:**
+- Parent Issue = Overall work item with acceptance criteria
+- Child Issues = Subtasks with narrow scope
+- Dependencies = Explicit ordering between subtasks
+- One PR per subtask is preferred
+
+**Commands:**
+- `/breakdown-issue` - Decompose into sub-issues
+- `/dispatch-next` - Identify next active subtask
+- `/show-blockers` - List blocked items
+- `/close-parent-task` - Verify completion
+- `/summarize-parent` - Progress summary
 
 ### For Architect Agent
 - Never modify code directly
@@ -361,7 +406,12 @@ logger.info('User logged in', {
 
 | Command | Agent | Action |
 |---------|-------|--------|
-| `/triage` | Triage | Classify and investigate issue |
+| `/triage` | Triage | Classify, determine decomposition need |
+| `/breakdown-issue` | Planner | Decompose into GitHub sub-issues |
+| `/dispatch-next` | Planner | Identify and dispatch next subtask |
+| `/show-blockers` | Planner | List blocked subtasks |
+| `/summarize-parent` | Planner | Summarize parent issue progress |
+| `/close-parent-task` | Planner | Verify and close parent issue |
 | `/design` | Architect | Analyze and design |
 | `/implement` | Developer | Implement changes |
 | `/test` | QA | Run tests and validate |
@@ -460,7 +510,8 @@ This project uses a **layered memory architecture** to prevent role contaminatio
 .ai-team/memory/
 ├── planner/
 │   ├── decomposition_notes.md  # Task decomposition patterns
-│   └── flow_rules.md           # Workflow state machine rules
+│   ├── flow_rules.md           # Workflow state machine rules
+│   └── github_issue_patterns.md # GitHub issue orchestration patterns
 │
 ├── architect/
 │   ├── architecture_notes.md   # Architecture decisions
@@ -501,7 +552,9 @@ tasks/
 │   ├── implementation.md       # Developer's notes
 │   ├── validation.md           # QA's validation
 │   ├── review.md               # Reviewer's findings
-│   └── release.md              # Release checklist
+│   ├── release.md              # Release checklist
+│   └── subtasks/
+│       └── task.yaml           # Subtask template
 │
 └── issue-{id}/
     ├── task.yaml               # Task manifest
@@ -542,7 +595,7 @@ title: Task title
 type: feature | bug | refactor | docs | tech
 status: backlog | ready | in_analysis | in_design | in_implementation | in_validation | in_review | release_candidate | blocked | done
 priority: critical | high | medium | low
-owner_role: planner | architect | developer | qa | reviewer | triage
+owner_role: planner | architect | developer | qa | reviewer | triage | ci-analyst
 depends_on: []
 blocked_by: []
 acceptance_criteria:
@@ -552,6 +605,21 @@ risk_level: low | medium | high
 module_scope:
   - module1
   - module2
+
+github_issue: 123
+github_url: https://github.com/org/repo/issues/123
+parent_task: null
+parent_github_issue: null
+requires_decomposition: false
+
+subtasks:
+  - id: issue-123-subtask-01
+    github_issue: 201
+    title: "[Subtask] Analysis"
+    type: analysis
+    owner_role: architect
+    status: pending
+    depends_on: []
 ```
 
 ### Task States

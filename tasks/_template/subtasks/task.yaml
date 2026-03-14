@@ -1,0 +1,24 @@
+id: issue-000-subtask-01
+title: "[Subtask] Subtask Title"
+type: implementation
+status: ready
+priority: high
+owner_role: developer
+depends_on: []
+blocked_by: []
+acceptance_criteria:
+  - Acceptance criterion 1
+  - Acceptance criterion 2
+risk_level: medium
+module_scope:
+  - module1
+
+github_issue: null
+github_url: null
+parent_task: issue-000
+parent_github_issue: 000
+
+notes: |
+  Notes about this subtask.
+
+linked_pr: null
