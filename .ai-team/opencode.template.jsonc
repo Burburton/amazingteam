@@ -1,11 +1,11 @@
 {
   "$schema": "https://opencode.ai/schema.json",
-  "version": "1.0.0",
+  "version": "{{AI_TEAM_VERSION}}",
   "project": {
-    "name": "Amazing Team",
-    "description": "AI-powered autonomous development team",
-    "language": "TypeScript",
-    "framework": "Node.js"
+    "name": "{{PROJECT_NAME}}",
+    "description": "{{PROJECT_DESCRIPTION}}",
+    "language": "{{LANGUAGE}}",
+    "framework": "{{FRAMEWORK}}"
   },
   "agents": {
     "architect": {
@@ -14,18 +14,8 @@
       "skills": ["repo-architecture-reader"],
       "commands": ["/design"],
       "memory": {
-        "read": [
-          "docs/",
-          "AGENTS.md",
-          ".opencode/memory/architect/",
-          ".opencode/memory/developer/",
-          "tasks/"
-        ],
-        "write": [
-          ".opencode/memory/architect/",
-          "tasks/{task_id}/analysis.md",
-          "tasks/{task_id}/design.md"
-        ]
+        "read": ["docs/", "AGENTS.md", ".ai-team/memory/architect/", ".ai-team/memory/developer/", "tasks/"],
+        "write": [".ai-team/memory/architect/", "tasks/{task_id}/analysis.md", "tasks/{task_id}/design.md"]
       }
     },
     "developer": {
@@ -34,19 +24,8 @@
       "skills": ["test-first-feature-dev", "bugfix-playbook"],
       "commands": ["/implement"],
       "memory": {
-        "read": [
-          "docs/",
-          "AGENTS.md",
-          ".opencode/memory/architect/",
-          ".opencode/memory/developer/",
-          "tasks/{task_id}/"
-        ],
-        "write": [
-          ".opencode/memory/developer/",
-          "tasks/{task_id}/implementation.md",
-          "src/",
-          "tests/"
-        ]
+        "read": ["docs/", "AGENTS.md", ".ai-team/memory/architect/", ".ai-team/memory/developer/", "tasks/{task_id}/"],
+        "write": [".ai-team/memory/developer/", "tasks/{task_id}/implementation.md", "src/", "tests/"]
       }
     },
     "qa": {
@@ -55,18 +34,8 @@
       "skills": ["test-first-feature-dev"],
       "commands": ["/test"],
       "memory": {
-        "read": [
-          "docs/",
-          "AGENTS.md",
-          ".opencode/memory/architect/",
-          ".opencode/memory/qa/",
-          "tasks/{task_id}/"
-        ],
-        "write": [
-          ".opencode/memory/qa/",
-          "tasks/{task_id}/validation.md",
-          "tests/"
-        ]
+        "read": ["docs/", "AGENTS.md", ".ai-team/memory/architect/", ".ai-team/memory/qa/", "tasks/{task_id}/"],
+        "write": [".ai-team/memory/qa/", "tasks/{task_id}/validation.md", "tests/"]
       }
     },
     "reviewer": {
@@ -75,52 +44,44 @@
       "skills": ["safe-refactor-checklist"],
       "commands": ["/review"],
       "memory": {
-        "read": [
-          "docs/",
-          "AGENTS.md",
-          ".opencode/memory/",
-          "tasks/{task_id}/"
-        ],
-        "write": [
-          ".opencode/memory/reviewer/",
-          "tasks/{task_id}/review.md"
-        ]
+        "read": ["docs/", "AGENTS.md", ".ai-team/memory/", "tasks/{task_id}/"],
+        "write": [".ai-team/memory/reviewer/", "tasks/{task_id}/review.md"]
       }
     }
   },
   "skills": {
     "repo-architecture-reader": {
-      "path": ".opencode/skills/repo-architecture-reader/skill.md"
+      "path": ".ai-team/skills/repo-architecture-reader/skill.md"
     },
     "bugfix-playbook": {
-      "path": ".opencode/skills/bugfix-playbook/skill.md"
+      "path": ".ai-team/skills/bugfix-playbook/skill.md"
     },
     "test-first-feature-dev": {
-      "path": ".opencode/skills/test-first-feature-dev/skill.md"
+      "path": ".ai-team/skills/test-first-feature-dev/skill.md"
     },
     "safe-refactor-checklist": {
-      "path": ".opencode/skills/safe-refactor-checklist/skill.md"
+      "path": ".ai-team/skills/safe-refactor-checklist/skill.md"
     }
   },
   "commands": {
     "/design": {
-      "path": ".opencode/commands/design.md",
+      "path": ".ai-team/commands/design.md",
       "agent": "architect"
     },
     "/implement": {
-      "path": ".opencode/commands/implement.md",
+      "path": ".ai-team/commands/implement.md",
       "agent": "developer"
     },
     "/test": {
-      "path": ".opencode/commands/test.md",
+      "path": ".ai-team/commands/test.md",
       "agent": "qa"
     },
     "/review": {
-      "path": ".opencode/commands/review.md",
+      "path": ".ai-team/commands/review.md",
       "agent": "reviewer"
     },
     "/triage": {
-      "path": ".opencode/commands/triage.md",
+      "path": ".ai-team/commands/triage.md",
       "agent": "architect"
     }
   },
@@ -136,7 +97,7 @@
       "writeRequiresApproval": true
     },
     "role": {
-      "base_path": ".opencode/memory",
+      "base_path": ".ai-team/memory",
       "roles": {
         "architect": {
           "files": ["architecture_notes.md", "module_map.md", "design_rationale.md"]

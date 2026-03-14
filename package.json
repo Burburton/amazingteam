@@ -1,9 +1,19 @@
 {
-  "name": "amazingteam",
+  "name": "ai-team-template",
   "version": "1.0.0",
-  "description": "AI-powered autonomous development team",
+  "description": "AI-powered autonomous development team template - Reusable development foundation",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "ai-team": "./cli/ai-team.cjs"
+  },
+  "files": [
+    ".ai-team/",
+    "cli/",
+    "ai-team.config.yaml",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
@@ -20,10 +30,18 @@
     "ai",
     "automation",
     "development",
-    "opencode"
+    "template",
+    "opencode",
+    "github-actions",
+    "autonomous",
+    "dev-tools"
   ],
-  "author": "",
+  "author": "AI Team",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/ai-team-template.git"
+  },
   "devDependencies": {
     "@types/jest": "^29.5.12",
     "@types/node": "^20.11.0",
@@ -35,6 +53,6 @@
     "typescript": "^5.3.3"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=18.0.0"
   }
 }

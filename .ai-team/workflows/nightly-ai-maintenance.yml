@@ -1,0 +1,160 @@
+name: Nightly AI Maintenance
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  memory-cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check Task Memory
+        run: |
+          echo "Checking task memory directories..."
+          TASKS_DIR="tasks"
+          
+          if [ -d "$TASKS_DIR" ]; then
+            for task_dir in "$TASKS_DIR"/issue-*/; do
+              if [ -d "$task_dir" ]; then
+                issue_num=$(basename "$task_dir" | sed 's/issue-//')
+                echo "Checking task for issue #$issue_num"
+                
+                gh issue view $issue_num --json state,mergedAt,closedAt > /dev/null 2>&1 || echo "Issue #$issue_num not found or inaccessible"
+              fi
+            done
+          else
+            echo "No tasks directory found"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Memory Statistics
+        run: |
+          echo "=== Memory Statistics ==="
+          
+          echo ""
+          echo "Role Memory Files:"
+          find .opencode/memory -name "*.md" -exec wc -l {} \; 2>/dev/null || echo "No memory files found"
+          
+          echo ""
+          echo "Task Memory Directories:"
+          find tasks -type d -name "issue-*" 2>/dev/null | wc -l
+
+      - name: Archive Completed Tasks
+        run: |
+          echo "Archiving completed task memory..."
+          
+          ARCHIVE_DIR="tasks/.archive"
+          mkdir -p "$ARCHIVE_DIR"
+          
+          if [ -d "tasks" ]; then
+            for task_dir in tasks/issue-*/; do
+              if [ -d "$task_dir" ]; then
+                issue_num=$(basename "$task_dir" | sed 's/issue-//')
+                
+                gh issue view $issue_num --json state --jq '.state' 2>/dev/null | grep -q "CLOSED" && {
+                  echo "Archiving closed issue #$issue_num"
+                  mv "$task_dir" "$ARCHIVE_DIR/" 2>/dev/null || true
+                }
+              fi
+            done
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  quality-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install Dependencies
+        run: npm ci
+        
+      - name: Run Lint
+        run: npm run lint
+        continue-on-error: true
+        
+      - name: Run TypeCheck
+        run: npm run typecheck
+        continue-on-error: true
+        
+      - name: Run Tests
+        run: npm test
+        continue-on-error: true
+        
+      - name: Coverage Report
+        run: npm run test:coverage
+        continue-on-error: true
+
+  update-docs:
+    runs-on: ubuntu-latest
+    needs: [memory-cleanup, quality-check]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Update Architecture Docs
+        run: |
+          echo "Architecture documentation check..."
+          
+          if [ -f "docs/architecture/overview.md" ]; then
+            echo "Architecture docs exist"
+          else
+            echo "Warning: Architecture overview missing"
+          fi
+          
+          if [ -d "docs/decisions" ]; then
+            echo "ADR directory exists"
+            ls -la docs/decisions/*.md 2>/dev/null || echo "No ADRs yet"
+          fi
+
+      - name: Create Maintenance Report
+        run: |
+          REPORT_FILE="docs/runbooks/maintenance-report.md"
+          
+          cat > "$REPORT_FILE" << EOF
+          # Nightly Maintenance Report
+
+          **Date**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+
+          ## Summary
+
+          - Memory cleanup: Completed
+          - Quality checks: Completed
+          - Documentation: Verified
+
+          ## Memory Statistics
+
+          - Role memories: $(find .opencode/memory -name "*.md" 2>/dev/null | wc -l) files
+          - Task memories: $(find tasks -type d -name "issue-*" 2>/dev/null | wc -l) tasks
+          - Archived tasks: $(find tasks/.archive -type d -name "issue-*" 2>/dev/null | wc -l) tasks
+
+          ## Next Steps
+
+          - Review any failing checks
+          - Update memory as needed
+          - Archive completed tasks
+
+          ---
+          *This report is generated automatically by the nightly-ai-maintenance workflow.*
+          EOF
+          
+          echo "Maintenance report created at $REPORT_FILE"
+
+      - name: Commit Report
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add docs/runbooks/maintenance-report.md
+          git diff --quiet && git diff --staged --quiet || git commit -m "docs: update nightly maintenance report"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

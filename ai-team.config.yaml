@@ -1,0 +1,78 @@
+# AI Team Template Configuration
+# This file configures the AI team for your project
+
+project:
+  name: "{{PROJECT_NAME}}"
+  description: "{{PROJECT_DESCRIPTION}}"
+  language: "{{LANGUAGE}}"        # typescript, javascript, python, go, rust, etc.
+  framework: "{{FRAMEWORK}}"      # node, react, nextjs, express, etc.
+
+ai_team:
+  version: "1.0.0"
+  
+  # Enable/disable specific agents
+  agents:
+    architect: true
+    developer: true
+    qa: true
+    reviewer: true
+  
+  # Custom agent configurations (optional)
+  custom_agents: []
+    # - name: product-manager
+    #   enabled: true
+    #   path: .ai-team/agents/product-manager.md
+
+  # Memory settings
+  memory:
+    enabled: true
+    isolation: true               # Keep role memories isolated
+    auto_archive: true            # Archive completed task memories
+
+  # Workflow settings
+  workflows:
+    auto_trigger: true            # Auto-trigger on issue creation
+    require_human_approval: true  # Require human approval for merges
+
+# Project-specific rules (merged with AGENTS.md)
+rules:
+  # Coding standards
+  coding:
+    max_function_lines: 30
+    max_nesting_levels: 3
+    test_coverage_threshold: 80
+  
+  # Git workflow
+  git:
+    branch_prefix:
+      feature: "feat/"
+      bugfix: "fix/"
+      refactor: "refactor/"
+      tech: "tech/"
+    commit_convention: "conventional"  # conventional, angular, etc.
+
+  # Safety constraints
+  safety:
+    no_force_push: true
+    no_direct_main: true
+    require_pr_reviews: 1
+
+# Template source (for upgrades)
+template:
+  source: "{{TEMPLATE_REPO}}"
+  version: "{{TEMPLATE_VERSION}}"
+  last_sync: null
+
+# Customizations (override default behaviors)
+custom:
+  # Additional skills to include
+  skills: []
+  
+  # Additional commands
+  commands: []
+  
+  # Project-specific documentation
+  docs:
+    architecture: "docs/architecture/"
+    decisions: "docs/decisions/"
+    runbooks: "docs/runbooks/"

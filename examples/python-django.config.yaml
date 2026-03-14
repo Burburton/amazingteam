@@ -1,0 +1,56 @@
+# 示例：Python Django 项目配置
+
+project:
+  name: "my-django-app"
+  description: "A Django web application"
+  language: "python"
+  framework: "django"
+
+ai_team:
+  version: "1.0.0"
+  
+  agents:
+    architect: true
+    developer: true
+    qa: true
+    reviewer: true
+
+  memory:
+    enabled: true
+    isolation: true
+    auto_archive: true
+
+  workflows:
+    auto_trigger: true
+    require_human_approval: true
+
+rules:
+  coding:
+    max_function_lines: 30
+    max_nesting_levels: 3
+    test_coverage_threshold: 80
+  
+  git:
+    branch_prefix:
+      feature: "feat/"
+      bugfix: "fix/"
+      refactor: "refactor/"
+      tech: "tech/"
+    commit_convention: "conventional"
+
+  safety:
+    no_force_push: true
+    no_direct_main: true
+    require_pr_reviews: 1
+
+# Python 特定配置
+python:
+  version: "3.11"
+  linter: "ruff"
+  formatter: "black"
+  test_framework: "pytest"
+
+template:
+  source: "https://github.com/your-org/ai-team-template.git"
+  version: "1.0.0"
+  last_sync: null

@@ -1,0 +1,108 @@
+name: OpenCode Agent
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  detect-command:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+      command: ${{ steps.check.outputs.command }}
+      agent: ${{ steps.check.outputs.agent }}
+    steps:
+      - name: Check for OpenCode command
+        id: check
+        run: |
+          COMMENT="${{ github.event.comment.body }}"
+          ISSUE_BODY="${{ github.event.issue.body }}"
+          
+          if [[ "$COMMENT" == /opencode* ]]; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "command=${COMMENT#/opencode }" >> $GITHUB_OUTPUT
+            AGENT=$(echo "$COMMENT" | grep -oP '(?<=use )\w+(?= to)' || echo "auto")
+            echo "agent=$AGENT" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event_name }}" == "issues" ]] && [[ "${{ github.event.action }}" == "opened" ]]; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "command=auto-process" >> $GITHUB_OUTPUT
+            echo "agent=auto" >> $GITHUB_OUTPUT
+          else
+            echo "should_run=false" >> $GITHUB_OUTPUT
+          fi
+
+  run-architect:
+    needs: detect-command
+    if: needs.detect-command.outputs.should_run == 'true' && (needs.detect-command.outputs.agent == 'architect' || needs.detect-command.outputs.agent == 'auto')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Environment
+        run: |
+          npm install -g opencode-ai
+          
+      - name: Run Architect Agent
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        run: |
+          opencode run --agent architect --issue ${{ github.event.issue.number }}
+
+  run-developer:
+    needs: [detect-command, run-architect]
+    if: needs.detect-command.outputs.should_run == 'true' && (needs.detect-command.outputs.agent == 'developer' || needs.detect-command.outputs.agent == 'auto')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Environment
+        run: |
+          npm install -g opencode-ai
+          
+      - name: Run Developer Agent
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        run: |
+          opencode run --agent developer --issue ${{ github.event.issue.number }}
+
+  run-qa:
+    needs: [detect-command, run-developer]
+    if: needs.detect-command.outputs.should_run == 'true' && (needs.detect-command.outputs.agent == 'qa' || needs.detect-command.outputs.agent == 'auto')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Environment
+        run: |
+          npm install -g opencode-ai
+          
+      - name: Run QA Agent
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        run: |
+          opencode run --agent qa --issue ${{ github.event.issue.number }}
+
+  run-reviewer:
+    needs: [detect-command, run-qa]
+    if: needs.detect-command.outputs.should_run == 'true' && (needs.detect-command.outputs.agent == 'reviewer' || needs.detect-command.outputs.agent == 'auto')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Environment
+        run: |
+          npm install -g opencode-ai
+          
+      - name: Run Reviewer Agent
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        run: |
+          opencode run --agent reviewer --issue ${{ github.event.issue.number }}

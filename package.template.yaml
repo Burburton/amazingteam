@@ -1,0 +1,29 @@
+name: ai-team
+description: AI-powered autonomous development team template
+version: 1.0.0
+license: MIT
+author: AI Team
+repository:
+  type: git
+  url: https://github.com/your-org/ai-team-template.git
+
+bin:
+  ai-team: ./cli/ai-team.cjs
+
+files:
+  - .ai-team/
+  - cli/
+  - ai-team.config.yaml
+  - README.md
+  - LICENSE
+
+keywords:
+  - ai
+  - automation
+  - development
+  - template
+  - opencode
+  - github-actions
+
+engines:
+  node: ">=18.0.0"
