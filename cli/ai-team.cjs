@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const AI_TEAM_VERSION = '1.0.0';
+const AI_TEAM_VERSION = '2.0.0';
 const TEMPLATE_REPO = 'https://github.com/your-org/ai-team-template.git';
 
 const COLORS = {
@@ -125,17 +125,23 @@ async function init(projectName, options = {}) {
     '.ai-team/agents',
     '.ai-team/skills',
     '.ai-team/commands',
+    '.ai-team/memory/planner',
     '.ai-team/memory/architect',
     '.ai-team/memory/developer',
     '.ai-team/memory/qa',
     '.ai-team/memory/reviewer',
+    '.ai-team/memory/triage',
+    '.ai-team/memory/ci-analyst',
+    '.ai-team/memory/failures',
     '.ai-team/workflows',
     '.github/workflows',
     '.github/ISSUE_TEMPLATE',
     'docs/architecture',
     'docs/decisions',
-    'docs/runbooks',
-    'tasks',
+    'docs/patterns',
+    'docs/releases',
+    'docs/runbooks/ci',
+    'tasks/_template',
     'src',
     'tests',
   ];
@@ -162,15 +168,23 @@ ai_team:
   version: "${AI_TEAM_VERSION}"
   
   agents:
+    planner: true
     architect: true
     developer: true
     qa: true
     reviewer: true
+    triage: true
+    ci_analyst: true
 
   memory:
     enabled: true
     isolation: true
     auto_archive: true
+    failures_library: true
+
+  task_system:
+    enabled: true
+    state_machine: true
 
   workflows:
     auto_trigger: true
@@ -518,6 +532,11 @@ This project uses layered memory architecture:
 └─────────────────┬───────────────────┘
                   │
 ┌─────────────────▼───────────────────┐
+│      FAILURES LIBRARY                │
+│   Shared failure patterns            │
+└─────────────────┬───────────────────┘
+                  │
+┌─────────────────▼───────────────────┐
 │       TASK MEMORY (tasks/)           │
 │   Task-scoped, auto-created          │
 └─────────────────────────────────────┘
@@ -527,11 +546,19 @@ This project uses layered memory architecture:
 
 | Command | Agent | Purpose |
 |---------|-------|---------|
+| \`/triage\` | Triage | Classify and investigate issue |
 | \`/design\` | Architect | Analyze and design |
 | \`/implement\` | Developer | Implement changes |
 | \`/test\` | QA | Validate and test |
 | \`/review\` | Reviewer | Code review |
-| \`/triage\` | Architect | Classify issues |
+| \`/ci-analyze\` | CI Analyst | Analyze CI failures |
+| \`/release-check\` | Reviewer | Validate release readiness |
+
+## Task States
+
+\`\`\`
+backlog → ready → in_analysis → in_design → in_implementation → in_validation → in_review → release_candidate → done
+\`\`\`
 
 ## Safety Constraints
 
@@ -539,6 +566,17 @@ This project uses layered memory architecture:
 2. Minimal changes only
 3. Human approval required for merges
 4. All changes must be reversible
+
+## Governance
+
+### Protected Areas (require human approval)
+- \`docs/architecture/\`
+- \`docs/decisions/\`
+
+### Human Approval Gates
+- Architecture changes
+- Merge to protected branches
+- Release operations
 `;
   
   fs.writeFileSync(path.join(targetDir, 'AGENTS.md'), content);
@@ -732,6 +770,7 @@ ${COLORS.yellow}Commands:${COLORS.reset}
   init [name]        Initialize AI Team in current or new project
   upgrade            Upgrade AI Team to latest version
   status             Show current AI Team status
+  validate           Validate AI Team structure
   help               Show this help message
 
 ${COLORS.yellow}Init Options:${COLORS.reset}
@@ -749,6 +788,7 @@ ${COLORS.yellow}Examples:${COLORS.reset}
   ai-team init --language python --framework django
   ai-team upgrade
   ai-team status
+  ai-team validate
 `);
 }
 
@@ -781,6 +821,10 @@ async function main() {
         break;
       case 'status':
         await status();
+        break;
+      case 'validate':
+      case 'check':
+        require('child_process').execSync('node scripts/validate-foundation.cjs', { stdio: 'inherit' });
         break;
       case 'help':
       case '--help':
