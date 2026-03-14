@@ -128,8 +128,10 @@ After creating the PR, hand off to the **QA** agent by:
 ### Read Access
 - `docs/` - Global documentation
 - `AGENTS.md` - Global rules
+- `.ai-team/memory/planner/` - Planner memory (for task context)
 - `.ai-team/memory/architect/` - Architect memory (for design context)
 - `.ai-team/memory/developer/` - Own role memory
+- `.ai-team/memory/failures/` - Failure library
 - `tasks/{current_task}/` - Current task memory
 
 ### Write Access
@@ -139,6 +141,7 @@ After creating the PR, hand off to the **QA** agent by:
 - `tests/` - Test files
 
 ### Forbidden Writes
+- `.ai-team/memory/planner/` - Planner memory
 - `.ai-team/memory/architect/` - Architect memory
 - `.ai-team/memory/qa/` - QA memory
 - `.ai-team/memory/reviewer/` - Reviewer memory

@@ -449,11 +449,11 @@ This project uses a **layered memory architecture** to prevent role contaminatio
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                     GLOBAL MEMORY                                │
-│  Location: docs/, AGENTS.md                                     │
-│  Access: Read-only for all roles                                │
-│  Update: Requires human approval                                │
-│  Content: Stable project truths, architecture, standards        │
+│                     ROLE MEMORY                                  │
+│  Location: .ai-team/memory/{role}/                              │
+│  Access: Read/Write for owning role, Read for others            │
+│  Update: Automatic by role agent                                │
+│  Content: Role-specific knowledge, patterns, observations       │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -479,13 +479,21 @@ This project uses a **layered memory architecture** to prevent role contaminatio
 
 | Role | Global Memory | Planner Memory | Architect Memory | Developer Memory | QA Memory | Reviewer Memory | Triage Memory | CI Analyst Memory | Failures Memory | Task Memory |
 |------|---------------|----------------|------------------|------------------|-----------|-----------------|---------------|-------------------|-----------------|-------------|
-| Planner | Read | Read/Write | Read | None | None | None | Read | None | Read | Read/Write |
-| Architect | Read | Read | Read/Write | Read | None | None | None | None | Read | Read/Write |
-| Developer | Read | Read | Read | Read/Write | None | None | None | None | Read | Read/Write |
-| QA | Read | Read | Read | None | Read/Write | None | None | None | Read | Read/Write |
-| Reviewer | Read | Read | Read | Read | Read | Read/Write | None | None | Read | Read/Write |
-| Triage | Read | None | None | None | None | None | Read/Write | None | Read | Read/Write |
-| CI Analyst | Read | None | None | None | None | None | None | Read/Write | Read/Write | Read/Write |
+| Planner | Read | Read/Write | Read | Read | Read | Read | Read | Read | Read | Read/Write |
+| Architect | Read | Read | Read/Write | Read | - | - | - | - | Read | Read/Write |
+| Developer | Read | Read | Read | Read/Write | - | - | - | - | Read | Read/Write |
+| QA | Read | Read | Read | - | Read/Write | - | - | - | Read | Read/Write |
+| Reviewer | Read | Read | Read | Read | Read | Read/Write | - | - | Read | Read/Write |
+| Triage | Read | - | - | - | - | - | Read/Write | - | Read | Read/Write |
+| CI Analyst | Read | - | - | - | - | - | - | Read/Write | Read/Write | Read/Write |
+
+**Notes:**
+- "-" means no access (neither read nor write)
+- "Read" means read-only access
+- "Read/Write" means full access
+- Planner can read all role memories for coordination purposes
+- All roles can read Global Memory (docs/, AGENTS.md)
+- All roles can read Failures Memory for learning from past issues
 
 ### Memory Update Rules
 

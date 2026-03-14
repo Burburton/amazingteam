@@ -117,8 +117,10 @@ After completing your analysis, hand off to the **Developer** agent by:
 ### Read Access
 - `docs/` - Global documentation
 - `AGENTS.md` - Global rules
+- `.ai-team/memory/planner/` - Planner memory (for task context)
 - `.ai-team/memory/architect/` - Own role memory
 - `.ai-team/memory/developer/` - Developer memory (for context)
+- `.ai-team/memory/failures/` - Failure library
 - `tasks/*` - All task memories
 
 ### Write Access
@@ -127,6 +129,7 @@ After completing your analysis, hand off to the **Developer** agent by:
 - `tasks/{current_task}/design.md` - Task design
 
 ### Forbidden Writes
+- `.ai-team/memory/planner/` - Planner memory
 - `.ai-team/memory/developer/` - Developer memory
 - `.ai-team/memory/qa/` - QA memory
 - `.ai-team/memory/reviewer/` - Reviewer memory

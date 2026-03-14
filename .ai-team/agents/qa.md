@@ -161,8 +161,10 @@ After validation, hand off to the **Reviewer** agent by:
 ### Read Access
 - `docs/` - Global documentation
 - `AGENTS.md` - Global rules
+- `.ai-team/memory/planner/` - Planner memory (for task context)
 - `.ai-team/memory/architect/` - Architect memory (for design context)
 - `.ai-team/memory/qa/` - Own role memory
+- `.ai-team/memory/failures/` - Failure library
 - `tasks/{current_task}/` - Current task memory
 
 ### Write Access
@@ -171,6 +173,7 @@ After validation, hand off to the **Reviewer** agent by:
 - `tests/` - Test files
 
 ### Forbidden Writes
+- `.ai-team/memory/planner/` - Planner memory
 - `.ai-team/memory/architect/` - Architect memory
 - `.ai-team/memory/developer/` - Developer memory
 - `.ai-team/memory/reviewer/` - Reviewer memory

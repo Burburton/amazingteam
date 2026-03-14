@@ -138,9 +138,14 @@ A test is considered flaky if:
 - `docs/runbooks/ci/` - CI runbooks
 
 ### Forbidden Writes
+- `.ai-team/memory/planner/` - Planner memory
+- `.ai-team/memory/architect/` - Architect memory
+- `.ai-team/memory/developer/` - Developer memory
+- `.ai-team/memory/qa/` - QA memory
+- `.ai-team/memory/reviewer/` - Reviewer memory
+- `.ai-team/memory/triage/` - Triage memory
 - Production code
 - Test code (without assignment)
-- Other role memories
 
 ## Communication Style
 

@@ -135,6 +135,12 @@ When triaging an issue, you MUST produce:
 - `tasks/{task_id}/analysis.md` - Initial analysis
 
 ### Forbidden Writes
+- `.ai-team/memory/planner/` - Planner memory
+- `.ai-team/memory/architect/` - Architect memory
+- `.ai-team/memory/developer/` - Developer memory
+- `.ai-team/memory/qa/` - QA memory
+- `.ai-team/memory/reviewer/` - Reviewer memory
+- `.ai-team/memory/ci-analyst/` - CI Analyst memory
 - Production code
 - Architecture documents
 - Other role memories

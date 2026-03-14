@@ -182,10 +182,12 @@ After completing the review:
 ### Read Access
 - `docs/` - Global documentation
 - `AGENTS.md` - Global rules
+- `.ai-team/memory/planner/` - Planner memory (for task context)
 - `.ai-team/memory/architect/` - Architect memory
 - `.ai-team/memory/developer/` - Developer memory
 - `.ai-team/memory/qa/` - QA memory
 - `.ai-team/memory/reviewer/` - Own role memory
+- `.ai-team/memory/failures/` - Failure library
 - `tasks/{current_task}/` - Current task memory
 
 ### Write Access
@@ -193,6 +195,7 @@ After completing the review:
 - `tasks/{current_task}/review.md` - Review notes
 
 ### Forbidden Writes
+- `.ai-team/memory/planner/` - Planner memory
 - `.ai-team/memory/architect/` - Architect memory
 - `.ai-team/memory/developer/` - Developer memory
 - `.ai-team/memory/qa/` - QA memory
