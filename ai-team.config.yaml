@@ -1,78 +1,150 @@
-# AI Team Template Configuration
-# This file configures the AI team for your project
+# AI Team Foundation Configuration
+# This file contains AI Team-specific configuration not recognized by OpenCode
+
+version: "2.0.0"
 
 project:
-  name: "{{PROJECT_NAME}}"
-  description: "{{PROJECT_DESCRIPTION}}"
-  language: "{{LANGUAGE}}"        # typescript, javascript, python, go, rust, etc.
-  framework: "{{FRAMEWORK}}"      # node, react, nextjs, express, etc.
+  name: "ai-team-foundation"
+  description: "AI-powered autonomous development team foundation"
+  language: "typescript"
+  framework: "node"
 
-ai_team:
-  version: "1.0.0"
-  
-  # Enable/disable specific agents
-  agents:
-    architect: true
-    developer: true
-    qa: true
-    reviewer: true
-  
-  # Custom agent configurations (optional)
-  custom_agents: []
-    # - name: product-manager
-    #   enabled: true
-    #   path: .ai-team/agents/product-manager.md
-
-  # Memory settings
-  memory:
+agents:
+  planner:
     enabled: true
-    isolation: true               # Keep role memories isolated
-    auto_archive: true            # Archive completed task memories
+    description: "Decomposes tasks and coordinates workflow progression"
+    skills: ["task-breakdown-and-dispatch"]
+    memory:
+      read: ["docs/", "AGENTS.md", ".ai-team/memory/planner/", ".ai-team/memory/architect/", ".ai-team/memory/triage/", ".ai-team/memory/failures/", "tasks/"]
+      write: [".ai-team/memory/planner/", "tasks/{task_id}/task.yaml"]
+  
+  architect:
+    enabled: true
+    description: "Analyzes requirements and designs solutions"
+    skills: ["repo-architecture-reader"]
+    memory:
+      read: ["docs/", "AGENTS.md", ".ai-team/memory/planner/", ".ai-team/memory/architect/", ".ai-team/memory/developer/", ".ai-team/memory/failures/", "tasks/"]
+      write: [".ai-team/memory/architect/", "tasks/{task_id}/analysis.md", "tasks/{task_id}/design.md"]
+  
+  developer:
+    enabled: true
+    description: "Implements features and fixes bugs"
+    skills: ["test-first-feature-dev", "bugfix-playbook"]
+    memory:
+      read: ["docs/", "AGENTS.md", ".ai-team/memory/planner/", ".ai-team/memory/architect/", ".ai-team/memory/developer/", ".ai-team/memory/failures/", "tasks/{task_id}/"]
+      write: [".ai-team/memory/developer/", "tasks/{task_id}/implementation.md", "src/", "tests/"]
+  
+  qa:
+    enabled: true
+    description: "Validates implementations and ensures quality"
+    skills: ["test-first-feature-dev", "regression-checklist"]
+    memory:
+      read: ["docs/", "AGENTS.md", ".ai-team/memory/planner/", ".ai-team/memory/architect/", ".ai-team/memory/qa/", ".ai-team/memory/failures/", "tasks/{task_id}/"]
+      write: [".ai-team/memory/qa/", "tasks/{task_id}/validation.md", "tests/"]
+  
+  reviewer:
+    enabled: true
+    description: "Reviews code for quality and correctness"
+    skills: ["safe-refactor-checklist", "regression-checklist", "release-readiness-check"]
+    memory:
+      read: ["docs/", "AGENTS.md", ".ai-team/memory/", ".ai-team/memory/failures/", "tasks/{task_id}/"]
+      write: [".ai-team/memory/reviewer/", "tasks/{task_id}/review.md", "tasks/{task_id}/release.md"]
+  
+  triage:
+    enabled: true
+    description: "Classifies issues and performs first-pass debug analysis"
+    skills: ["issue-triage", "bugfix-playbook"]
+    memory:
+      read: ["docs/", "AGENTS.md", ".ai-team/memory/triage/", ".ai-team/memory/failures/", "tasks/{task_id}/"]
+      write: [".ai-team/memory/triage/", "tasks/{task_id}/"]
+  
+  ci_analyst:
+    enabled: true
+    description: "Investigates CI failures and documents patterns"
+    skills: ["ci-failure-analysis", "bugfix-playbook"]
+    memory:
+      read: ["docs/", "AGENTS.md", ".ai-team/memory/ci-analyst/", ".ai-team/memory/failures/", "tasks/{task_id}/", "docs/runbooks/ci/"]
+      write: [".ai-team/memory/ci-analyst/", ".ai-team/memory/failures/", "tasks/{task_id}/"]
 
-  # Workflow settings
-  workflows:
-    auto_trigger: true            # Auto-trigger on issue creation
-    require_human_approval: true  # Require human approval for merges
+workflows:
+  feature:
+    sequence: ["planner", "architect", "developer", "qa", "reviewer"]
+    description: "Feature development workflow"
+  
+  bugfix:
+    sequence: ["triage", "architect", "developer", "qa", "reviewer"]
+    description: "Bug fix workflow"
+  
+  refactor:
+    sequence: ["architect", "developer", "reviewer"]
+    description: "Refactoring workflow"
+  
+  ci_failure:
+    sequence: ["ci_analyst", "developer", "qa"]
+    description: "CI failure resolution workflow"
+  
+  release:
+    sequence: ["reviewer"]
+    description: "Release validation workflow"
 
-# Project-specific rules (merged with AGENTS.md)
+memory:
+  global:
+    locations: ["docs/", "AGENTS.md"]
+    write_requires_approval: true
+  
+  role:
+    base_path: ".ai-team/memory"
+    roles:
+      planner:
+        files: ["decomposition_notes.md", "flow_rules.md"]
+      architect:
+        files: ["architecture_notes.md", "module_map.md", "design_rationale.md"]
+      developer:
+        files: ["implementation_notes.md", "bug_investigation.md", "build_issues.md"]
+      qa:
+        files: ["test_strategy.md", "regression_cases.md", "validation_notes.md"]
+      reviewer:
+        files: ["review_notes.md", "quality_rules.md", "recurring_risks.md"]
+      triage:
+        files: ["classification_heuristics.md", "debug_notes.md"]
+      ci_analyst:
+        files: ["failure_patterns.md", "runbook_references.md"]
+  
+  failures:
+    path: ".ai-team/memory/failures"
+    files: ["failure_library.md"]
+    writable_by: ["ci_analyst"]
+  
+  task:
+    base_path: "tasks"
+    naming: "issue-{issue_id}"
+    files: ["task.yaml", "analysis.md", "design.md", "implementation.md", "validation.md", "review.md", "release.md"]
+    auto_create: true
+    preserve_after_completion: true
+
 rules:
-  # Coding standards
-  coding:
-    max_function_lines: 30
-    max_nesting_levels: 3
-    test_coverage_threshold: 80
-  
-  # Git workflow
-  git:
-    branch_prefix:
-      feature: "feat/"
-      bugfix: "fix/"
-      refactor: "refactor/"
-      tech: "tech/"
-    commit_convention: "conventional"  # conventional, angular, etc.
+  max_changes_per_commit: 10
+  require_tests: true
+  require_review: true
+  auto_merge: false
+  memory_isolation: true
+  protected_paths:
+    - "docs/architecture/"
+    - "docs/decisions/"
+  human_approval_required:
+    - "architecture changes"
+    - "release operations"
+    - "breaking changes"
 
-  # Safety constraints
-  safety:
-    no_force_push: true
-    no_direct_main: true
-    require_pr_reviews: 1
-
-# Template source (for upgrades)
-template:
-  source: "{{TEMPLATE_REPO}}"
-  version: "{{TEMPLATE_VERSION}}"
-  last_sync: null
-
-# Customizations (override default behaviors)
-custom:
-  # Additional skills to include
-  skills: []
+integrations:
+  github:
+    enabled: true
+    auto_label: true
+    auto_assign: true
   
-  # Additional commands
-  commands: []
-  
-  # Project-specific documentation
-  docs:
-    architecture: "docs/architecture/"
-    decisions: "docs/decisions/"
-    runbooks: "docs/runbooks/"
+  ci:
+    enabled: true
+    require_passing: true
+    failure_analysis:
+      enabled: true
+      agent: "ci_analyst"
