@@ -90,6 +90,18 @@ Follow conventional commits format:
 - `docs(scope): description` - Documentation updates
 - `chore(scope): description` - Maintenance tasks
 
+## Git Identity
+
+When creating commits in automated workflows, use:
+- **Username**: `opencode-bot`
+- **Email**: `opencode-bot@users.noreply.github.com`
+
+Configure before committing:
+```bash
+git config user.name "opencode-bot"
+git config user.email "opencode-bot@users.noreply.github.com"
+```
+
 ## Pull Request Checklist
 
 Before creating a PR, ensure:

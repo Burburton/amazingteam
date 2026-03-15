@@ -398,37 +398,53 @@ logger.info('User logged in', {
 The complete issue-to-merge lifecycle follows this flow:
 
 ```
-Issue Created → Triage → Design → Implement → Test → Create PR → Human Review → Merge
-                    │                                          │
-                    │                                          └── STOP: wait for human to review and merge
+Issue Created → Planner (Coordinator)
                     │
-                    └── AI decides automatically (no confirmation needed)
+                    ├── Dispatch → Triage (Classify)
+                    ├── Dispatch → Architect (Design)
+                    ├── Dispatch → Developer (Implement)
+                    ├── Dispatch → QA (Validate)
+                    └── Dispatch → Developer (Create PR)
+                                              │
+                                              └── STOP: wait for human to review and merge
 ```
+
+### Role Dispatch Model
+
+**Planner is the coordinator** - it dispatches work to appropriate roles:
+
+| Phase | Role | Responsibility |
+|-------|------|----------------|
+| Triage | Triage agent | Classify issue, determine decomposition |
+| Design | Architect agent | Create implementation plan |
+| Implementation | Developer agent | Write code, tests |
+| Validation | QA agent | Run tests, verify criteria |
+| PR Creation | Developer agent | Submit PR for review |
 
 ### Automated Workflow Steps
 
-1. **Triage** (Automatic - AI decides)
+1. **Triage** (Dispatch to Triage agent)
    - Classify issue type (feature/bug/tech-task)
    - Determine if decomposition is needed
-   - Proceed automatically without user confirmation
+   - Return classification to Planner
 
-2. **Design** (Automatic)
+2. **Design** (Dispatch to Architect agent)
    - Architect analyzes requirements
    - Creates implementation plan
    - Identifies affected modules
 
-3. **Implementation** (Automatic)
+3. **Implementation** (Dispatch to Developer agent)
    - Developer creates feature branch
    - Implements changes incrementally
    - Writes/updates tests
    - Runs linters and type checks
 
-4. **Validation** (Automatic)
+4. **Validation** (Dispatch to QA agent)
    - QA validates functionality
    - Runs test suite
    - Checks acceptance criteria
 
-5. **PR Creation** (STOP here - wait for human)
+5. **PR Creation** (Dispatch to Developer agent)
    - Create Pull Request with description
    - Link to original issue
    - **STOP** - wait for human review and merge
@@ -443,7 +459,7 @@ Issue Created → Triage → Design → Implement → Test → Create PR → Hum
 | Rule | Description |
 |------|-------------|
 | **No Direct Commits to Main** | All changes MUST go through a Pull Request |
-| **Fully Automated** | Triage → Design → Implement → Test is automatic |
+| **Planner Coordinates** | Planner dispatches to roles, does not implement itself |
 | **Human Merge Gate** | AI creates PR but does NOT merge; humans merge |
 | **PR Required for All Changes** | Even small fixes need a PR for traceability |
 
@@ -451,6 +467,7 @@ Issue Created → Triage → Design → Implement → Test → Create PR → Hum
 
 | Command | Agent | Action |
 |---------|-------|--------|
+| `/auto` | Planner | **Coordinator**: Dispatch Triage → Design → Implement → Test → Create PR |
 | `/triage` | Triage | Classify, determine decomposition need |
 | `/breakdown-issue` | Planner | Decompose into GitHub sub-issues |
 | `/dispatch-next` | Planner | Identify and dispatch next subtask |
@@ -463,6 +480,12 @@ Issue Created → Triage → Design → Implement → Test → Create PR → Hum
 | `/review` | Reviewer | Review code |
 | `/ci-analyze` | CI Analyst | Analyze CI failures |
 | `/release-check` | Reviewer | Validate release readiness |
+
+### Git Identity for Automated Commits
+
+Default identity used when AI creates commits:
+- **Username**: `opencode-bot`
+- **Email**: `opencode-bot@users.noreply.github.com`
 
 ## Safety Constraints
 
