@@ -56,12 +56,20 @@ When implementing an issue, you MUST produce:
 ## Workflow
 
 1. Receive the implementation plan from Architect
-2. Create a feature branch
+2. Create a feature branch (`feat/issue-{id}-{description}`)
 3. Implement changes incrementally
 4. Write/update tests
 5. Run linters and tests
-6. Create a pull request
+6. **Create a Pull Request** (MANDATORY - never commit directly to main)
 7. Address review feedback
+
+## Pull Request Rules
+
+- **ALWAYS create a PR** - never commit directly to main branch
+- **NEVER merge your own PR** - wait for human review and approval
+- Link PR to the original issue
+- Include clear description of changes
+- List affected modules and testing evidence
 
 ## Code Style Guidelines
 

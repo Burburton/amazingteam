@@ -393,14 +393,59 @@ logger.info('User logged in', {
 
 ## Workflow Automation
 
-### Issue Processing
+### Issue Processing Lifecycle
 
-1. New issue created
-2. Architect analyzes requirements
-3. Developer implements solution
-4. QA validates implementation
-5. Reviewer reviews code
-6. Human approves merge
+The complete issue-to-merge lifecycle follows this flow:
+
+```
+Issue Created → Triage → Design → Implement → Test → Create PR → Human Review → Merge
+                    │                                          │
+                    │                                          └── STOP: wait for human to review and merge
+                    │
+                    └── AI decides automatically (no confirmation needed)
+```
+
+### Automated Workflow Steps
+
+1. **Triage** (Automatic - AI decides)
+   - Classify issue type (feature/bug/tech-task)
+   - Determine if decomposition is needed
+   - Proceed automatically without user confirmation
+
+2. **Design** (Automatic)
+   - Architect analyzes requirements
+   - Creates implementation plan
+   - Identifies affected modules
+
+3. **Implementation** (Automatic)
+   - Developer creates feature branch
+   - Implements changes incrementally
+   - Writes/updates tests
+   - Runs linters and type checks
+
+4. **Validation** (Automatic)
+   - QA validates functionality
+   - Runs test suite
+   - Checks acceptance criteria
+
+5. **PR Creation** (STOP here - wait for human)
+   - Create Pull Request with description
+   - Link to original issue
+   - **STOP** - wait for human review and merge
+
+6. **Human Review & Merge**
+   - Human reviews PR
+   - Human approves and merges
+   - AI does NOT merge
+
+### Critical Rules
+
+| Rule | Description |
+|------|-------------|
+| **No Direct Commits to Main** | All changes MUST go through a Pull Request |
+| **Fully Automated** | Triage → Design → Implement → Test is automatic |
+| **Human Merge Gate** | AI creates PR but does NOT merge; humans merge |
+| **PR Required for All Changes** | Even small fixes need a PR for traceability |
 
 ### Command Triggers
 
@@ -421,22 +466,28 @@ logger.info('User logged in', {
 
 ## Safety Constraints
 
-1. **No Destructive Operations**
+1. **No Direct Commits to Main**
+   - All changes MUST go through a Pull Request
+   - Create a branch, make changes, create PR
+   - Wait for human review and approval
+   - AI does NOT merge PRs - humans merge
+
+2. **No Destructive Operations**
    - Don't delete files without confirmation
    - Don't drop database tables
    - Don't remove critical configuration
 
-2. **Minimal Changes**
+3. **Minimal Changes**
    - Only change what's necessary
    - Don't refactor unrelated code
    - Keep PRs focused
 
-3. **Human Approval Required**
+4. **Human Approval Required**
    - All merges require human approval
    - Breaking changes need explicit sign-off
    - Security changes need review
 
-4. **Rollback Ready**
+5. **Rollback Ready**
    - All changes must be reversible
    - Document rollback procedures
    - Keep migration scripts
@@ -676,6 +727,7 @@ AI should not directly modify durable truth areas without explicit approval:
 
 Humans should approve:
 
+- **All Pull Requests** (AI creates PR, human merges)
 - Architecture changes
 - Merge to protected branches
 - Release operations
