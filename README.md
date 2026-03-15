@@ -180,11 +180,15 @@ ai-team init my-project \
 
 创建 Issue 后，评论命令触发 AI：
 
+**推荐：一条命令自动完成全流程**
+
 ```
-/opencode use architect to analyze this issue
+/oc /auto
 ```
 
-**推荐流程：**
+这会自动执行：Triage → Design → Implement → Test → Create PR，等待人工审核合并。
+
+**手动分步流程（高级用户）：**
 
 ```
 新Issue → /triage → 判断是否需要分解
@@ -211,6 +215,7 @@ ai-team init my-project \
 
 | 命令 | 角色 | 作用 |
 |------|------|------|
+| `/auto` | Planner | **全自动**：分类 → 设计 → 实现 → 测试 → 创建 PR |
 | `/triage` | Triage | Issue分类，确定是否需要分解 |
 | `/breakdown-issue` | Planner | 分解大任务为GitHub子Issue |
 | `/dispatch-next` | Planner | 派发下一个活跃子任务 |
@@ -226,7 +231,37 @@ ai-team init my-project \
 
 ### 4. 工作流程
 
-#### 功能开发流程（大任务）
+#### 全自动流程（推荐）
+
+```
+Issue 创建
+      │
+      ▼
+  /oc /auto
+      │
+      ▼
+┌─────────────────────────────────────────────────────┐
+│  Planner (Coordinator)                              │
+│      │                                              │
+│      ├── Triage (分类)                              │
+│      │                                              │
+│      ├── 决策点                                     │
+│      │    ├── 简单任务 → 直接执行                   │
+│      │    └── 复杂任务 → 创建子Issue → 逐个执行     │
+│      │                                              │
+│      ├── Architect (设计)                           │
+│      ├── Developer (实现)                           │
+│      ├── QA (测试)                                  │
+│      └── Developer (创建 PR)                        │
+└─────────────────────────────────────────────────────┘
+      │
+      ▼
+┌─────────────┐
+│   Human     │ ─── 审核合并
+└─────────────┘
+```
+
+#### 功能开发流程（大任务 - 手动分步）
 
 ```
 Issue 创建
@@ -894,6 +929,45 @@ A: 以下情况建议分解：
 欢迎提交 Issue 和 Pull Request！
 
 ## 版本历史
+
+### v2.1.0 - 全自动工作流
+
+**新增：**
+- `/auto` 命令：一条命令完成 Triage → Design → Implement → Test → Create PR 全流程
+- 自动 GitHub Sub-issue 创建：复杂任务自动分解为子 Issue
+- 依赖调度：自动处理子任务依赖关系，按序执行
+- Git 身份配置：`opencode-bot` 作为自动化提交的默认身份
+
+**改进：**
+- 工作流优化：Planner 作为协调者调度各角色，而非自己执行
+- 无需人工确认：Triage 后自动执行，无需用户确认
+- GitHub Actions 权限：增加 `contents: write`、`pull-requests: write` 支持 PR 创建
+- 开发者角色：明确 PR 创建规则，禁止直接提交到 main
+
+**工作流程：**
+
+```
+/oc /auto
+    │
+    ▼
+┌─────────────────────────────────────────────────────────┐
+│  Triage → (Decompose?) → Design → Implement → Test → PR │
+└─────────────────────────────────────────────────────────┘
+    │
+    ▼
+Human Review & Merge
+```
+
+**依赖处理：**
+
+```
+Parent Issue #120
+    ├── Sub-issue #201 (architect) → PR merged
+    │       ↓
+    ├── Sub-issue #202 (developer) → wait for #201
+    │       ↓
+    └── Sub-issue #203 (qa) → wait for #202
+```
 
 ### v2.0.0 - GitHub Issue 编排
 

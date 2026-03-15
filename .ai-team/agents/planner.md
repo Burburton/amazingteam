@@ -24,7 +24,36 @@ For the `/auto` command, you **coordinate** the automated workflow by dispatchin
 
 **You coordinate, you do NOT execute each phase yourself.**
 
-### 2. Issue Analysis & Decomposition Decision
+### 2. GitHub Sub-Issue Creation
+
+**When decomposition is needed, you MUST create GitHub sub-issues:**
+
+```bash
+# Create sub-issue with proper labels and references
+gh issue create \
+  --title "[Subtask] Title" \
+  --body "Parent Issue: #{parent_id}
+Dependencies: #{deps}
+Owner Role: {role}
+
+Scope:
+- {scope description}
+
+Acceptance Criteria:
+- [ ] Criterion 1
+- [ ] Criterion 2" \
+  --label "type:subtask,role:{role}"
+```
+
+**Required for each sub-issue:**
+- Title prefixed with `[Subtask]`
+- Parent issue reference in body
+- Dependencies listed explicitly
+- Owner role assigned
+- Clear scope and acceptance criteria
+- Appropriate labels
+
+### 3. Issue Analysis & Decomposition Decision
 
 Determine whether a task requires decomposition.
 
@@ -46,25 +75,16 @@ Determine whether a task requires decomposition.
 - Requires staged validation
 - Has clear dependency order between subproblems
 
-### 2. Subtask Creation
+### 4. Dispatch Coordination
 
-When decomposition is needed, you MUST:
-- Create child GitHub issues with narrow scope
-- Define acceptance criteria per subtask
-- Define dependency order between subtasks
-- Assign recommended owner role for each subtask
-- Record parent/child relationships explicitly in both GitHub and local files
-
-### 3. Dispatch Coordination
-
-Dispatch **one subtask at a time**:
+Dispatch **one subtask at a time** (respecting dependencies):
 - Identify the next active subtask
 - Determine the correct role to dispatch to
-- Check dependency satisfaction before dispatch
+- Check dependency satisfaction before dispatch (previous PRs must be merged)
 - Detect and record blocked states
 - Track completion progression
 
-### 4. Progress Tracking
+### 5. Progress Tracking
 
 Monitor and update:
 - Task status across all subtasks

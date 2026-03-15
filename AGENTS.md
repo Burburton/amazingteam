@@ -401,12 +401,28 @@ The complete issue-to-merge lifecycle follows this flow:
 Issue Created → Planner (Coordinator)
                     │
                     ├── Dispatch → Triage (Classify)
-                    ├── Dispatch → Architect (Design)
-                    ├── Dispatch → Developer (Implement)
-                    ├── Dispatch → QA (Validate)
-                    └── Dispatch → Developer (Create PR)
-                                              │
-                                              └── STOP: wait for human to review and merge
+                    │
+                    ├── Decision Point
+                    │      │
+                    │      ├── Simple Task ──────────────────┐
+                    │      │                                  │
+                    │      └── Complex Task                   │
+                    │             │                          │
+                    │             ▼                          │
+                    │     Create GitHub Sub-Issues           │
+                    │             │                          │
+                    │             ▼                          │
+                    │     For each subtask (respect deps) ───┤
+                    │                                  │     │
+                    └──────────────────────────────────┼─────┘
+                                                       │
+                                                       ▼
+                    ┌─────────────────────────────────────────────┐
+                    │ Dispatch → Architect → Developer → QA → PR │
+                    └─────────────────────────────────────────────┘
+                                               │
+                                               ▼
+                                       Human Review & Merge
 ```
 
 ### Role Dispatch Model
@@ -416,6 +432,7 @@ Issue Created → Planner (Coordinator)
 | Phase | Role | Responsibility |
 |-------|------|----------------|
 | Triage | Triage agent | Classify issue, determine decomposition |
+| Sub-issue Creation | Planner agent | Create GitHub issues for subtasks |
 | Design | Architect agent | Create implementation plan |
 | Implementation | Developer agent | Write code, tests |
 | Validation | QA agent | Run tests, verify criteria |
@@ -428,31 +445,61 @@ Issue Created → Planner (Coordinator)
    - Determine if decomposition is needed
    - Return classification to Planner
 
-2. **Design** (Dispatch to Architect agent)
+2. **Decision Point** (Planner decides)
+   - **Simple task**: Proceed directly to Design
+   - **Complex task**: Create GitHub sub-issues, then execute each respecting dependencies
+
+3. **Sub-issue Creation** (If decomposition needed)
+   - Create child GitHub issues with `[Subtask]` prefix
+   - Define dependencies between sub-issues
+   - Assign owner role to each sub-issue
+   - Record in parent issue body and local task.yaml
+
+4. **Design** (Dispatch to Architect agent)
    - Architect analyzes requirements
    - Creates implementation plan
    - Identifies affected modules
 
-3. **Implementation** (Dispatch to Developer agent)
+5. **Implementation** (Dispatch to Developer agent)
    - Developer creates feature branch
    - Implements changes incrementally
    - Writes/updates tests
    - Runs linters and type checks
 
-4. **Validation** (Dispatch to QA agent)
+6. **Validation** (Dispatch to QA agent)
    - QA validates functionality
    - Runs test suite
    - Checks acceptance criteria
 
-5. **PR Creation** (Dispatch to Developer agent)
+7. **PR Creation** (Dispatch to Developer agent)
    - Create Pull Request with description
-   - Link to original issue
+   - Link to original issue (or sub-issue)
    - **STOP** - wait for human review and merge
 
-6. **Human Review & Merge**
+8. **Human Review & Merge**
    - Human reviews PR
    - Human approves and merges
    - AI does NOT merge
+
+### Dependency Handling
+
+For complex tasks with dependencies:
+
+```
+Parent Issue #120
+    │
+    ├── Sub-issue #201 (architect) - Design API
+    │       ↓ (depends on #201)
+    ├── Sub-issue #202 (developer) - Implement API
+    │       ↓ (depends on #202)
+    └── Sub-issue #203 (qa) - Test API
+```
+
+**Execution order:**
+1. Execute #201 first (no dependencies)
+2. After #201's PR is merged, execute #202
+3. After #202's PR is merged, execute #203
+4. After all sub-issues done, close parent
 
 ### Critical Rules
 
@@ -460,6 +507,8 @@ Issue Created → Planner (Coordinator)
 |------|-------------|
 | **No Direct Commits to Main** | All changes MUST go through a Pull Request |
 | **Planner Coordinates** | Planner dispatches to roles, does not implement itself |
+| **Create Sub-issues for Complex Tasks** | Decompose large tasks into GitHub sub-issues |
+| **Respect Dependencies** | Don't start a subtask until dependencies are merged |
 | **Human Merge Gate** | AI creates PR but does NOT merge; humans merge |
 | **PR Required for All Changes** | Even small fixes need a PR for traceability |
 
