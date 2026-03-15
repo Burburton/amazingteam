@@ -501,6 +501,66 @@ Parent Issue #120
 3. After #202's PR is merged, execute #203
 4. After all sub-issues done, close parent
 
+### Blocker Handling
+
+When workflow encounters a problem:
+
+```
+Workflow Execution
+        │
+        ▼ (Problem Detected)
+┌───────────────┐
+│   Pause &     │
+│  Save State   │
+└───────┬───────┘
+        │
+        ▼
+┌───────────────┐
+│ Dispatch to   │
+│  CI Analyst   │
+│ (Diagnose)    │
+└───────┬───────┘
+        │
+        ▼
+┌───────────────┐
+│ Classification│
+└───────┬───────┘
+        │
+   ┌────┴────────────┐
+   ↓                 ↓
+Auto-fix       Create Sub-issue
+   │                 │
+   │           ┌─────┴─────┐
+   │           ↓           ↓
+   │        AI Resolve   Human Needed
+   │           │           │
+   │           │           ▼
+   │           │     Notify Human
+   │           │     (Wait for /resume)
+   │           │           │
+   └───────────┴───────────┘
+                │
+                ▼
+        Resume Workflow
+```
+
+**Blocker Categories:**
+
+| Category | Resolution | Example |
+|----------|------------|---------|
+| Simple code error | Auto-fix now | Missing import, syntax error |
+| Moderate complexity | Create sub-issue, AI resolve | API change, missing feature |
+| Requires permission | Create sub-issue, notify human | Branch protection, secrets |
+| Business decision | Create sub-issue, notify human | Architecture choice |
+
+**Resolution Decision:**
+
+| Factor | Low | Medium | High |
+|--------|-----|--------|------|
+| Complexity | Auto-fix | Sub-issue (AI) | Notify Human |
+| Risk | Auto-fix | Sub-issue (AI) | Notify Human |
+| Permission | Sub-issue (AI) | Notify Human | Notify Human |
+
 ### Critical Rules
 
 | Rule | Description |
@@ -508,6 +568,7 @@ Parent Issue #120
 | **No Direct Commits to Main** | All changes MUST go through a Pull Request |
 | **Planner Coordinates** | Planner dispatches to roles, does not implement itself |
 | **Create Sub-issues for Complex Tasks** | Decompose large tasks into GitHub sub-issues |
+| **Handle Blockers Gracefully** | Diagnose, auto-fix or create sub-issue, escalate if needed |
 | **Respect Dependencies** | Don't start a subtask until dependencies are merged |
 | **Human Merge Gate** | AI creates PR but does NOT merge; humans merge |
 | **PR Required for All Changes** | Even small fixes need a PR for traceability |
@@ -516,7 +577,8 @@ Parent Issue #120
 
 | Command | Agent | Action |
 |---------|-------|--------|
-| `/auto` | Planner | **Coordinator**: Dispatch Triage → Design → Implement → Test → Create PR |
+| `/auto` | Planner | **Full automation**: Triage → Design → Implement → Test → Create PR (handles blockers) |
+| `/resume` | Planner | Resume workflow after blocker resolution |
 | `/triage` | Triage | Classify, determine decomposition need |
 | `/breakdown-issue` | Planner | Decompose into GitHub sub-issues |
 | `/dispatch-next` | Planner | Identify and dispatch next subtask |
@@ -527,7 +589,7 @@ Parent Issue #120
 | `/implement` | Developer | Implement changes |
 | `/test` | QA | Run tests and validate |
 | `/review` | Reviewer | Review code |
-| `/ci-analyze` | CI Analyst | Analyze CI failures |
+| `/ci-analyze` | CI Analyst | Analyze CI failures, diagnose blockers |
 | `/release-check` | Reviewer | Validate release readiness |
 
 ### Git Identity for Automated Commits

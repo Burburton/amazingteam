@@ -181,10 +181,84 @@ Starting with #201 (Design phase)...
 After merge, run `/dispatch-next` to continue with #202.
 ```
 
+## Blocker Handling
+
+When a blocker is encountered during workflow:
+
+### Step 1: Pause and Diagnose
+
+```
+## ⚠️ Workflow Blocked
+
+- **Phase**: Implementation
+- **Error**: {error_message}
+
+Dispatching to CI Analyst for diagnosis...
+```
+
+### Step 2: CI Analyst Diagnosis
+
+Dispatch to CI Analyst who determines:
+
+| Resolution | Action |
+|------------|--------|
+| Auto-fix now | Fix immediately, continue |
+| Create sub-issue (AI) | Create blocker sub-issue, resolve, resume |
+| Create sub-issue (Human) | Create blocker sub-issue, notify human, wait |
+
+### Step 3: Resolution Paths
+
+**Path A: Auto-fix**
+```markdown
+## Blocker Auto-Resolved
+
+- **Issue**: {description}
+- **Fix Applied**: {fix_description}
+- **Status**: Continuing workflow...
+```
+
+**Path B: Sub-issue (AI Resolve)**
+```markdown
+## Blocker Sub-issue Created
+
+- **Blocker Issue**: #205 - [Blocker] {title}
+- **Type**: {type}
+- **Resolution**: AI will resolve
+- **Status**: Resolving blocker...
+
+---
+
+## Blocker Resolved
+
+- **Blocker**: #205 ✅
+- **Resume**: Continuing original workflow...
+```
+
+**Path C: Human Required**
+```markdown
+## ⚠️ Workflow Blocked - Human Attention Required
+
+- **Blocker Issue**: #206 - [Blocker] {title}
+- **Reason**: {why human is needed}
+
+### Required Actions
+1. {action_1}
+2. {action_2}
+
+### To Resume
+After resolving the blocker, comment:
+```
+/oc /resume
+```
+
+*Workflow is paused, waiting for human input.*
+```
+
 ## Important
 
 - **Planner coordinates, does not implement**
 - **Create GitHub sub-issues** when decomposition is needed
+- **Handle blockers gracefully** - diagnose, resolve or escalate
 - **Respect dependencies** - don't start a subtask until its dependencies are merged
 - **AI does NOT merge PRs** - humans review and merge
 - **All changes go through PR** - never direct commits to main

@@ -5,6 +5,60 @@ All notable changes to the AI Team Foundation will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-03-15
+
+### Added
+
+#### Blocker Handling
+- Automatic blocker detection and diagnosis during workflow execution
+- `/resume` command to resume workflow after blocker resolution
+- Blocker resolution paths: auto-fix, sub-issue (AI), sub-issue (human)
+- Human notification for blockers requiring manual intervention
+
+#### CI Analyst Enhancements
+- Blocker diagnosis responsibilities
+- Decision matrix for resolution path selection
+- Pattern documentation for recurring blockers
+
+### Changed
+
+#### Workflow
+- `/auto` command now handles blockers gracefully
+- Planner dispatches to CI Analyst for blocker diagnosis
+- Workflow state preservation during blocker resolution
+
+#### Documentation
+- `AGENTS.md` - Added blocker handling flow diagram
+- `docs/blocker_resolution_design.md` - Comprehensive blocker handling design
+
+## [2.1.0] - 2026-03-15
+
+### Added
+
+#### Full Automation
+- `/auto` command: Complete workflow from issue to PR in one command
+- Automatic GitHub sub-issue creation for complex tasks
+- Dependency-aware subtask scheduling
+- Git identity configuration: `opencode-bot`
+
+#### GitHub Workflow
+- `contents: write` permission for PR creation
+- `pull-requests: write` permission
+- `issues: write` permission
+- Automatic git identity configuration in workflow
+
+### Changed
+
+#### Workflow
+- Planner acts as coordinator, dispatches to specialist roles
+- No user confirmation needed after triage
+- Developer agent: explicit PR creation rules, no direct commits to main
+
+#### Agent Definitions
+- `.ai-team/agents/planner.md` - Added workflow orchestration section
+- `.ai-team/agents/developer.md` - Added git identity, PR rules
+- `.opencode/agents/developer.md` - Added permissions for PR creation
+
 ## [2.0.0] - 2026-03-14
 
 ### Added

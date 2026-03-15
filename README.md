@@ -215,7 +215,8 @@ ai-team init my-project \
 
 | 命令 | 角色 | 作用 |
 |------|------|------|
-| `/auto` | Planner | **全自动**：分类 → 设计 → 实现 → 测试 → 创建 PR |
+| `/auto` | Planner | **全自动**：分类 → 设计 → 实现 → 测试 → 创建 PR（含阻塞处理） |
+| `/resume` | Planner | 阻塞解决后恢复工作流 |
 | `/triage` | Triage | Issue分类，确定是否需要分解 |
 | `/breakdown-issue` | Planner | 分解大任务为GitHub子Issue |
 | `/dispatch-next` | Planner | 派发下一个活跃子任务 |
@@ -226,7 +227,7 @@ ai-team init my-project \
 | `/implement` | Developer | 实现代码 |
 | `/test` | QA | 测试验证 |
 | `/review` | Reviewer | 代码审查 |
-| `/ci-analyze` | CI Analyst | CI 失败分析 |
+| `/ci-analyze` | CI Analyst | CI 失败分析、阻塞诊断 |
 | `/release-check` | Reviewer | 发布就绪检查 |
 
 ### 4. 工作流程
@@ -259,6 +260,61 @@ Issue 创建
 ┌─────────────┐
 │   Human     │ ─── 审核合并
 └─────────────┘
+```
+
+#### 阻塞处理流程
+
+```
+工作流执行中
+      │
+      ▼ (遇到问题)
+┌─────────────┐
+│   暂停      │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ CI Analyst  │ ─── 诊断问题
+└──────┬──────┘
+       │
+       ▼
+  ┌────┴────┐
+  │  决策   │
+  └────┬────┘
+       │
+  ┌────┼────────────┐
+  ↓    ↓            ↓
+简单  中等        需人类
+  │    │            │
+  ↓    ↓            ↓
+自动  创建        创建子Issue
+修复  子Issue     通知人类
+  │   AI解决      等待/resume
+  │    │            │
+  └────┴────────────┘
+       │
+       ▼
+恢复原工作流
+```
+
+**阻塞处理示例：**
+
+```markdown
+# 简单问题 - 自动修复
+Error: Cannot find module './utils'
+→ 自动添加 import，继续工作流
+
+# 中等问题 - 创建子Issue AI解决
+Error: API endpoint /v2/users not found
+→ 创建子Issue #205: 更新 API 端点
+→ AI 解决子Issue
+→ 恢复原工作流
+
+# 需要人类 - 创建子Issue 通知人类
+Error: Permission denied: Cannot push to 'main'
+→ 创建子Issue #206: [Blocker] 权限问题
+→ 通知人类
+→ 等待人类解决后评论 `/oc /resume`
 ```
 
 #### 功能开发流程（大任务 - 手动分步）
@@ -929,6 +985,43 @@ A: 以下情况建议分解：
 欢迎提交 Issue 和 Pull Request！
 
 ## 版本历史
+
+### v2.2.0 - 阻塞处理机制
+
+**新增：**
+- 阻塞处理流程：工作流遇到问题时自动诊断和处理
+- `/resume` 命令：阻塞解决后恢复工作流
+- CI Analyst 角色增强：阻塞诊断和分类
+- 自动修复：简单问题现场修复
+- Sub-issue 阻塞处理：复杂问题创建子 Issue 解决
+- 人工通知：需要人类介入时自动通知
+
+**阻塞处理流程：**
+
+```
+工作流执行中 → 遇到问题 → CI Analyst 诊断
+                              │
+              ┌───────────────┼───────────────┐
+              ↓               ↓               ↓
+          简单问题       中等复杂度       需要人类
+              │               │               │
+              ↓               ↓               ↓
+          自动修复      创建子Issue      创建子Issue
+              │          AI解决          通知人类
+              │               │          等待/resume
+              └───────────────┴───────────────┘
+                              │
+                              ↓
+                      恢复原工作流
+```
+
+**阻塞分类决策：**
+
+| 因素 | 低 | 中 | 高 |
+|------|----|----|-----|
+| 复杂度 | 自动修复 | Sub-issue (AI) | 通知人类 |
+| 风险 | 自动修复 | Sub-issue (AI) | 通知人类 |
+| 权限 | Sub-issue (AI) | 通知人类 | 通知人类 |
 
 ### v2.1.0 - 全自动工作流
 
