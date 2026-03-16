@@ -1016,12 +1016,12 @@ npx ai-team-foundation upgrade --to 3.1.0
 | 阶段 | 任务数 | 完成数 | 进度 |
 |------|--------|--------|------|
 | Phase 1: 基础准备 | 16 | 16 | ✅ 100% |
-| Phase 2: CLI 工具 | 20 | 0 | ⏳ 待开始 |
+| Phase 2: CLI 工具 | 23 | 23 | ✅ 100% |
 | Phase 3: GitHub Action | 12 | 0 | ⏳ 待开始 |
 | Phase 4: 文档更新 | 12 | 0 | ⏳ 待开始 |
 | Phase 5: 测试 | 14 | 0 | ⏳ 待开始 |
 | Phase 6: 发布 | 9 | 0 | ⏳ 待开始 |
-| **总计** | **83** | **16** | **19%** |
+| **总计** | **86** | **39** | **45%** |
 
 ### Phase 1 已完成内容
 
@@ -1036,6 +1036,20 @@ npx ai-team-foundation upgrade --to 3.1.0
 | **Validator** | `action/lib/validator.js` | 配置校验 |
 | **Downloader** | `action/lib/downloader.js` | NPM/GitHub 下载 |
 | **Setup** | `action/lib/setup.js` | 运行时初始化 |
+
+### Phase 2 已完成内容
+
+| 命令 | 文件 | 说明 |
+|------|------|------|
+| **CLI 入口** | `cli/ai-team.cjs` | 主入口，命令解析，帮助信息 |
+| **init** | `cli/commands/init.cjs` | 初始化项目，交互式提示 |
+| **version** | `cli/commands/version.cjs` | 显示版本信息 |
+| **check-update** | `cli/commands/check-update.cjs` | 检查更新 |
+| **upgrade** | `cli/commands/upgrade.cjs` | 升级到新版本 |
+| **local** | `cli/commands/local.cjs` | 下载 Foundation 到本地 |
+| **validate** | `cli/commands/validate.cjs` | 验证配置和结构 |
+| **migrate** | `cli/commands/migrate.cjs` | v2 迁移到 v3 |
+| **status** | `cli/commands/status.cjs` | 显示项目状态 |
 
 ### 相关文档
 

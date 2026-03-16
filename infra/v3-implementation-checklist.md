@@ -44,59 +44,65 @@ This checklist tracks the implementation of remote foundation loading feature (v
 
 ---
 
-## Phase 2: CLI Tool (8 commands)
+## Phase 2: CLI Tool (8 commands) ✅ COMPLETE
 
 ### 2.1 CLI Entry Point
-- [ ] Create `cli/ai-team.cjs` - main CLI entry
-- [ ] Add command parsing logic
-- [ ] Add help text and version display
+- [x] Create `cli/ai-team.cjs` - main CLI entry
+- [x] Add command parsing logic
+- [x] Add help text and version display
 
 ### 2.2 Init Command
-- [ ] Create `cli/commands/init.cjs`
-- [ ] Implement interactive prompts
-- [ ] Generate `ai-team.config.yaml`
-- [ ] Generate `.github/workflows/ai-team.yml`
-- [ ] Generate `opencode.jsonc`
-- [ ] Create `.ai-team/memory/` directories
-- [ ] Create `tasks/_template/` directory
-- [ ] Update `.gitignore`
+- [x] Create `cli/commands/init.cjs`
+- [x] Implement interactive prompts
+- [x] Generate `ai-team.config.yaml`
+- [x] Generate `.github/workflows/ai-team.yml`
+- [x] Generate `opencode.jsonc`
+- [x] Create `.ai-team/memory/` directories
+- [x] Create `tasks/_template/` directory
+- [x] Update `.gitignore`
 
 ### 2.3 Version Command
-- [ ] Create `cli/commands/version.cjs`
-- [ ] Read version from workflow file
-- [ ] Display foundation version info
+- [x] Create `cli/commands/version.cjs`
+- [x] Read version from workflow file
+- [x] Display foundation version info
 
 ### 2.4 Check-Update Command
-- [ ] Create `cli/commands/check-update.cjs`
-- [ ] Query NPM registry for latest version
-- [ ] Query GitHub releases as fallback
-- [ ] Display changelog summary
+- [x] Create `cli/commands/check-update.cjs`
+- [x] Query NPM registry for latest version
+- [x] Query GitHub releases as fallback
+- [x] Display changelog summary
 
 ### 2.5 Upgrade Command
-- [ ] Create `cli/commands/upgrade.cjs`
-- [ ] Update workflow file version reference
-- [ ] Handle breaking changes warning
-- [ ] Support `--to x.x.x` flag
+- [x] Create `cli/commands/upgrade.cjs`
+- [x] Update workflow file version reference
+- [x] Handle breaking changes warning
+- [x] Support `--to x.x.x` flag
 
 ### 2.6 Local Command
-- [ ] Create `cli/commands/local.cjs`
-- [ ] Download foundation to `.ai-team-local/`
-- [ ] Generate local `opencode.jsonc`
-- [ ] Support `--from /path` for offline use
-- [ ] Implement local caching (`~/.ai-team-cache/`)
+- [x] Create `cli/commands/local.cjs`
+- [x] Download foundation to `.ai-team-local/`
+- [x] Generate local `opencode.jsonc`
+- [x] Support `--from /path` for offline use
+- [x] Implement local caching (`~/.ai-team-cache/`)
 
 ### 2.7 Validate Command
-- [ ] Create `cli/commands/validate.cjs`
-- [ ] Validate config against schema
-- [ ] Check required files exist
-- [ ] Display helpful error messages
+- [x] Create `cli/commands/validate.cjs`
+- [x] Validate config against schema
+- [x] Check required files exist
+- [x] Display helpful error messages
 
 ### 2.8 Migrate Command
-- [ ] Create `cli/commands/migrate.cjs`
-- [ ] Detect v2.x project structure
-- [ ] Extract user customizations
-- [ ] Create v3 config files
-- [ ] Update git tracking
+- [x] Create `cli/commands/migrate.cjs`
+- [x] Detect v2.x project structure
+- [x] Extract user customizations
+- [x] Create v3 config files
+- [x] Update git tracking
+
+### 2.9 Status Command (bonus)
+- [x] Create `cli/commands/status.cjs`
+- [x] Display project configuration
+- [x] Show version information
+- [x] Show memory and task statistics
 
 ---
 
@@ -219,12 +225,12 @@ This checklist tracks the implementation of remote foundation loading feature (v
 | Phase | Total | Done | Progress |
 |-------|-------|------|----------|
 | 1: Foundation Prep | 16 | 16 | 100% ✅ |
-| 2: CLI Tool | 20 | 0 | 0% |
+| 2: CLI Tool | 23 | 23 | 100% ✅ |
 | 3: GitHub Action | 12 | 0 | 0% |
 | 4: Documentation | 12 | 0 | 0% |
 | 5: Testing | 14 | 0 | 0% |
 | 6: Release | 9 | 0 | 0% |
-| **Total** | **83** | **16** | **19%** |
+| **Total** | **86** | **39** | **45%** |
 
 ---
 
