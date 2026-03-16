@@ -1,0 +1,43 @@
+# Go Configuration Preset
+# For Go microservices and backend projects
+
+$preset: "default"
+
+project:
+  language: "go"
+  framework: "gin"
+
+build:
+  command: "go build ./..."
+  test: "go test ./..."
+  lint: "golangci-lint run"
+  typecheck: ""
+
+rules:
+  test_coverage_threshold: 70
+  max_function_lines: 40
+  commit_convention: "conventional"
+  go:
+    max_file_lines: 500
+    error_handling: "explicit"
+
+agents:
+  developer:
+    skills: ["test-first-feature-dev", "bugfix-playbook"]
+    memory:
+      write: [".ai-team/memory/developer/", "tasks/{task_id}/implementation.md", "pkg/", "internal/", "tests/"]
+
+  qa:
+    skills: ["test-first-feature-dev", "regression-checklist"]
+    memory:
+      write: [".ai-team/memory/qa/", "tasks/{task_id}/validation.md", "tests/"]
+
+integrations:
+  ci:
+    enabled: true
+    require_passing: true
+    commands:
+      install: "go mod download"
+      build: "go build ./..."
+      test: "go test -v -race -coverprofile=coverage.out ./..."
+      lint: "golangci-lint run"

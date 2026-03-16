@@ -1,0 +1,61 @@
+# AI Team Foundation GitHub Action
+# Downloads and sets up AI Team Foundation for use in workflows
+
+name: 'AI Team Setup'
+description: 'Set up AI Team Foundation for AI-powered development'
+author: 'AI Team'
+branding:
+  icon: 'cpu'
+  color: 'blue'
+
+inputs:
+  version:
+    description: 'AI Team Foundation version to use'
+    required: false
+    default: '3.0.0'
+  
+  config:
+    description: 'Path to ai-team.config.yaml'
+    required: false
+    default: 'ai-team.config.yaml'
+  
+  overlay:
+    description: 'Technology overlay to apply (e.g., python-backend, web-fullstack)'
+    required: false
+    default: ''
+  
+  cache:
+    description: 'Enable caching of foundation downloads'
+    required: false
+    default: 'true'
+  
+  cache-dir:
+    description: 'Directory to cache foundation downloads'
+    required: false
+    default: '~/.ai-team-cache'
+
+outputs:
+  foundation-path:
+    description: 'Path to the downloaded foundation'
+    value: ${{ steps.setup.outputs.foundation-path }}
+  
+  setup-complete:
+    description: 'Whether setup completed successfully'
+    value: ${{ steps.setup.outputs.success }}
+  
+  version:
+    description: 'Foundation version that was set up'
+    value: ${{ steps.setup.outputs.version }}
+
+runs:
+  using: 'node20'
+  main: 'index.js'
+
+# Future: Support composite action for more complex setup
+# runs:
+#   using: 'composite'
+#   steps:
+#     - name: Setup AI Team
+#       shell: bash
+#       run: |
+#         node ${{ github.action_path }}/index.js

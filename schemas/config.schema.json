@@ -1,0 +1,239 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ai-team.dev/schemas/config.schema.json",
+  "title": "AI Team Configuration",
+  "description": "Configuration schema for AI Team Foundation v3",
+  "type": "object",
+  "required": ["version", "project"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Configuration file version (semver)"
+    },
+    "$preset": {
+      "type": "string",
+      "description": "Base preset to extend (default, typescript, python, go)"
+    },
+    "project": {
+      "type": "object",
+      "required": ["name", "language"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Project name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Project description"
+        },
+        "language": {
+          "type": "string",
+          "enum": ["typescript", "javascript", "python", "go", "java", "cpp", "c", "rust", "ruby"],
+          "description": "Primary programming language"
+        },
+        "framework": {
+          "type": "string",
+          "description": "Primary framework (e.g., node, react, fastapi, gin)"
+        }
+      }
+    },
+    "ai_team": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "description": "AI Team Foundation version"
+        }
+      }
+    },
+    "agents": {
+      "type": "object",
+      "description": "Agent configuration overrides",
+      "properties": {
+        "planner": { "$ref": "#/definitions/agent" },
+        "architect": { "$ref": "#/definitions/agent" },
+        "developer": { "$ref": "#/definitions/agent" },
+        "qa": { "$ref": "#/definitions/agent" },
+        "reviewer": { "$ref": "#/definitions/agent" },
+        "triage": { "$ref": "#/definitions/agent" },
+        "ci_analyst": { "$ref": "#/definitions/agent" }
+      }
+    },
+    "workflows": {
+      "type": "object",
+      "description": "Workflow definitions",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["sequence"],
+        "properties": {
+          "sequence": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["planner", "architect", "developer", "qa", "reviewer", "triage", "ci_analyst"]
+            }
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "memory": {
+      "type": "object",
+      "properties": {
+        "global": {
+          "type": "object",
+          "properties": {
+            "locations": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "write_requires_approval": {
+              "type": "boolean"
+            }
+          }
+        },
+        "role": {
+          "type": "object",
+          "properties": {
+            "base_path": { "type": "string" }
+          }
+        },
+        "failures": {
+          "type": "object",
+          "properties": {
+            "path": { "type": "string" },
+            "writable_by": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        },
+        "task": {
+          "type": "object",
+          "properties": {
+            "base_path": { "type": "string" },
+            "naming": { "type": "string" },
+            "auto_create": { "type": "boolean" },
+            "preserve_after_completion": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "rules": {
+      "type": "object",
+      "properties": {
+        "max_changes_per_commit": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "require_tests": { "type": "boolean" },
+        "require_review": { "type": "boolean" },
+        "auto_merge": { "type": "boolean" },
+        "memory_isolation": { "type": "boolean" },
+        "test_coverage_threshold": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "max_function_lines": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "commit_convention": {
+          "type": "string",
+          "enum": ["conventional", "none"]
+        },
+        "protected_paths": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "human_approval_required": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "build": {
+      "type": "object",
+      "description": "Build and test commands",
+      "properties": {
+        "command": { "type": "string" },
+        "test": { "type": "string" },
+        "lint": { "type": "string" },
+        "typecheck": { "type": "string" }
+      }
+    },
+    "integrations": {
+      "type": "object",
+      "properties": {
+        "github": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "auto_label": { "type": "boolean" },
+            "auto_assign": { "type": "boolean" }
+          }
+        },
+        "ci": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "require_passing": { "type": "boolean" },
+            "commands": {
+              "type": "object",
+              "properties": {
+                "install": { "type": "string" },
+                "build": { "type": "string" },
+                "test": { "type": "string" },
+                "lint": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "overlay": {
+      "type": ["string", "null"],
+      "description": "Technology overlay to apply (e.g., python-backend, web-fullstack)"
+    }
+  },
+  "definitions": {
+    "agent": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable or disable this agent"
+        },
+        "description": {
+          "type": "string",
+          "description": "Agent description override"
+        },
+        "skills": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Skills assigned to this agent"
+        },
+        "memory": {
+          "type": "object",
+          "properties": {
+            "read": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "write": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

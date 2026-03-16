@@ -1,0 +1,40 @@
+# TypeScript/Node.js Configuration Preset
+# Extends default.yaml with TypeScript-specific settings
+
+$preset: "default"
+
+project:
+  language: "typescript"
+  framework: "node"
+
+build:
+  command: "npm run build"
+  test: "npm test"
+  lint: "npm run lint"
+  typecheck: "npm run typecheck"
+
+rules:
+  test_coverage_threshold: 80
+  max_function_lines: 30
+  commit_convention: "conventional"
+
+agents:
+  developer:
+    skills: ["test-first-feature-dev", "bugfix-playbook"]
+    memory:
+      write: [".ai-team/memory/developer/", "tasks/{task_id}/implementation.md", "src/", "tests/"]
+
+  qa:
+    skills: ["test-first-feature-dev", "regression-checklist"]
+    memory:
+      write: [".ai-team/memory/qa/", "tasks/{task_id}/validation.md", "tests/"]
+
+integrations:
+  ci:
+    enabled: true
+    require_passing: true
+    commands:
+      install: "npm ci"
+      build: "npm run build"
+      test: "npm test"
+      lint: "npm run lint"

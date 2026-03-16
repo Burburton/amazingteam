@@ -1,0 +1,14 @@
+# AI Team Foundation - .gitignore additions
+# Add these lines to your project's .gitignore
+
+# AI Team local foundation (downloaded by `ai-team local`)
+.ai-team-local/
+
+# AI Team cache
+.ai-team-cache/
+
+# Task memory (optional - uncomment if you don't want to track tasks)
+# tasks/issue-*/
+
+# Memory files (optional - uncomment if you don't want to track memory)
+# .ai-team/memory/**/*.md

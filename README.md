@@ -984,7 +984,81 @@ A: 以下情况建议分解：
 
 欢迎提交 Issue 和 Pull Request！
 
+## v3.0.0 开发进度
+
+### 概述
+
+v3.0.0 将实现**远程加载功能**，用户项目无需提交 Foundation 源码，只需几个配置文件即可使用 AI Team。
+
+### 用户项目结构（v3.0.0）
+
+```
+your-project/
+├── .github/workflows/ai-team.yml   # 引用 Foundation 版本
+├── opencode.jsonc                  # 自动生成
+├── ai-team.config.yaml             # 用户配置
+├── .ai-team/memory/                # 运行时状态
+└── src/                            # 用户代码
+```
+
+### 升级方式
+
+```bash
+# 一键升级
+npx ai-team-foundation upgrade
+
+# 或指定版本
+npx ai-team-foundation upgrade --to 3.1.0
+```
+
+### 开发进度
+
+| 阶段 | 任务数 | 完成数 | 进度 |
+|------|--------|--------|------|
+| Phase 1: 基础准备 | 16 | 16 | ✅ 100% |
+| Phase 2: CLI 工具 | 20 | 0 | ⏳ 待开始 |
+| Phase 3: GitHub Action | 12 | 0 | ⏳ 待开始 |
+| Phase 4: 文档更新 | 12 | 0 | ⏳ 待开始 |
+| Phase 5: 测试 | 14 | 0 | ⏳ 待开始 |
+| Phase 6: 发布 | 9 | 0 | ⏳ 待开始 |
+| **总计** | **83** | **16** | **19%** |
+
+### Phase 1 已完成内容
+
+| 组件 | 文件 | 说明 |
+|------|------|------|
+| **Presets** | `presets/*.yaml` | 默认配置、TypeScript、Python、Go 预设 |
+| **Templates** | `templates/*` | OpenCode 配置模板、GitHub Workflow 模板 |
+| **Schemas** | `schemas/config.schema.json` | 配置文件 JSON Schema |
+| **Action** | `action/*` | GitHub Action 入口和核心模块 |
+| **Merger** | `action/lib/merger.js` | 配置合并逻辑 |
+| **Path Resolver** | `action/lib/path-resolver.js` | 路径解析 |
+| **Validator** | `action/lib/validator.js` | 配置校验 |
+| **Downloader** | `action/lib/downloader.js` | NPM/GitHub 下载 |
+| **Setup** | `action/lib/setup.js` | 运行时初始化 |
+
+### 相关文档
+
+- [设计文档](./infra/remote_foundation_loading_design.md)
+- [评审报告](./infra/remote_foundation_loading_review.md)
+- [实施清单](./infra/v3-implementation-checklist.md)
+- [快速开始指南](./docs/quick-start-v3.md)
+
 ## 版本历史
+
+### v3.0.0 - 远程加载（开发中）
+
+**新增：**
+- 远程加载：Foundation 作为 NPM 包/ GitHub Release 加载，无需提交到项目
+- GitHub Action：`ai-team-action` 自动下载和配置 Foundation
+- CLI 升级命令：`ai-team upgrade` 一键升级
+- 配置预设：TypeScript、Python、Go 等语言预设
+- JSON Schema：配置文件校验
+
+**用户项目变化：**
+- 从 50+ 文件减少到 3-5 个配置文件
+- Foundation 通过 workflow 引用，不占用项目空间
+- 升级只需改版本号或运行命令
 
 ### v2.2.0 - 阻塞处理机制
 

@@ -1,0 +1,161 @@
+# AI Team Foundation - Default Configuration Preset
+# This is the base configuration that all other presets extend from.
+
+version: "1.0"
+
+project:
+  name: ""
+  description: ""
+  language: "typescript"
+  framework: "node"
+
+ai_team:
+  version: "3.0.0"
+
+agents:
+  planner:
+    enabled: true
+    description: "Decomposes tasks and coordinates workflow progression"
+    skills: ["task-breakdown-and-dispatch"]
+    memory:
+      read: ["docs/", "AGENTS.md", ".ai-team/memory/planner/", ".ai-team/memory/architect/", ".ai-team/memory/triage/", ".ai-team/memory/failures/", "tasks/"]
+      write: [".ai-team/memory/planner/", "tasks/{task_id}/task.yaml"]
+
+  architect:
+    enabled: true
+    description: "Analyzes requirements and designs solutions"
+    skills: ["repo-architecture-reader"]
+    memory:
+      read: ["docs/", "AGENTS.md", ".ai-team/memory/planner/", ".ai-team/memory/architect/", ".ai-team/memory/developer/", ".ai-team/memory/failures/", "tasks/"]
+      write: [".ai-team/memory/architect/", "tasks/{task_id}/analysis.md", "tasks/{task_id}/design.md"]
+
+  developer:
+    enabled: true
+    description: "Implements features and fixes bugs"
+    skills: ["test-first-feature-dev", "bugfix-playbook"]
+    memory:
+      read: ["docs/", "AGENTS.md", ".ai-team/memory/planner/", ".ai-team/memory/architect/", ".ai-team/memory/developer/", ".ai-team/memory/failures/", "tasks/{task_id}/"]
+      write: [".ai-team/memory/developer/", "tasks/{task_id}/implementation.md", "src/", "tests/"]
+
+  qa:
+    enabled: true
+    description: "Validates implementations and ensures quality"
+    skills: ["test-first-feature-dev", "regression-checklist"]
+    memory:
+      read: ["docs/", "AGENTS.md", ".ai-team/memory/planner/", ".ai-team/memory/architect/", ".ai-team/memory/qa/", ".ai-team/memory/failures/", "tasks/{task_id}/"]
+      write: [".ai-team/memory/qa/", "tasks/{task_id}/validation.md", "tests/"]
+
+  reviewer:
+    enabled: true
+    description: "Reviews code for quality and correctness"
+    skills: ["safe-refactor-checklist", "regression-checklist", "release-readiness-check"]
+    memory:
+      read: ["docs/", "AGENTS.md", ".ai-team/memory/", ".ai-team/memory/failures/", "tasks/{task_id}/"]
+      write: [".ai-team/memory/reviewer/", "tasks/{task_id}/review.md", "tasks/{task_id}/release.md"]
+
+  triage:
+    enabled: true
+    description: "Classifies issues and performs first-pass debug analysis"
+    skills: ["issue-triage", "bugfix-playbook"]
+    memory:
+      read: ["docs/", "AGENTS.md", ".ai-team/memory/triage/", ".ai-team/memory/failures/", "tasks/{task_id}/"]
+      write: [".ai-team/memory/triage/", "tasks/{task_id}/"]
+
+  ci_analyst:
+    enabled: true
+    description: "Investigates CI failures and documents patterns"
+    skills: ["ci-failure-analysis", "bugfix-playbook"]
+    memory:
+      read: ["docs/", "AGENTS.md", ".ai-team/memory/ci-analyst/", ".ai-team/memory/failures/", "tasks/{task_id}/", "docs/runbooks/ci/"]
+      write: [".ai-team/memory/ci-analyst/", ".ai-team/memory/failures/", "tasks/{task_id}/"]
+
+workflows:
+  feature:
+    sequence: ["planner", "architect", "developer", "qa", "reviewer"]
+    description: "Feature development workflow"
+
+  bugfix:
+    sequence: ["triage", "architect", "developer", "qa", "reviewer"]
+    description: "Bug fix workflow"
+
+  refactor:
+    sequence: ["architect", "developer", "reviewer"]
+    description: "Refactoring workflow"
+
+  ci_failure:
+    sequence: ["ci_analyst", "developer", "qa"]
+    description: "CI failure resolution workflow"
+
+  release:
+    sequence: ["reviewer"]
+    description: "Release validation workflow"
+
+memory:
+  global:
+    locations: ["docs/", "AGENTS.md"]
+    write_requires_approval: true
+
+  role:
+    base_path: ".ai-team/memory"
+    roles:
+      planner:
+        files: ["decomposition_notes.md", "flow_rules.md", "github_issue_patterns.md"]
+      architect:
+        files: ["architecture_notes.md", "module_map.md", "design_rationale.md"]
+      developer:
+        files: ["implementation_notes.md", "bug_investigation.md", "build_issues.md"]
+      qa:
+        files: ["test_strategy.md", "regression_cases.md", "validation_notes.md"]
+      reviewer:
+        files: ["review_notes.md", "quality_rules.md", "recurring_risks.md"]
+      triage:
+        files: ["classification_heuristics.md", "debug_notes.md"]
+      ci_analyst:
+        files: ["failure_patterns.md", "runbook_references.md"]
+
+  failures:
+    path: ".ai-team/memory/failures"
+    files: ["failure_library.md"]
+    writable_by: ["ci_analyst"]
+
+  task:
+    base_path: "tasks"
+    naming: "issue-{issue_id}"
+    files: ["task.yaml", "analysis.md", "design.md", "implementation.md", "validation.md", "review.md", "release.md"]
+    auto_create: true
+    preserve_after_completion: true
+
+rules:
+  max_changes_per_commit: 10
+  require_tests: true
+  require_review: true
+  auto_merge: false
+  memory_isolation: true
+  protected_paths:
+    - "docs/architecture/"
+    - "docs/decisions/"
+  human_approval_required:
+    - "architecture changes"
+    - "release operations"
+    - "breaking changes"
+
+integrations:
+  github:
+    enabled: true
+    auto_label: true
+    auto_assign: true
+
+  ci:
+    enabled: true
+    require_passing: true
+    failure_analysis:
+      enabled: true
+      agent: "ci_analyst"
+
+build:
+  command: ""
+  test: ""
+  lint: ""
+  typecheck: ""
+
+overlay: null
