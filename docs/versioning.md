@@ -10,6 +10,45 @@ AI Team Foundation uses [Semantic Versioning](https://semver.org/) with the form
 - **MINOR**: New features, backward compatible
 - **PATCH**: Bug fixes, backward compatible
 
+## Version Increment Rules
+
+### Conservative Update Policy
+
+**Do NOT rush version increments.** Accumulate changes before releasing.
+
+| Change Type | Increment | Min Changes Required | Wait Period |
+|-------------|-----------|---------------------|-------------|
+| Bug fix | PATCH | 3+ fixes OR 1 critical fix | As needed |
+| New feature | MINOR | 2+ features OR 1 major feature | Monthly |
+| Breaking change | MAJOR | Only when unavoidable | Yearly |
+
+### Release Cadence
+
+| Type | Frequency | Example |
+|------|-----------|---------|
+| **PATCH** | As needed (bug fixes) | v2.2.0 → v2.2.1 |
+| **MINOR** | Monthly or when significant features accumulated | v2.2.0 → v2.3.0 |
+| **MAJOR** | Yearly or when breaking changes required | v2.x.x → v3.0.0 |
+
+### Stability Rules
+
+1. **Batch Changes**: Group related changes into a single release
+   - Good: Multiple bug fixes → one PATCH release
+   - Good: Multiple new features → one MINOR release
+   - Bad: Every small change → new version
+
+2. **Stability Period**: After a MAJOR release, wait at least 2 weeks before the next MINOR release.
+
+3. **No Premature Releases**: Don't release for every small change.
+
+### Exceptions
+
+The version policy may be overridden in these cases:
+
+1. **Security Fix**: Immediate PATCH release regardless of threshold
+2. **Critical Bug**: Immediate PATCH release for breaking issues
+3. **User Request**: If users explicitly request a release
+
 ## Version Files
 
 ### VERSION
