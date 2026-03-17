@@ -212,7 +212,7 @@ This checklist tracks the implementation of remote foundation loading feature (v
 - [x] Version bump to `3.0.0`
 - [x] Update `VERSION` file
 - [x] Update `CHANGELOG.md`
-- [ ] Create git tag `v3.0.0` (manual)
+- [x] Create git tag `v3.0.0`
 - [ ] Publish to NPM (manual)
 - [ ] Create GitHub release (manual)
 - [ ] Announce release (manual)
@@ -228,13 +228,13 @@ This checklist tracks the implementation of remote foundation loading feature (v
 | 3: GitHub Action | 12 | 12 | 100% ✅ |
 | 4: Documentation | 12 | 12 | 100% ✅ |
 | 5: Testing | 14 | 14 | 100% ✅ |
-| 6: Release | 9 | 6 | 67% ⏳ |
-| **Total** | **86** | **83** | **97%** |
+| 6: Release | 9 | 7 | 78% ⏳ |
+| **Total** | **86** | **84** | **98%** |
 
 ### Release Checklist (Manual Steps)
 
-- [ ] `git tag -a v3.0.0 -m "Release v3.0.0"`
-- [ ] `git push origin v3.0.0`
+- [x] `git tag -a v3.0.0 -m "Release v3.0.0"`
+- [x] `git push origin v3.0.0`
 - [ ] `npm publish` (requires npm login)
 - [ ] Create GitHub Release with CHANGELOG notes
 - [ ] Announce on social media / documentation sites
