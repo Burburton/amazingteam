@@ -1019,9 +1019,9 @@ npx ai-team-foundation upgrade --to 3.1.0
 | Phase 2: CLI 工具 | 23 | 23 | ✅ 100% |
 | Phase 3: GitHub Action | 12 | 12 | ✅ 100% |
 | Phase 4: 文档更新 | 12 | 12 | ✅ 100% |
-| Phase 5: 测试 | 14 | 0 | ⏳ 待开始 |
+| Phase 5: 测试 | 14 | 14 | ✅ 100% |
 | Phase 6: 发布 | 9 | 0 | ⏳ 待开始 |
-| **总计** | **86** | **63** | **73%** |
+| **总计** | **86** | **77** | **90%** |
 
 ### Phase 1 已完成内容
 
@@ -1069,6 +1069,16 @@ npx ai-team-foundation upgrade --to 3.1.0
 | **Config Reference** | `docs/config-reference.md` | 完整配置字段参考和示例 |
 | **Quick Start v3** | `docs/quick-start-v3.md` | v3 快速入门指南 |
 | **v3 Implementation Checklist** | `infra/v3-implementation-checklist.md` | 实施进度跟踪 |
+
+### Phase 5 已完成内容
+
+| 测试类型 | 文件 | 说明 |
+|---------|------|------|
+| **CLI Tests** | `cli/__tests__/cli.test.js` | CLI 命令测试：help, version, init, validate 等 |
+| **Integration Tests** | `tests/integration.test.js` | 完整工作流测试：init → local → validate |
+| **Error Tests** | `tests/error-scenarios.test.js` | 错误场景测试：无效配置、网络失败、目录缺失 |
+| **Overlay Tests** | `tests/overlay.test.js` | Overlay 测试：python-backend, web-fullstack, cpp-qt |
+| **Unit Tests** | `action/__tests__/*.test.js` | 模块单元测试（Phase 3 完成） |
 
 ### 相关文档
 
