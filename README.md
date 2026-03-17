@@ -1017,11 +1017,11 @@ npx ai-team-foundation upgrade --to 3.1.0
 |------|--------|--------|------|
 | Phase 1: 基础准备 | 16 | 16 | ✅ 100% |
 | Phase 2: CLI 工具 | 23 | 23 | ✅ 100% |
-| Phase 3: GitHub Action | 12 | 0 | ⏳ 待开始 |
+| Phase 3: GitHub Action | 12 | 12 | ✅ 100% |
 | Phase 4: 文档更新 | 12 | 0 | ⏳ 待开始 |
 | Phase 5: 测试 | 14 | 0 | ⏳ 待开始 |
 | Phase 6: 发布 | 9 | 0 | ⏳ 待开始 |
-| **总计** | **86** | **39** | **45%** |
+| **总计** | **86** | **51** | **59%** |
 
 ### Phase 1 已完成内容
 
@@ -1050,6 +1050,16 @@ npx ai-team-foundation upgrade --to 3.1.0
 | **validate** | `cli/commands/validate.cjs` | 验证配置和结构 |
 | **migrate** | `cli/commands/migrate.cjs` | v2 迁移到 v3 |
 | **status** | `cli/commands/status.cjs` | 显示项目状态 |
+
+### Phase 3 已完成内容
+
+| 组件 | 文件 | 说明 |
+|------|------|------|
+| **Action Tests** | `action/__tests__/*.test.js` | Merger, PathResolver, Validator, Downloader 测试 |
+| **Merger Tests** | `action/__tests__/merger.test.js` | 深拷贝、配置合并、预设合并测试 |
+| **PathResolver Tests** | `action/__tests__/path-resolver.test.js` | 路径解析、内存目录、任务路径测试 |
+| **Validator Tests** | `action/__tests__/validator.test.js` | Schema 验证、类型检查、必填字段测试 |
+| **Downloader Tests** | `action/__tests__/downloader.test.js` | 缓存逻辑、重试机制、降级逻辑测试 |
 
 ### 相关文档
 
