@@ -251,11 +251,11 @@ npx ai-team-foundation migrate
 
 ### Q: What if I need to customize AGENTS.md?
 
-A: You can create a local `AGENTS.md` in your project root. It will be merged with foundation's AGENTS.md.
+A: You can create a local `AGENTS.md` in your project root. It will override the foundation's AGENTS.md entirely, or you can use the overlay feature in `ai-team.config.yaml` to add content.
 
 ### Q: What if I need custom skills?
 
-A: Create `.ai-team/skills/` in your project. These will be merged with foundation skills.
+A: Create `.ai-team/skills/` in your project. These will be merged with foundation skills at runtime.
 
 ### Q: What if CI fails to download foundation?
 
@@ -264,6 +264,38 @@ A: The action caches foundation downloads. If network fails, it uses cache. You 
 ### Q: Can I use a specific version?
 
 A: Yes, specify version in workflow file or use `ai-team upgrade --to x.x.x`.
+
+### Q: How do I migrate from v2?
+
+A: Run `npx ai-team-foundation migrate`. See [Migration Guide](./migration-to-v3.md) for details.
+
+### Q: Can I use this with private repositories?
+
+A: Yes. The GitHub Action uses `GITHUB_TOKEN` which has access to the current repo. For private foundation packages, use a private NPM registry.
+
+### Q: What happens to my agent memories?
+
+A: Your memories in `.ai-team/memory/` are preserved during migration and upgrades. They are local to your project and not affected by foundation updates.
+
+### Q: Can I disable specific agents?
+
+A: Yes, in your `ai-team.config.yaml`:
+
+```yaml
+agents:
+  planner: false
+  ci_analyst: false
+```
+
+### Q: How do I add custom build commands?
+
+A: Override in your config:
+
+```yaml
+build:
+  command: "npm run build:prod"
+  test: "npm run test:coverage"
+```
 
 ---
 

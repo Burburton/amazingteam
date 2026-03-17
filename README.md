@@ -1018,10 +1018,10 @@ npx ai-team-foundation upgrade --to 3.1.0
 | Phase 1: 基础准备 | 16 | 16 | ✅ 100% |
 | Phase 2: CLI 工具 | 23 | 23 | ✅ 100% |
 | Phase 3: GitHub Action | 12 | 12 | ✅ 100% |
-| Phase 4: 文档更新 | 12 | 0 | ⏳ 待开始 |
+| Phase 4: 文档更新 | 12 | 12 | ✅ 100% |
 | Phase 5: 测试 | 14 | 0 | ⏳ 待开始 |
 | Phase 6: 发布 | 9 | 0 | ⏳ 待开始 |
-| **总计** | **86** | **51** | **59%** |
+| **总计** | **86** | **63** | **73%** |
 
 ### Phase 1 已完成内容
 
@@ -1060,6 +1060,15 @@ npx ai-team-foundation upgrade --to 3.1.0
 | **PathResolver Tests** | `action/__tests__/path-resolver.test.js` | 路径解析、内存目录、任务路径测试 |
 | **Validator Tests** | `action/__tests__/validator.test.js` | Schema 验证、类型检查、必填字段测试 |
 | **Downloader Tests** | `action/__tests__/downloader.test.js` | 缓存逻辑、重试机制、降级逻辑测试 |
+
+### Phase 4 已完成内容
+
+| 文档 | 文件 | 说明 |
+|------|------|------|
+| **Migration Guide** | `docs/migration-to-v3.md` | v2 到 v3 迁移指南，步骤和故障排除 |
+| **Config Reference** | `docs/config-reference.md` | 完整配置字段参考和示例 |
+| **Quick Start v3** | `docs/quick-start-v3.md` | v3 快速入门指南 |
+| **v3 Implementation Checklist** | `infra/v3-implementation-checklist.md` | 实施进度跟踪 |
 
 ### 相关文档
 

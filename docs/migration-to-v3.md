@@ -1,0 +1,355 @@
+# Migration Guide: v2 to v3
+
+This guide helps you migrate from AI Team Foundation v2 to v3.
+
+---
+
+## Overview of Changes
+
+### v2 Architecture
+- Foundation files committed to each project
+- ~50+ files in `.ai-team/`, `.opencode/`, `tasks/`, etc.
+- Upgrades require manual copy/merge
+- Difficult to track which version is being used
+
+### v3 Architecture
+- Foundation loaded at runtime from NPM/GitHub
+- Only 2-3 files needed in user repo
+- One-command upgrades
+- Explicit version control
+- Better separation of user customizations
+
+---
+
+## Migration Steps
+
+### Step 1: Backup Your Project
+
+```bash
+# Create a backup branch
+git checkout -b backup-before-v3-migration
+
+# Commit any uncommitted changes
+git add -A && git commit -m "chore: backup before v3 migration"
+
+# Go back to main branch
+git checkout main
+```
+
+### Step 2: Identify Your Customizations
+
+Before migrating, identify what you've customized:
+
+```bash
+# Files you may have customized:
+# - AGENTS.md (global rules)
+# - .ai-team/agents/*.md (agent behaviors)
+# - .ai-team/skills/*/skill.md (custom skills)
+# - .ai-team/commands/*.md (custom commands)
+# - .ai-team/memory/*/ (agent memories)
+# - presets/ (if you created custom presets)
+```
+
+### Step 3: Run Migration Command
+
+```bash
+# Run the migration tool
+npx ai-team-foundation migrate
+
+# This will:
+# 1. Scan for v2 structure
+# 2. Extract your customizations
+# 3. Create ai-team.config.yaml
+# 4. Generate new workflow file
+# 5. Update .gitignore
+# 6. Remove foundation files from git tracking
+```
+
+### Step 4: Review Generated Files
+
+The migration creates these files:
+
+```
+your-project/
+├── ai-team.config.yaml      # Your extracted configuration
+├── .github/
+│   └── workflows/
+│       └── ai-team.yml      # Updated workflow
+└── .gitignore               # Updated to ignore foundation files
+```
+
+Review `ai-team.config.yaml` and adjust as needed.
+
+### Step 5: Handle Customizations
+
+#### Custom AGENTS.md
+If you modified `AGENTS.md`, you have two options:
+
+**Option A: Overlay in config**
+```yaml
+# ai-team.config.yaml
+overlay:
+  agents: |
+    # Your custom AGENTS.md additions
+    ## Custom Rules
+    - Your custom rules here
+```
+
+**Option B: Keep local AGENTS.md**
+```bash
+# Keep your custom AGENTS.md
+# It will be used instead of foundation's
+```
+
+#### Custom Skills
+```bash
+# Keep your custom skills in .ai-team/skills/
+# They will be merged with foundation skills
+```
+
+#### Custom Commands
+```yaml
+# Add custom commands in config
+commands:
+  my-custom-command:
+    description: "My custom workflow"
+    sequence:
+      - triage
+      - architect
+      - developer
+```
+
+### Step 6: Remove Foundation Files
+
+```bash
+# The migration tool does this automatically, but verify:
+git rm -r --cached .ai-team/agents/
+git rm -r --cached .ai-team/skills/
+git rm -r --cached .ai-team/commands/
+git rm -r --cached .opencode/skills/
+git rm -r --cached .opencode/commands/
+git rm --cached AGENTS.md
+
+# But KEEP these directories (they contain your data):
+# - .ai-team/memory/ (your agent memories)
+# - tasks/ (your task history)
+```
+
+### Step 7: Update .gitignore
+
+Add these entries to `.gitignore`:
+
+```gitignore
+# AI Team Foundation v3
+.ai-team-local/
+```
+
+### Step 8: Commit Migration
+
+```bash
+git add -A
+git commit -m "chore: migrate to AI Team Foundation v3
+
+- Remove committed foundation files
+- Add ai-team.config.yaml
+- Update workflow file
+- Update .gitignore
+"
+```
+
+### Step 9: Test Migration
+
+```bash
+# Download foundation locally
+npx ai-team-foundation local
+
+# Verify setup
+npx ai-team-foundation validate
+
+# Check status
+npx ai-team-foundation status
+```
+
+### Step 10: Push and Test in CI
+
+```bash
+git push origin main
+
+# Create a test issue with a command like:
+# /ai status
+```
+
+---
+
+## Detailed Migration Scenarios
+
+### Scenario 1: Minimal Customization
+
+If you only changed presets and have no custom skills/commands:
+
+```yaml
+# ai-team.config.yaml
+version: "1.0"
+project:
+  name: "my-project"
+  language: "typescript"
+
+build:
+  command: "npm run build"
+  test: "npm test"
+  lint: "npm run lint"
+```
+
+### Scenario 2: Custom Skills
+
+If you created custom skills:
+
+```bash
+# Keep your skills
+mkdir -p .ai-team/skills
+# Your existing skills remain in .ai-team/skills/
+
+# They will be automatically merged with foundation skills
+```
+
+### Scenario 3: Modified AGENTS.md
+
+If you heavily modified `AGENTS.md`:
+
+**Option A: Use as overlay**
+```yaml
+# ai-team.config.yaml
+overlay:
+  content: |
+    # Your custom additions to AGENTS.md
+    ## Project-Specific Rules
+    - Use specific naming conventions
+    - Follow company coding standards
+```
+
+**Option B: Replace entirely**
+```bash
+# Keep your AGENTS.md as-is
+# It will override foundation's AGENTS.md
+```
+
+### Scenario 4: Custom Memory Content
+
+Your agent memories in `.ai-team/memory/` are preserved:
+
+```bash
+# These directories are NOT removed during migration:
+.ai-team/memory/planner/
+.ai-team/memory/developer/
+# etc.
+```
+
+---
+
+## Breaking Changes
+
+### 1. Skill Path Changes
+
+**v2:**
+```
+.opencode/skills/test-first-feature-dev/SKILL.md
+```
+
+**v3:**
+Skills are loaded from foundation at runtime. Custom skills in `.ai-team/skills/` are merged.
+
+### 2. Command Path Changes
+
+**v2:**
+```
+.opencode/commands/auto.md
+```
+
+**v3:**
+Commands are loaded from foundation. Custom commands defined in `ai-team.config.yaml`.
+
+### 3. Preset Structure
+
+**v2:**
+Presets were files in `presets/` directory.
+
+**v3:**
+Presets are built-in to foundation. Specify by name:
+
+```yaml
+# ai-team.config.yaml
+preset: "typescript"  # or "python", "go", "default"
+```
+
+---
+
+## Troubleshooting
+
+### "Migration tool not found"
+
+```bash
+# Install globally first
+npm install -g ai-team-foundation
+
+# Or use npx
+npx ai-team-foundation migrate
+```
+
+### "v2 structure not detected"
+
+The migration tool looks for these markers:
+- `.ai-team/agents/` directory
+- `.opencode/skills/` directory
+- `AGENTS.md` file
+
+If your project uses a different structure, you may need to create `ai-team.config.yaml` manually.
+
+### "My customizations were lost"
+
+1. Check the `backup-before-v3-migration` branch
+2. Look for extracted customizations in `ai-team.config.yaml`
+3. Your memories and tasks are preserved in `.ai-team/memory/` and `tasks/`
+
+### "CI fails after migration"
+
+1. Verify `ai-team.config.yaml` exists
+2. Verify `.github/workflows/ai-team.yml` exists
+3. Check GitHub Actions logs for specific error
+4. Run `npx ai-team-foundation validate` locally
+
+### "OpenCode can't find commands/skills"
+
+```bash
+# Download foundation locally
+npx ai-team-foundation local
+
+# Verify opencode.jsonc exists
+cat opencode.jsonc
+```
+
+---
+
+## Rollback
+
+If migration causes issues, rollback:
+
+```bash
+# Restore from backup
+git checkout backup-before-v3-migration
+
+# Create a new branch for another migration attempt
+git checkout -b retry-v3-migration
+
+# Try migration again
+npx ai-team-foundation migrate
+```
+
+---
+
+## Getting Help
+
+If you encounter issues:
+
+1. Check the [troubleshooting guide](./quick-start-v3.md#troubleshooting)
+2. Review [config reference](./config-reference.md)
+3. Open an issue at https://github.com/your-org/ai-team-foundation/issues
