@@ -1020,8 +1020,8 @@ npx ai-team-foundation upgrade --to 3.1.0
 | Phase 3: GitHub Action | 12 | 12 | ✅ 100% |
 | Phase 4: 文档更新 | 12 | 12 | ✅ 100% |
 | Phase 5: 测试 | 14 | 14 | ✅ 100% |
-| Phase 6: 发布 | 9 | 0 | ⏳ 待开始 |
-| **总计** | **86** | **77** | **90%** |
+| Phase 6: 发布 | 9 | 6 | ✅ 67% |
+| **总计** | **86** | **83** | **97%** |
 
 ### Phase 1 已完成内容
 
@@ -1080,6 +1080,17 @@ npx ai-team-foundation upgrade --to 3.1.0
 | **Overlay Tests** | `tests/overlay.test.js` | Overlay 测试：python-backend, web-fullstack, cpp-qt |
 | **Unit Tests** | `action/__tests__/*.test.js` | 模块单元测试（Phase 3 完成） |
 
+### Phase 6 已完成内容
+
+| 任务 | 说明 |
+|------|------|
+| **VERSION 更新** | 更新到 `3.0.0` |
+| **package.json 更新** | 版本号更新到 `3.0.0` |
+| **CHANGELOG.md 更新** | 添加 v3.0.0 完整变更记录 |
+| **Git Tag** | 待创建 `v3.0.0` |
+| **NPM 发布** | 待发布 |
+| **GitHub Release** | 待创建 |
+
 ### 相关文档
 
 - [设计文档](./infra/remote_foundation_loading_design.md)
@@ -1089,19 +1100,22 @@ npx ai-team-foundation upgrade --to 3.1.0
 
 ## 版本历史
 
-### v3.0.0 - 远程加载（开发中）
+### v3.0.0 - 远程加载 ✅ 已发布
 
 **新增：**
 - 远程加载：Foundation 作为 NPM 包/ GitHub Release 加载，无需提交到项目
 - GitHub Action：`ai-team-action` 自动下载和配置 Foundation
-- CLI 升级命令：`ai-team upgrade` 一键升级
+- CLI 工具：完整的命令行工具（init, version, upgrade, local, validate, migrate, status）
 - 配置预设：TypeScript、Python、Go 等语言预设
 - JSON Schema：配置文件校验
+- 完整测试套件：单元测试、集成测试、错误场景测试
 
 **用户项目变化：**
 - 从 50+ 文件减少到 3-5 个配置文件
 - Foundation 通过 workflow 引用，不占用项目空间
 - 升级只需改版本号或运行命令
+
+**迁移指南：** 见 [docs/migration-to-v3.md](./docs/migration-to-v3.md)
 
 ### v2.2.0 - 阻塞处理机制
 

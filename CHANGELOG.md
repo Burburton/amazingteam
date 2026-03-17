@@ -5,6 +5,111 @@ All notable changes to the AI Team Foundation will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-03-17
+
+### Added
+
+#### Remote Foundation Loading
+- Foundation loaded at runtime from NPM/GitHub releases
+- User projects only need 2-3 config files instead of 50+ files
+- One-command upgrades: `npx ai-team-foundation upgrade`
+- Explicit version control in workflow files
+- Automatic caching for faster CI runs
+
+#### GitHub Action
+- `action/` - Complete GitHub Action implementation
+- `action/lib/merger.js` - Configuration merge with deep merge support
+- `action/lib/path-resolver.js` - Cross-platform path resolution
+- `action/lib/validator.js` - JSON Schema validation
+- `action/lib/downloader.js` - NPM/GitHub download with retry and fallback
+- `action/lib/setup.js` - Runtime directory initialization
+- `action/action.yml` - Action manifest with inputs/outputs
+- `action/index.js` - Main action entry point
+
+#### CLI Tool
+- `cli/ai-team.cjs` - Complete CLI with command parsing
+- `cli/commands/init.cjs` - Interactive project initialization
+- `cli/commands/version.cjs` - Version display
+- `cli/commands/check-update.cjs` - Check for updates from NPM/GitHub
+- `cli/commands/upgrade.cjs` - Upgrade to new versions
+- `cli/commands/local.cjs` - Download foundation for local development
+- `cli/commands/validate.cjs` - Configuration validation
+- `cli/commands/migrate.cjs` - Migrate from v2 to v3
+- `cli/commands/status.cjs` - Project status display
+
+#### Configuration System
+- `presets/` - Language presets (default, typescript, python, go)
+- `templates/` - Config templates (opencode.jsonc, ai-team.yml, gitignore)
+- `schemas/config.schema.json` - JSON Schema for configuration validation
+- `ai-team.config.yaml` - User configuration file
+
+#### Documentation
+- `docs/migration-to-v3.md` - Step-by-step migration guide
+- `docs/config-reference.md` - Complete configuration reference
+- `docs/quick-start-v3.md` - Quick start guide for v3
+
+#### Test Suite
+- `action/__tests__/` - Unit tests for action modules
+- `cli/__tests__/cli.test.js` - CLI command tests
+- `tests/integration.test.js` - Full workflow integration tests
+- `tests/error-scenarios.test.js` - Error handling tests
+- `tests/overlay.test.js` - Overlay configuration tests
+
+### Changed
+
+#### Project Structure
+- User projects now only contain:
+  - `.github/workflows/ai-team.yml` - Workflow file
+  - `ai-team.config.yaml` - User configuration
+  - `opencode.jsonc` - Generated config (auto-generated)
+  - `.ai-team/memory/` - Runtime state (preserved)
+  - `tasks/` - Task history (preserved)
+
+#### Upgrade Process
+- Before: Manual copy/merge of 50+ files
+- After: Single command `npx ai-team-foundation upgrade`
+
+#### Version Management
+- Before: Hard to track which version is being used
+- After: Explicit version in workflow file: `uses: your-org/ai-team-action@v3.0.0`
+
+### Migration from v2 to v3
+
+1. **Backup your project**:
+   ```bash
+   git checkout -b backup-before-v3-migration
+   git add -A && git commit -m "backup"
+   git checkout main
+   ```
+
+2. **Run migration**:
+   ```bash
+   npx ai-team-foundation migrate
+   ```
+
+3. **Review generated files**:
+   - `ai-team.config.yaml` - Your extracted configuration
+   - `.github/workflows/ai-team.yml` - Updated workflow
+
+4. **Commit and test**:
+   ```bash
+   git add -A
+   git commit -m "chore: migrate to v3"
+   npx ai-team-foundation local
+   npx ai-team-foundation validate
+   ```
+
+See [Migration Guide](./docs/migration-to-v3.md) for detailed instructions.
+
+### Breaking Changes
+
+- Skills and commands are now loaded from foundation at runtime
+- Custom skills should be placed in `.ai-team/skills/` (they will be merged)
+- Custom AGENTS.md will override foundation's AGENTS.md
+- Presets are now built-in, specify by name in config
+
+---
+
 ## [2.2.0] - 2026-03-15
 
 ### Added
