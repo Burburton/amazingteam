@@ -14,9 +14,22 @@ const TEMP_DIR = path.join(os.tmpdir(), 'amazingteam-cli-test');
 function setup() {
   console.log('Setting up test environment...');
   
-  if (fs.existsSync(TEMP_DIR)) {
-    fs.rmSync(TEMP_DIR, { recursive: true, force: true });
+  try {
+    if (fs.existsSync(TEMP_DIR)) {
+      fs.rmSync(TEMP_DIR, { recursive: true, force: true });
+    }
+  } catch (err) {
+    if (err.code === 'EBUSY') {
+      console.log('  Note: Temp directory locked, using alternative path');
+      const altDir = path.join(os.tmpdir(), `amazingteam-cli-test-${Date.now()}`);
+      fs.mkdirSync(altDir, { recursive: true });
+      process.chdir(altDir);
+      console.log(`  Working directory: ${altDir}`);
+      return;
+    }
+    throw err;
   }
+  
   fs.mkdirSync(TEMP_DIR, { recursive: true });
   
   process.chdir(TEMP_DIR);

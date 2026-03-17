@@ -90,6 +90,7 @@ overlay:
 | `version` | string | No | `"1.0"` | Config file schema version |
 | `preset` | string | No | `"default"` | Preset name (default, typescript, python, go) |
 | `project` | object | **Yes** | - | Project information |
+| `llm` | object | No | Default | LLM provider configuration |
 | `build` | object | No | Preset default | Build commands |
 | `rules` | object | No | Preset default | Coding rules |
 | `agents` | object | No | All enabled | Agent configuration |
@@ -127,6 +128,87 @@ project:
   language: "typescript"
   framework: "react"
   repository: "https://github.com/org/my-fullstack-app"
+```
+
+---
+
+### llm
+
+LLM provider configuration for custom AI backends.
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `provider` | string | No | `"default"` | Provider name (default, openai, anthropic, bailian, deepseek, etc.) |
+| `model` | string | No | `"default"` | Model name for main tasks |
+| `small_model` | string | No | Same as model | Model for simple tasks |
+| `base_url` | string | No | Provider default | Custom API endpoint |
+| `api_key_env` | string | No | - | Environment variable name for API key |
+
+**Supported Providers:**
+
+| Provider | base_url | Notes |
+|----------|----------|-------|
+| `default` | - | Uses OpenCode's default configuration |
+| `openai` | `https://api.openai.com/v1` | OpenAI GPT models |
+| `anthropic` | `https://api.anthropic.com` | Claude models |
+| `bailian` | `https://bailian.aliyuncs.com/v1` | Alibaba Bailian (百炼) |
+| `deepseek` | `https://api.deepseek.com` | DeepSeek models |
+| `moonshot` | `https://api.moonshot.cn/v1` | Moonshot (月之暗面) |
+| `zhipu` | `https://open.bigmodel.cn/api/paas/v4` | Zhipu AI (智谱) |
+
+**Examples:**
+
+```yaml
+# Use default (OpenCode handles configuration)
+llm:
+  provider: "default"
+
+# Use Alibaba Bailian (百炼)
+llm:
+  provider: "bailian"
+  model: "qwen-max"
+  small_model: "qwen-turbo"
+  base_url: "https://bailian.aliyuncs.com/v1"
+  api_key_env: "BAILIAN_API_KEY"
+
+# Use OpenAI
+llm:
+  provider: "openai"
+  model: "gpt-4"
+  small_model: "gpt-3.5-turbo"
+
+# Use DeepSeek
+llm:
+  provider: "deepseek"
+  model: "deepseek-chat"
+  small_model: "deepseek-chat"
+
+# Custom endpoint
+llm:
+  provider: "custom"
+  model: "my-model"
+  base_url: "https://my-api.example.com/v1"
+  api_key_env: "CUSTOM_API_KEY"
+```
+
+**Environment Variables:**
+
+Set your API key in environment:
+```bash
+# For Bailian
+export BAILIAN_API_KEY="your-api-key"
+
+# For OpenAI
+export OPENAI_API_KEY="your-api-key"
+
+# For DeepSeek
+export DEEPSEEK_API_KEY="your-api-key"
+```
+
+In GitHub Actions, add to your workflow:
+```yaml
+env:
+  BAILIAN_API_KEY: ${{ secrets.BAILIAN_API_KEY }}
 ```
 
 ---

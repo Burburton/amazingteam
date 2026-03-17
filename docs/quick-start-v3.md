@@ -52,6 +52,10 @@ my-project/
 project:
   name: "my-project"
   language: "typescript"
+
+# LLM Configuration (optional)
+llm:
+  provider: "default"  # Use OpenCode default
 ```
 
 ### Full Configuration
@@ -65,6 +69,14 @@ project:
   description: "My awesome application"
   language: "typescript"
   framework: "react"
+
+# LLM Configuration - Use your own AI provider
+llm:
+  provider: "bailian"           # or: openai, anthropic, deepseek, etc.
+  model: "qwen-max"             # Main model for complex tasks
+  small_model: "qwen-turbo"     # Faster model for simple tasks
+  base_url: "https://bailian.aliyuncs.com/v1"
+  api_key_env: "BAILIAN_API_KEY"  # Env var name (not the actual key!)
 
 # Build commands (override defaults)
 build:

@@ -57,8 +57,18 @@ project:
   language: "{{LANGUAGE}}"
   framework: "{{FRAMEWORK}}"
 
-ai_team:
-  version: "{{AI_TEAM_VERSION}}"
+llm:
+  # Provider: default, openai, anthropic, bailian, deepseek, etc.
+  provider: "{{LLM_PROVIDER}}"
+  model: "{{LLM_MODEL}}"
+  small_model: "{{LLM_SMALL_MODEL}}"
+  # Uncomment for custom endpoint:
+  # base_url: "https://your-api-endpoint.com/v1"
+  # API key from environment variable:
+  # api_key_env: "YOUR_API_KEY_ENV_NAME"
+
+amazingteam:
+  version: "{{AMAZINGTEAM_VERSION}}"
 
 build:
   command: "{{BUILD_COMMAND}}"
@@ -76,8 +86,8 @@ rules:
 
     'opencode.jsonc': `{
   "$schema": "https://opencode.ai/config.json",
-  "model": "default",
-  "small_model": "default",
+  "model": "{{LLM_MODEL}}",
+  "small_model": "{{LLM_SMALL_MODEL}}",
   "default_agent": "build",
   "instructions": ["AGENTS.md"],
   "autoupdate": true,
@@ -89,7 +99,7 @@ rules:
     "write": true,
     "edit": true,
     "bash": true
-  }
+  }{{LLM_PROVIDER_CONFIG}}
 }
 `,
 
@@ -232,6 +242,10 @@ async function run(options, positional) {
     let framework = options.framework;
     let description = options.description;
     let overlay = options.overlay;
+    let llmProvider = options.llmProvider;
+    let llmModel = options.llmModel;
+    let llmSmallModel = options.llmSmallModel;
+    let llmBaseUrl = options.llmBaseUrl;
     
     if (!options.language) {
       language = await question(rl, 'Language', 'typescript');
@@ -249,6 +263,31 @@ async function run(options, positional) {
     if (!options.overlay && options.overlay !== null) {
       const overlayAnswer = await question(rl, 'Overlay (leave empty for none)', '');
       overlay = overlayAnswer || null;
+    }
+    
+    // LLM Configuration
+    log('\n🤖 LLM Configuration\n', 'cyan');
+    
+    if (!options.llmProvider) {
+      console.log('  Common providers: default, openai, anthropic, bailian, deepseek');
+      llmProvider = await question(rl, 'LLM Provider', 'default');
+    }
+    
+    if (llmProvider === 'default') {
+      llmModel = 'default';
+      llmSmallModel = 'default';
+    } else {
+      if (!options.llmModel) {
+        llmModel = await question(rl, 'Model name', 'gpt-4');
+      }
+      if (!options.llmSmallModel) {
+        llmSmallModel = await question(rl, 'Small model (for simple tasks)', llmModel);
+      }
+    }
+    
+    if (!options.llmBaseUrl && llmProvider !== 'default') {
+      const baseUrlAnswer = await question(rl, 'Custom base URL (leave empty for default)', '');
+      llmBaseUrl = baseUrlAnswer || null;
     }
     
     const langDefaults = getLanguageDefaults(language);
@@ -279,6 +318,18 @@ async function run(options, positional) {
     
     log('📝 Creating configuration files...', 'blue');
     
+    // Generate LLM provider config for opencode.jsonc
+    let llmProviderConfig = '';
+    if (llmProvider !== 'default' && llmBaseUrl) {
+      llmProviderConfig = `,
+  "providers": {
+    "${llmProvider}": {
+      "base_url": "${llmBaseUrl}",
+      "api_key": "\${${llmProvider.toUpperCase()}_API_KEY}"
+    }
+  }`;
+    }
+    
     // Generate amazingteam.config.yaml
     let configContent = getTemplate('amazingteam.config.yaml');
     configContent = configContent
@@ -286,7 +337,10 @@ async function run(options, positional) {
       .replace(/\{\{PROJECT_DESCRIPTION\}\}/g, description)
       .replace(/\{\{LANGUAGE\}\}/g, language)
       .replace(/\{\{FRAMEWORK\}\}/g, framework)
-      .replace(/\{\{AI_TEAM_VERSION\}\}/g, VERSION)
+      .replace(/\{\{AMAZINGTEAM_VERSION\}\}/g, VERSION)
+      .replace(/\{\{LLM_PROVIDER\}\}/g, llmProvider)
+      .replace(/\{\{LLM_MODEL\}\}/g, llmModel)
+      .replace(/\{\{LLM_SMALL_MODEL\}\}/g, llmSmallModel)
       .replace(/\{\{BUILD_COMMAND\}\}/g, langDefaults.buildCommand)
       .replace(/\{\{TEST_COMMAND\}\}/g, langDefaults.testCommand)
       .replace(/\{\{LINT_COMMAND\}\}/g, langDefaults.lintCommand)
@@ -295,8 +349,14 @@ async function run(options, positional) {
     fs.writeFileSync(configPath, configContent);
     
     // Generate opencode.jsonc
+    let opencodeContent = getTemplate('opencode.jsonc');
+    opencodeContent = opencodeContent
+      .replace(/\{\{LLM_MODEL\}\}/g, llmProvider === 'default' ? 'default' : `${llmProvider}/${llmModel}`)
+      .replace(/\{\{LLM_SMALL_MODEL\}\}/g, llmProvider === 'default' ? 'default' : `${llmProvider}/${llmSmallModel}`)
+      .replace(/\{\{LLM_PROVIDER_CONFIG\}\}/g, llmProviderConfig);
+    
     const opencodePath = path.join(projectPath, 'opencode.jsonc');
-    fs.writeFileSync(opencodePath, getTemplate('opencode.jsonc'));
+    fs.writeFileSync(opencodePath, opencodeContent);
     
     // Generate workflow
     const workflowPath = path.join(projectPath, '.github', 'workflows', 'amazingteam.yml');

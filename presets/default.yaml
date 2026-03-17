@@ -9,7 +9,14 @@ project:
   language: "typescript"
   framework: "node"
 
-ai_team:
+llm:
+  provider: "default"
+  model: "default"
+  small_model: "default"
+  base_url: ""
+  api_key_env: ""
+
+amazingteam:
   version: "3.0.0"
 
 agents:
