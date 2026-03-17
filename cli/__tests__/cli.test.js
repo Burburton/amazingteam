@@ -1,6 +1,6 @@
 /**
  * CLI Tests
- * Tests for ai-team CLI commands
+ * Tests for amazingteam CLI commands
  */
 
 const fs = require('fs');
@@ -8,8 +8,8 @@ const path = require('path');
 const os = require('os');
 const { execSync } = require('child_process');
 
-const CLI_PATH = path.join(__dirname, '..', 'ai-team.cjs');
-const TEMP_DIR = path.join(os.tmpdir(), 'ai-team-cli-test');
+const CLI_PATH = path.join(__dirname, '..', 'amazingteam.cjs');
+const TEMP_DIR = path.join(os.tmpdir(), 'amazingteam-cli-test');
 
 function setup() {
   console.log('Setting up test environment...');
@@ -45,7 +45,7 @@ function testHelpCommand() {
   
   const output = execSync(`node "${CLI_PATH}" --help`, { encoding: 'utf-8' });
   
-  console.assert(output.includes('ai-team'), 'Help should mention ai-team');
+  console.assert(output.includes('amazingteam'), 'Help should mention amazingteam');
   console.assert(output.includes('init'), 'Help should list init command');
   console.assert(output.includes('version'), 'Help should list version command');
   console.assert(output.includes('upgrade'), 'Help should list upgrade command');
@@ -60,7 +60,7 @@ function testVersionCommand() {
   
   const output = execSync(`node "${CLI_PATH}" version`, { encoding: 'utf-8' });
   
-  console.assert(output.includes('AI Team Foundation'), 'Should show foundation name');
+  console.assert(output.includes('AmazingTeam Foundation'), 'Should show foundation name');
   console.assert(/\d+\.\d+\.\d+/.test(output) || output.includes('version'), 'Should show version');
   
   console.log('  ✓ version command tests passed');
@@ -72,7 +72,7 @@ function testInitCreatesConfig() {
   const testProject = path.join(TEMP_DIR, 'test-project');
   fs.mkdirSync(testProject, { recursive: true });
   
-  const configPath = path.join(testProject, 'ai-team.config.yaml');
+  const configPath = path.join(testProject, 'amazingteam.config.yaml');
   
   const minimalConfig = `project:
   name: test-project
@@ -95,7 +95,7 @@ function testValidateCommand() {
   const testProject = path.join(TEMP_DIR, 'validate-test');
   fs.mkdirSync(testProject, { recursive: true });
   
-  const configPath = path.join(testProject, 'ai-team.config.yaml');
+  const configPath = path.join(testProject, 'amazingteam.config.yaml');
   const validConfig = `project:
   name: validate-test
   language: typescript
@@ -113,7 +113,7 @@ function testStatusCommand() {
   const testProject = path.join(TEMP_DIR, 'status-test');
   fs.mkdirSync(testProject, { recursive: true });
   
-  const configPath = path.join(testProject, 'ai-team.config.yaml');
+  const configPath = path.join(testProject, 'amazingteam.config.yaml');
   const config = `project:
   name: status-test
   language: python
@@ -210,7 +210,7 @@ function testConfigValidation() {
     const testDir = path.join(TEMP_DIR, `config-test-${Date.now()}`);
     fs.mkdirSync(testDir, { recursive: true });
     
-    const configPath = path.join(testDir, 'ai-team.config.yaml');
+    const configPath = path.join(testDir, 'amazingteam.config.yaml');
     fs.writeFileSync(configPath, config.content);
     
     console.assert(fs.existsSync(configPath), `${config.name} config should be written`);
@@ -226,8 +226,8 @@ function testDirectoryStructure() {
   console.log('\nTesting directory structure requirements...');
   
   const requiredDirs = [
-    '.ai-team',
-    '.ai-team/memory',
+    '.amazingteam',
+    '.amazingteam/memory',
     'tasks'
   ];
   

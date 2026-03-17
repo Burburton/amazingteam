@@ -1,8 +1,8 @@
-# AI Team Foundation v3 - Quick Start (Draft)
+# AmazingTeam Foundation v3 - Quick Start (Draft)
 
 ## Overview
 
-This guide shows how to use AI Team Foundation v3 in your project with minimal setup.
+This guide shows how to use AmazingTeam Foundation v3 in your project with minimal setup.
 
 ---
 
@@ -14,15 +14,15 @@ This guide shows how to use AI Team Foundation v3 in your project with minimal s
 # Navigate to your project
 cd my-project
 
-# Initialize AI Team
-npx ai-team-foundation init
+# Initialize AmazingTeam
+npx amazingteam init
 ```
 
 ### Option 2: Create New Project
 
 ```bash
-# Create new project with AI Team
-npx ai-team-foundation init my-new-project
+# Create new project with AmazingTeam
+npx amazingteam init my-new-project
 cd my-new-project
 ```
 
@@ -34,8 +34,8 @@ cd my-new-project
 my-project/
 ├── .github/
 │   └── workflows/
-│       └── ai-team.yml      # GitHub Action workflow
-├── ai-team.config.yaml      # Your configuration
+│       └── amazingteam.yml      # GitHub Action workflow
+├── amazingteam.config.yaml      # Your configuration
 └── .gitignore               # Updated (ignores .ai-team-local/)
 ```
 
@@ -48,7 +48,7 @@ my-project/
 ### Minimal Configuration
 
 ```yaml
-# ai-team.config.yaml
+# amazingteam.config.yaml
 project:
   name: "my-project"
   language: "typescript"
@@ -57,7 +57,7 @@ project:
 ### Full Configuration
 
 ```yaml
-# ai-team.config.yaml
+# amazingteam.config.yaml
 version: "1.0"
 
 project:
@@ -102,16 +102,16 @@ overlay: "web-fullstack"
 1. Push your code to GitHub
 2. Create an issue or comment on an issue
 3. Type a command like `/ai implement this feature`
-4. AI Team will process your request
+4. AmazingTeam will process your request
 
 ### Local Development
 
 ```bash
 # Download foundation for local use
-npx ai-team-foundation local
+npx amazingteam local
 
 # This creates .ai-team-local/ with all foundation files
-# Now you can use OpenCode locally with full AI Team capabilities
+# Now you can use OpenCode locally with full AmazingTeam capabilities
 ```
 
 ---
@@ -121,7 +121,7 @@ npx ai-team-foundation local
 ### Check for Updates
 
 ```bash
-npx ai-team-foundation check-update
+npx amazingteam check-update
 
 # Output:
 # Current version: 3.0.0
@@ -137,13 +137,13 @@ npx ai-team-foundation check-update
 ### Upgrade
 
 ```bash
-npx ai-team-foundation upgrade
+npx amazingteam upgrade
 
 # Output:
 # Upgrading from 3.0.0 to 3.1.0...
 # 
 # Updated files:
-# - .github/workflows/ai-team.yml
+# - .github/workflows/amazingteam.yml
 # 
 # No breaking changes.
 # Upgrade complete!
@@ -152,7 +152,7 @@ npx ai-team-foundation upgrade
 ### Upgrade to Specific Version
 
 ```bash
-npx ai-team-foundation upgrade --to 3.0.5
+npx amazingteam upgrade --to 3.0.5
 ```
 
 ---
@@ -161,7 +161,7 @@ npx ai-team-foundation upgrade --to 3.0.5
 
 | Command | Description |
 |---------|-------------|
-| `init` | Initialize AI Team in project |
+| `init` | Initialize AmazingTeam in project |
 | `version` | Show current foundation version |
 | `check-update` | Check for available updates |
 | `upgrade` | Upgrade to latest version |
@@ -172,10 +172,10 @@ npx ai-team-foundation upgrade --to 3.0.5
 
 ## Workflow File
 
-The generated `.github/workflows/ai-team.yml`:
+The generated `.github/workflows/amazingteam.yml`:
 
 ```yaml
-name: AI Team
+name: AmazingTeam
 
 on:
   issue_comment:
@@ -201,10 +201,10 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup AI Team
-        uses: your-org/ai-team-action@v3.0.0  # Version is auto-managed
+      - name: Setup AmazingTeam
+        uses: your-org/amazingteam-action@v3.0.0  # Version is auto-managed
         with:
-          config: 'ai-team.config.yaml'
+          config: 'amazingteam.config.yaml'
 
       - name: Run OpenCode
         uses: anomalyco/opencode/github@latest
@@ -235,11 +235,11 @@ If you have an existing v2 project:
 
 ```bash
 # Run migration
-npx ai-team-foundation migrate
+npx amazingteam migrate
 
 # This will:
 # 1. Extract your customizations
-# 2. Create ai-team.config.yaml
+# 2. Create amazingteam.config.yaml
 # 3. Update workflow file
 # 4. Add foundation files to .gitignore
 # 5. Remove foundation files from git tracking
@@ -251,7 +251,7 @@ npx ai-team-foundation migrate
 
 ### Q: What if I need to customize AGENTS.md?
 
-A: You can create a local `AGENTS.md` in your project root. It will override the foundation's AGENTS.md entirely, or you can use the overlay feature in `ai-team.config.yaml` to add content.
+A: You can create a local `AGENTS.md` in your project root. It will override the foundation's AGENTS.md entirely, or you can use the overlay feature in `amazingteam.config.yaml` to add content.
 
 ### Q: What if I need custom skills?
 
@@ -267,7 +267,7 @@ A: Yes, specify version in workflow file or use `ai-team upgrade --to x.x.x`.
 
 ### Q: How do I migrate from v2?
 
-A: Run `npx ai-team-foundation migrate`. See [Migration Guide](./migration-to-v3.md) for details.
+A: Run `npx amazingteam migrate`. See [Migration Guide](./migration-to-v3.md) for details.
 
 ### Q: Can I use this with private repositories?
 
@@ -279,7 +279,7 @@ A: Your memories in `.ai-team/memory/` are preserved during migration and upgrad
 
 ### Q: Can I disable specific agents?
 
-A: Yes, in your `ai-team.config.yaml`:
+A: Yes, in your `amazingteam.config.yaml`:
 
 ```yaml
 agents:
@@ -305,7 +305,7 @@ build:
 
 ```bash
 # Try downloading manually
-npx ai-team-foundation local
+npx amazingteam local
 
 # If still fails, check network or use VPN
 ```
@@ -314,7 +314,7 @@ npx ai-team-foundation local
 
 ```bash
 # Validate your config
-npx ai-team-foundation validate
+npx amazingteam validate
 
 # Check for errors and fix
 ```
@@ -323,7 +323,7 @@ npx ai-team-foundation validate
 
 ```bash
 # Ensure foundation is downloaded
-npx ai-team-foundation local
+npx amazingteam local
 
 # Check opencode.jsonc references
 cat opencode.jsonc

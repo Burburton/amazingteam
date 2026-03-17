@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://ai-team.dev/schemas/config.schema.json",
-  "title": "AI Team Configuration",
-  "description": "Configuration schema for AI Team Foundation v3",
+  "$id": "https://amazingteam.dev/schemas/config.schema.json",
+  "title": "AmazingTeam Configuration",
+  "description": "Configuration schema for AmazingTeam Foundation v3",
   "type": "object",
   "required": ["version", "project"],
   "additionalProperties": false,
@@ -46,7 +46,7 @@
         "version": {
           "type": "string",
           "pattern": "^\\d+\\.\\d+\\.\\d+$",
-          "description": "AI Team Foundation version"
+          "description": "AmazingTeam Foundation version"
         }
       }
     },

@@ -22,12 +22,12 @@ agents:
   developer:
     skills: ["test-first-feature-dev", "bugfix-playbook"]
     memory:
-      write: [".ai-team/memory/developer/", "tasks/{task_id}/implementation.md", "src/", "tests/"]
+      write: [".amazingteam/memory/developer/", "tasks/{task_id}/implementation.md", "src/", "tests/"]
 
   qa:
     skills: ["test-first-feature-dev", "regression-checklist"]
     memory:
-      write: [".ai-team/memory/qa/", "tasks/{task_id}/validation.md", "tests/"]
+      write: [".amazingteam/memory/qa/", "tasks/{task_id}/validation.md", "tests/"]
 
 integrations:
   ci:

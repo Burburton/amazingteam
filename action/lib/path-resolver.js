@@ -8,7 +8,7 @@ const path = require('path');
 
 /**
  * Path Resolver Class
- * Handles all path resolution for AI Team Foundation
+ * Handles all path resolution for AmazingTeam Foundation
  */
 class PathResolver {
   /**
@@ -44,7 +44,7 @@ class PathResolver {
    * @returns {string} Absolute path to role memory directory
    */
   resolveMemoryPath(role) {
-    return path.join(this.projectDir, '.ai-team', 'memory', role);
+    return path.join(this.projectDir, '.amazingteam', 'memory', role);
   }
 
   /**
@@ -52,7 +52,7 @@ class PathResolver {
    * @returns {string} Absolute path to failures directory
    */
   resolveFailuresPath() {
-    return path.join(this.projectDir, '.ai-team', 'memory', 'failures');
+    return path.join(this.projectDir, '.amazingteam', 'memory', 'failures');
   }
 
   /**
@@ -94,10 +94,10 @@ class PathResolver {
 
   /**
    * Resolve user config path
-   * @param {string} configPath - Config file name (default: ai-team.config.yaml)
+   * @param {string} configPath - Config file name (default: amazingteam.config.yaml)
    * @returns {string} Absolute path to user config
    */
-  resolveUserConfigPath(configPath = 'ai-team.config.yaml') {
+  resolveUserConfigPath(configPath = 'amazingteam.config.yaml') {
     return path.join(this.projectDir, configPath);
   }
 
@@ -119,7 +119,7 @@ class PathResolver {
       ...this.getMemoryDirectories(),
       this.resolveFailuresPath(),
       this.resolveTaskTemplatePath(),
-      path.join(this.projectDir, '.ai-team'),
+      path.join(this.projectDir, '.amazingteam'),
       path.join(this.projectDir, 'tasks')
     ];
   }
@@ -134,18 +134,18 @@ class PathResolver {
 
   /**
    * Get foundation commands directory
-   * @returns {string} Path to foundation .ai-team/commands
+   * @returns {string} Path to foundation .amazingteam/commands
    */
   getFoundationCommandsDir() {
-    return path.join(this.foundationDir, '.ai-team', 'commands');
+    return path.join(this.foundationDir, '.amazingteam', 'commands');
   }
 
   /**
    * Get foundation agents directory
-   * @returns {string} Path to foundation .ai-team/agents
+   * @returns {string} Path to foundation .amazingteam/agents
    */
   getFoundationAgentsDir() {
-    return path.join(this.foundationDir, '.ai-team', 'agents');
+    return path.join(this.foundationDir, '.amazingteam', 'agents');
   }
 
   /**

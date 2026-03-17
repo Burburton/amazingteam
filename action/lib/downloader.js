@@ -1,6 +1,6 @@
 /**
  * Foundation Downloader Module
- * Downloads AI Team Foundation from NPM or GitHub
+ * Downloads AmazingTeam Foundation from NPM or GitHub
  */
 
 const https = require('https');
@@ -21,8 +21,8 @@ const { execSync } = require('child_process');
  */
 
 const DEFAULT_REGISTRY = 'https://registry.npmjs.org';
-const GITHUB_REPO = 'your-org/ai-team-foundation';
-const DEFAULT_CACHE_DIR = path.join(process.env.HOME || process.env.USERPROFILE, '.ai-team-cache');
+const GITHUB_REPO = 'your-org/amazingteam';
+const DEFAULT_CACHE_DIR = path.join(process.env.HOME || process.env.USERPROFILE, '.amazingteam-cache');
 const MAX_RETRIES = 3;
 const TIMEOUT = 60000; // 60 seconds
 
@@ -40,7 +40,7 @@ function downloadFile(url, dest, timeout = TIMEOUT) {
     const request = protocol.get(url, {
       timeout,
       headers: {
-        'User-Agent': 'ai-team-foundation-downloader/1.0'
+        'User-Agent': 'amazingteam-downloader/1.0'
       }
     }, (response) => {
       // Handle redirects
@@ -84,7 +84,7 @@ function downloadFile(url, dest, timeout = TIMEOUT) {
  * @returns {Promise<string>} Path to downloaded package
  */
 async function downloadFromNpm(version, destDir, registry = DEFAULT_REGISTRY) {
-  const packageName = 'ai-team-foundation';
+  const packageName = 'amazingteam';
   const tarballUrl = `${registry}/${packageName}/-/${packageName}-${version}.tgz`;
   const tarballPath = path.join(destDir, `${packageName}-${version}.tgz`);
   
@@ -120,12 +120,12 @@ async function downloadFromNpm(version, destDir, registry = DEFAULT_REGISTRY) {
  */
 async function downloadFromGitHub(version, destDir, githubToken) {
   const tarballUrl = `https://github.com/${GITHUB_REPO}/archive/v${version}.tar.gz`;
-  const tarballPath = path.join(destDir, `ai-team-foundation-${version}.tar.gz`);
+  const tarballPath = path.join(destDir, `amazingteam-${version}.tar.gz`);
   
   console.log(`Downloading from GitHub: ${tarballUrl}`);
   
   const headers = {
-    'User-Agent': 'ai-team-foundation-downloader/1.0'
+    'User-Agent': 'amazingteam-downloader/1.0'
   };
   
   if (githubToken) {
@@ -175,8 +175,8 @@ async function downloadFromGitHub(version, destDir, githubToken) {
   // Clean up tarball
   fs.unlinkSync(tarballPath);
   
-  // GitHub extracts to ai-team-foundation-{version}
-  const extractDir = path.join(destDir, `ai-team-foundation-${version}`);
+  // GitHub extracts to amazingteam-{version}
+  const extractDir = path.join(destDir, `amazingteam-${version}`);
   return extractDir;
 }
 
@@ -270,14 +270,14 @@ async function downloadFoundation(options) {
  * @returns {Promise<boolean>}
  */
 async function versionExists(version, registry = DEFAULT_REGISTRY) {
-  const packageName = 'ai-team-foundation';
+  const packageName = 'amazingteam';
   const url = `${registry}/${packageName}/${version}`;
   
   return new Promise((resolve) => {
     https.get(url, {
       timeout: 10000,
       headers: {
-        'User-Agent': 'ai-team-foundation-downloader/1.0'
+        'User-Agent': 'amazingteam-downloader/1.0'
       }
     }, (response) => {
       resolve(response.statusCode === 200);
@@ -293,14 +293,14 @@ async function versionExists(version, registry = DEFAULT_REGISTRY) {
  * @returns {Promise<string>} Latest version
  */
 async function getLatestVersion(registry = DEFAULT_REGISTRY) {
-  const packageName = 'ai-team-foundation';
+  const packageName = 'amazingteam';
   const url = `${registry}/${packageName}/latest`;
   
   return new Promise((resolve, reject) => {
     https.get(url, {
       timeout: 10000,
       headers: {
-        'User-Agent': 'ai-team-foundation-downloader/1.0'
+        'User-Agent': 'amazingteam-downloader/1.0'
       }
     }, (response) => {
       if (response.statusCode !== 200) {

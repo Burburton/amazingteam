@@ -1,5 +1,5 @@
 /**
- * AI Team Foundation GitHub Action
+ * AmazingTeam Foundation GitHub Action
  * Main entry point for the action
  */
 
@@ -139,14 +139,14 @@ async function run() {
   try {
     // Get inputs
     const version = core.getInput('version') || '3.0.0';
-    const configPath = core.getInput('config') || 'ai-team.config.yaml';
+    const configPath = core.getInput('config') || 'amazingteam.config.yaml';
     const overlay = core.getInput('overlay') || '';
     const useCache = core.getInput('cache') !== 'false';
-    const cacheDir = core.getInput('cache-dir') || path.join(process.env.HOME || '', '.ai-team-cache');
+    const cacheDir = core.getInput('cache-dir') || path.join(process.env.HOME || '', '.amazingteam-cache');
     
     const projectDir = process.env.GITHUB_WORKSPACE || process.cwd();
     
-    core.info(`Setting up AI Team Foundation v${version}`);
+    core.info(`Setting up AmazingTeam Foundation v${version}`);
     core.info(`Project directory: ${projectDir}`);
     
     // Step 1: Download foundation
@@ -192,11 +192,11 @@ async function run() {
     core.exportVariable('AI_TEAM_FOUNDATION_PATH', foundationDir);
     core.exportVariable('AI_TEAM_VERSION', version);
     
-    core.info('AI Team Foundation setup complete!');
+    core.info('AmazingTeam Foundation setup complete!');
     
     // Summary
     core.summary.addRaw(`
-## AI Team Foundation Setup Complete
+## AmazingTeam Foundation Setup Complete
 
 | Property | Value |
 |----------|-------|
@@ -213,7 +213,7 @@ ${setupResult.createdDirectories.map(d => `- ${d}`).join('\n')}
 `).write();
     
   } catch (error) {
-    core.setFailed(`AI Team setup failed: ${error.message}`);
+    core.setFailed(`AmazingTeam setup failed: ${error.message}`);
     core.error(error.stack);
     process.exit(1);
   }

@@ -7,7 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const TEMP_DIR = path.join(os.tmpdir(), 'ai-team-error-test');
+const TEMP_DIR = path.join(os.tmpdir(), 'amazingteam-error-test');
 const ACTION_DIR = path.join(__dirname, '..');
 
 let originalCwd;
@@ -52,7 +52,7 @@ function testMissingConfigFile() {
   
   console.assert(result.valid === false, 'Should fail validation');
   console.assert(result.issues.length > 0, 'Should have issues');
-  console.assert(result.issues.some(i => i.includes('ai-team.config.yaml')), 
+  console.assert(result.issues.some(i => i.includes('amazingteam.config.yaml')), 
     'Should mention missing config');
   
   console.log('  ✓ missing config file tests passed');
@@ -102,12 +102,12 @@ function testMissingDirectories() {
   const partialDir = path.join(TEMP_DIR, 'partial-project');
   fs.mkdirSync(partialDir, { recursive: true });
   
-  fs.writeFileSync(path.join(partialDir, 'ai-team.config.yaml'), 'project:\n  name: test\n  language: ts');
+  fs.writeFileSync(path.join(partialDir, 'amazingteam.config.yaml'), 'project:\n  name: test\n  language: ts');
   
   const result = validateProjectStructure(partialDir);
   
   console.assert(result.valid === false, 'Should fail validation');
-  console.assert(result.issues.some(i => i.includes('.ai-team')), 'Should mention .ai-team');
+  console.assert(result.issues.some(i => i.includes('.amazingteam')), 'Should mention .amazingteam');
   console.assert(result.issues.some(i => i.includes('tasks')), 'Should mention tasks');
   
   console.log('  ✓ missing directories tests passed');

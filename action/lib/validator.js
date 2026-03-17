@@ -176,8 +176,8 @@ function validateProjectStructure(projectDir) {
   
   // Check required directories
   const requiredDirs = [
-    '.ai-team',
-    '.ai-team/memory',
+    '.amazingteam',
+    '.amazingteam/memory',
     'tasks'
   ];
   
@@ -190,7 +190,7 @@ function validateProjectStructure(projectDir) {
   
   // Check required files
   const requiredFiles = [
-    'ai-team.config.yaml'
+    'amazingteam.config.yaml'
   ];
   
   const fileResult = validateRequiredFiles(projectDir, requiredFiles);
@@ -199,7 +199,7 @@ function validateProjectStructure(projectDir) {
   // Check opencode.jsonc exists
   const opencodePath = path.join(projectDir, 'opencode.jsonc');
   if (!fs.existsSync(opencodePath)) {
-    issues.push('Missing opencode.jsonc (run `ai-team local` to generate)');
+    issues.push('Missing opencode.jsonc (run `amazingteam local` to generate)');
   }
   
   return {

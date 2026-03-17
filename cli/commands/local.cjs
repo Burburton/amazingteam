@@ -8,7 +8,7 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const VERSION = require('../../package.json').version;
-const PACKAGE_NAME = 'ai-team-foundation';
+const PACKAGE_NAME = 'amazingteam';
 const REGISTRY = 'https://registry.npmjs.org';
 const CACHE_DIR = path.join(process.env.HOME || process.env.USERPROFILE, '.ai-team-cache');
 const LOCAL_DIR = '.ai-team-local';
@@ -106,15 +106,15 @@ function generateLocalOpenCodeConfig(projectDir, foundationDir, config) {
 
 async function run(options, positional) {
   const projectPath = process.cwd();
-  const configPath = path.join(projectPath, 'ai-team.config.yaml');
+  const configPath = path.join(projectPath, 'amazingteam.config.yaml');
   const localPath = path.join(projectPath, LOCAL_DIR);
   
-  console.log('\n📥 Downloading AI Team Foundation for local use\n');
+  console.log('\n📥 Downloading AmazingTeam Foundation for local use\n');
   
   // Check if initialized
   if (!fs.existsSync(configPath)) {
-    console.error('❌ AI Team not initialized in this directory.');
-    console.error('   Run "ai-team init" first.\n');
+    console.error('❌ AmazingTeam not initialized in this directory.');
+    console.error('   Run "amazingteam init" first.\n');
     process.exit(1);
   }
   
@@ -226,7 +226,7 @@ async function run(options, positional) {
   console.log('\n🎉 Local setup complete!\n');
   console.log('Foundation files:', LOCAL_DIR);
   console.log('OpenCode config: opencode.jsonc');
-  console.log('\nYou can now use OpenCode locally with full AI Team capabilities.\n');
+  console.log('\nYou can now use OpenCode locally with full AmazingTeam capabilities.\n');
   
   // Update .gitignore reminder
   console.log('Reminder: Add .ai-team-local/ to .gitignore if not already done.');
@@ -235,27 +235,27 @@ async function run(options, positional) {
 
 function help() {
   return `
-ai-team local - Download foundation for local development
+amazingteam local - Download foundation for local development
 
 Usage:
-  ai-team local [options]
+  amazingteam local [options]
 
 Options:
   --from <path>     Use local foundation path (offline mode)
   --force           Force re-download even if cached
 
 Examples:
-  ai-team local                     Download from NPM
-  ai-team local --from ../foundation   Use local copy
-  ai-team local --force              Force re-download
+  amazingteam local                     Download from NPM
+  amazingteam local --from ../foundation   Use local copy
+  amazingteam local --force              Force re-download
 
 What it does:
-  1. Downloads AI Team Foundation to .ai-team-local/
+  1. Downloads AmazingTeam Foundation to .ai-team-local/
   2. Generates opencode.jsonc with local paths
   3. Caches downloads in ~/.ai-team-cache/
 
 The local foundation allows you to use OpenCode locally
-with all AI Team skills and configurations.
+with all AmazingTeam skills and configurations.
 
 Note: .ai-team-local/ should be in .gitignore.
 `;

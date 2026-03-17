@@ -42,7 +42,7 @@ function extractUserCustomizations(projectPath) {
   };
   
   // Read existing config
-  const configPath = path.join(projectPath, 'ai-team.config.yaml');
+  const configPath = path.join(projectPath, 'amazingteam.config.yaml');
   if (fs.existsSync(configPath)) {
     customizations.config = fs.readFileSync(configPath, 'utf-8');
   }
@@ -64,7 +64,7 @@ function extractUserCustomizations(projectPath) {
 
 function createV3Config(customizations) {
   const lines = [
-    '# AI Team Project Configuration (v3)',
+    '# AmazingTeam Project Configuration (v3)',
     '# Migrated from v2.x',
     '',
     'version: "1.0"',
@@ -99,7 +99,7 @@ function createV3Config(customizations) {
   lines.push(`  version: "${VERSION}"`);
   lines.push('');
   lines.push('# Migration note: Foundation files are now loaded remotely');
-  lines.push('# Run "ai-team local" to download for local development');
+  lines.push('# Run "amazingteam local" to download for local development');
   lines.push('');
   
   return lines.join('\n');
@@ -108,7 +108,7 @@ function createV3Config(customizations) {
 async function run(options, positional) {
   const projectPath = process.cwd();
   
-  console.log('\n🔄 AI Team Migration Tool (v2 → v3)\n');
+  console.log('\n🔄 AmazingTeam Migration Tool (v2 → v3)\n');
   
   // Detect v2 project
   const detection = detectV2Project(projectPath);
@@ -117,7 +117,7 @@ async function run(options, positional) {
     console.log('This does not appear to be a v2.x project.');
     console.log('Detected indicators:', detection.score);
     console.log('\nIf you want to initialize a new project, run:');
-    console.log('  ai-team init\n');
+    console.log('  amazingteam init\n');
     return;
   }
   
@@ -152,17 +152,17 @@ async function run(options, positional) {
   const v3Config = createV3Config(customizations);
   
   if (options.dryRun) {
-    console.log('\n--- ai-team.config.yaml (new) ---');
+    console.log('\n--- amazingteam.config.yaml (new) ---');
     console.log(v3Config);
     console.log('--- end ---\n');
   } else {
-    fs.writeFileSync(path.join(projectPath, 'ai-team.config.yaml'), v3Config);
+    fs.writeFileSync(path.join(projectPath, 'amazingteam.config.yaml'), v3Config);
   }
   
   // Create v3 workflow
   console.log('Creating v3 workflow...');
-  const workflowContent = `# AI Team GitHub Action Workflow (v3)
-name: AI Team
+  const workflowContent = `# AmazingTeam GitHub Action Workflow (v3)
+name: AmazingTeam
 
 on:
   issue_comment:
@@ -189,8 +189,8 @@ jobs:
         run: |
           git config --global user.name "opencode-bot"
           git config --global user.email "opencode-bot@users.noreply.github.com"
-      - name: Setup AI Team
-        uses: your-org/ai-team-action@v${VERSION}
+      - name: Setup AmazingTeam
+        uses: your-org/amazingteam-action@v${VERSION}
         with:
           version: '${VERSION}'
       - name: Run OpenCode
@@ -205,7 +205,7 @@ jobs:
     if (!fs.existsSync(workflowDir)) {
       fs.mkdirSync(workflowDir, { recursive: true });
     }
-    fs.writeFileSync(path.join(workflowDir, 'ai-team.yml'), workflowContent);
+    fs.writeFileSync(path.join(workflowDir, 'amazingteam.yml'), workflowContent);
   }
   
   // Create minimal directories
@@ -234,7 +234,7 @@ jobs:
   // Update .gitignore
   console.log('Updating .gitignore...');
   const gitignorePath = path.join(projectPath, '.gitignore');
-  const additions = '\n# AI Team v3\n.ai-team-local/\n.ai-team-cache/\n';
+  const additions = '\n# AmazingTeam v3\n.ai-team-local/\n.ai-team-cache/\n';
   
   if (!options.dryRun) {
     if (fs.existsSync(gitignorePath)) {
@@ -270,17 +270,17 @@ jobs:
   } else {
     console.log('✅ Migration complete!\n');
     console.log('Changes:');
-    console.log('  - Created ai-team.config.yaml (v3 format)');
-    console.log('  - Created .github/workflows/ai-team.yml (v3)');
+    console.log('  - Created amazingteam.config.yaml (v3 format)');
+    console.log('  - Created .github/workflows/amazingteam.yml (v3)');
     console.log('  - Created runtime directories');
     console.log('  - Updated .gitignore');
     if (!options.keepV2) {
       console.log('  - Removed v2 foundation files');
     }
     console.log('\nNext steps:');
-    console.log('  1. Review ai-team.config.yaml');
-    console.log('  2. Run "ai-team local" for local development');
-    console.log('  3. Run "ai-team validate" to verify setup');
+    console.log('  1. Review amazingteam.config.yaml');
+    console.log('  2. Run "amazingteam local" for local development');
+    console.log('  3. Run "amazingteam validate" to verify setup');
     console.log('  4. Test your project');
     console.log('  5. Commit the changes\n');
   }
@@ -288,10 +288,10 @@ jobs:
 
 function help() {
   return `
-ai-team migrate - Migrate v2.x project to v3
+amazingteam migrate - Migrate v2.x project to v3
 
 Usage:
-  ai-team migrate [options]
+  amazingteam migrate [options]
 
 Options:
   --dry-run      Preview changes without applying
@@ -306,8 +306,8 @@ What migration does:
   6. Removes v2 foundation files (unless --keep-v2)
 
 After migration:
-  - Run "ai-team local" to download foundation for local dev
-  - Run "ai-team validate" to verify the setup
+  - Run "amazingteam local" to download foundation for local dev
+  - Run "amazingteam validate" to verify the setup
 
 Note: A backup is created before any changes.
 `;

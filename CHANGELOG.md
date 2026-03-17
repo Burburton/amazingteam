@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the AI Team Foundation will be documented in this file.
+All notable changes to the AmazingTeam will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Remote Foundation Loading
 - Foundation loaded at runtime from NPM/GitHub releases
 - User projects only need 2-3 config files instead of 50+ files
-- One-command upgrades: `npx ai-team-foundation upgrade`
+- One-command upgrades: `npx amazingteam upgrade`
 - Explicit version control in workflow files
 - Automatic caching for faster CI runs
 
@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `action/index.js` - Main action entry point
 
 #### CLI Tool
-- `cli/ai-team.cjs` - Complete CLI with command parsing
+- `cli/amazingteam.cjs` - Complete CLI with command parsing
 - `cli/commands/init.cjs` - Interactive project initialization
 - `cli/commands/version.cjs` - Version display
 - `cli/commands/check-update.cjs` - Check for updates from NPM/GitHub
@@ -39,9 +39,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Configuration System
 - `presets/` - Language presets (default, typescript, python, go)
-- `templates/` - Config templates (opencode.jsonc, ai-team.yml, gitignore)
+- `templates/` - Config templates (opencode.jsonc, amazingteam.yml, gitignore)
 - `schemas/config.schema.json` - JSON Schema for configuration validation
-- `ai-team.config.yaml` - User configuration file
+- `amazingteam.config.yaml` - User configuration file
 
 #### Documentation
 - `docs/migration-to-v3.md` - Step-by-step migration guide
@@ -59,19 +59,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Project Structure
 - User projects now only contain:
-  - `.github/workflows/ai-team.yml` - Workflow file
-  - `ai-team.config.yaml` - User configuration
+  - `.github/workflows/amazingteam.yml` - Workflow file
+  - `amazingteam.config.yaml` - User configuration
   - `opencode.jsonc` - Generated config (auto-generated)
   - `.ai-team/memory/` - Runtime state (preserved)
   - `tasks/` - Task history (preserved)
 
 #### Upgrade Process
 - Before: Manual copy/merge of 50+ files
-- After: Single command `npx ai-team-foundation upgrade`
+- After: Single command `npx amazingteam upgrade`
 
 #### Version Management
 - Before: Hard to track which version is being used
-- After: Explicit version in workflow file: `uses: your-org/ai-team-action@v3.0.0`
+- After: Explicit version in workflow file: `uses: your-org/amazingteam-action@v3.0.0`
 
 ### Migration from v2 to v3
 
@@ -84,19 +84,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 2. **Run migration**:
    ```bash
-   npx ai-team-foundation migrate
+   npx amazingteam migrate
    ```
 
 3. **Review generated files**:
-   - `ai-team.config.yaml` - Your extracted configuration
-   - `.github/workflows/ai-team.yml` - Updated workflow
+   - `amazingteam.config.yaml` - Your extracted configuration
+   - `.github/workflows/amazingteam.yml` - Updated workflow
 
 4. **Commit and test**:
    ```bash
    git add -A
    git commit -m "chore: migrate to v3"
-   npx ai-team-foundation local
-   npx ai-team-foundation validate
+   npx amazingteam local
+   npx amazingteam validate
    ```
 
 See [Migration Guide](./docs/migration-to-v3.md) for detailed instructions.
@@ -214,7 +214,7 @@ See [Migration Guide](./docs/migration-to-v3.md) for detailed instructions.
 - Memory permissions matrix expanded to 7 roles
 
 #### CLI
-- `cli/ai-team.cjs` - Version bumped to 2.0.0
+- `cli/amazingteam.cjs` - Version bumped to 2.0.0
 - Added new memory directories for v2 roles
 - Updated workflow definitions
 

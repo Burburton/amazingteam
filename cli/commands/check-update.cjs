@@ -8,7 +8,7 @@ const fs = require('fs');
 const path = require('path');
 
 const VERSION = require('../../package.json').version;
-const PACKAGE_NAME = 'ai-team-foundation';
+const PACKAGE_NAME = 'amazingteam';
 const REGISTRY = 'https://registry.npmjs.org';
 
 function getLatestVersion() {
@@ -124,10 +124,10 @@ async function run(options, positional) {
     }
     
     console.log('\nTo upgrade:');
-    console.log('  ai-team upgrade');
-    console.log(`  ai-team upgrade --to ${latest.version}`);
+    console.log('  amazingteam upgrade');
+    console.log(`  amazingteam upgrade --to ${latest.version}`);
     console.log('\nOr update your workflow file:');
-    console.log(`  uses: your-org/ai-team-action@v${latest.version}`);
+    console.log(`  uses: your-org/amazingteam-action@v${latest.version}`);
     console.log('');
     
   } catch (error) {
@@ -152,7 +152,7 @@ Checks NPM registry for the latest version and displays:
   - Upgrade instructions
 
 Related:
-  ai-team upgrade - Perform the upgrade
+  amazingteam upgrade - Perform the upgrade
 `;
 }
 

@@ -12,7 +12,7 @@ function validateConfig(configPath) {
   const issues = [];
   
   if (!fs.existsSync(configPath)) {
-    return { valid: false, issues: ['ai-team.config.yaml not found'] };
+    return { valid: false, issues: ['amazingteam.config.yaml not found'] };
   }
   
   const content = fs.readFileSync(configPath, 'utf-8');
@@ -55,8 +55,8 @@ function validateStructure(projectPath) {
   }
   
   const requiredFiles = [
-    'ai-team.config.yaml',
-    '.github/workflows/ai-team.yml'
+    'amazingteam.config.yaml',
+    '.github/workflows/amazingteam.yml'
   ];
   
   for (const file of requiredFiles) {
@@ -102,9 +102,9 @@ function validateWorkflow(workflowPath) {
     issues.push('Missing permission: issues: write');
   }
   
-  // Check for AI Team action
-  if (!content.includes('ai-team-action')) {
-    issues.push('AI Team action not referenced in workflow');
+  // Check for AmazingTeam action
+  if (!content.includes('amazingteam-action')) {
+    issues.push('AmazingTeam action not referenced in workflow');
   }
   
   // Check for secrets
@@ -149,10 +149,10 @@ function validateGitignore(projectPath) {
 
 async function run(options, positional) {
   const projectPath = process.cwd();
-  const configPath = path.join(projectPath, 'ai-team.config.yaml');
-  const workflowPath = path.join(projectPath, '.github', 'workflows', 'ai-team.yml');
+  const configPath = path.join(projectPath, 'amazingteam.config.yaml');
+  const workflowPath = path.join(projectPath, '.github', 'workflows', 'amazingteam.yml');
   
-  console.log('\n🔍 Validating AI Team setup\n');
+  console.log('\n🔍 Validating AmazingTeam setup\n');
   
   let allValid = true;
   const allIssues = [];
@@ -237,13 +237,13 @@ async function run(options, positional) {
 
 function help() {
   return `
-ai-team validate - Validate configuration and project structure
+amazingteam validate - Validate configuration and project structure
 
 Usage:
-  ai-team validate
+  amazingteam validate
 
 Validates:
-  - ai-team.config.yaml configuration
+  - amazingteam.config.yaml configuration
   - Required directories (.ai-team/, tasks/)
   - GitHub workflow configuration
   - .gitignore entries

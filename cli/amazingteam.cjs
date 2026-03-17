@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * AI Team Foundation CLI v3
+ * AmazingTeam CLI v3
  * Main entry point for command-line interface
  */
 
@@ -13,14 +13,14 @@ const VERSION = PACKAGE_JSON.version;
 const COMMANDS_DIR = path.join(__dirname, 'commands');
 
 const COMMANDS = {
-  init: 'Initialize AI Team in a project',
-  version: 'Show current foundation version',
+  init: 'Initialize AmazingTeam in a project',
+  version: 'Show current version',
   'check-update': 'Check for available updates',
   upgrade: 'Upgrade to a new version',
   local: 'Download foundation for local development',
   validate: 'Validate configuration',
   migrate: 'Migrate v2.x project to v3',
-  status: 'Show AI Team status',
+  status: 'Show AmazingTeam status',
   help: 'Show help information'
 };
 
@@ -44,10 +44,10 @@ function log(message, color = 'reset') {
 
 function showHelp() {
   console.log(`
-${colorize('AI Team Foundation CLI', 'cyan')} v${VERSION}
+${colorize('AmazingTeam CLI', 'cyan')} v${VERSION}
 
 ${colorize('Usage:', 'yellow')}
-  ai-team <command> [options]
+  amazingteam <command> [options]
 
 ${colorize('Commands:', 'yellow')}
 ${Object.entries(COMMANDS).map(([cmd, desc]) => `  ${cmd.padEnd(15)} ${desc}`).join('\n')}
@@ -71,19 +71,19 @@ ${colorize('Local Options:', 'yellow')}
   --from <path>     Download from local path (offline mode)
 
 ${colorize('Examples:', 'dim')}
-  ai-team init                    Initialize in current directory
-  ai-team init my-project         Create new project
-  ai-team init -l python -o python-backend my-api
-  ai-team upgrade --to 3.1.0      Upgrade to specific version
-  ai-team local --from ./path     Download from local path
+  amazingteam init                    Initialize in current directory
+  amazingteam init my-project         Create new project
+  amazingteam init -l python -o python-backend my-api
+  amazingteam upgrade --to 3.1.0      Upgrade to specific version
+  amazingteam local --from ./path     Download from local path
 
 ${colorize('Documentation:', 'dim')}
-  https://github.com/your-org/ai-team-foundation
+  https://github.com/Burburton/amazingteam
 `);
 }
 
 function showVersion() {
-  console.log(`ai-team-foundation v${VERSION}`);
+  console.log(`amazingteam v${VERSION}`);
 }
 
 function parseArgs(args) {
@@ -148,7 +148,7 @@ async function runCommand(command, options, positional) {
   
   if (!fs.existsSync(commandPath)) {
     log(`Unknown command: ${command}`, 'red');
-    log('Run "ai-team help" for available commands', 'yellow');
+    log('Run "amazingteam help" for available commands', 'yellow');
     process.exit(1);
   }
 

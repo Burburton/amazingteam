@@ -10,10 +10,10 @@ const VERSION = require('../../package.json').version;
 
 function run(options, positional) {
   const projectPath = process.cwd();
-  const configPath = path.join(projectPath, 'ai-team.config.yaml');
-  const workflowPath = path.join(projectPath, '.github', 'workflows', 'ai-team.yml');
+  const configPath = path.join(projectPath, 'amazingteam.config.yaml');
+  const workflowPath = path.join(projectPath, '.github', 'workflows', 'amazingteam.yml');
   
-  console.log(`\nai-team-foundation v${VERSION}\n`);
+  console.log(`\namazingteam v${VERSION}\n`);
   
   // Check project config
   if (fs.existsSync(configPath)) {
@@ -27,7 +27,7 @@ function run(options, positional) {
   // Check workflow version
   if (fs.existsSync(workflowPath)) {
     const content = fs.readFileSync(workflowPath, 'utf-8');
-    const actionMatch = content.match(/ai-team-action@v?(\d+\.\d+\.\d+)/);
+    const actionMatch = content.match(/amazingteam-action@v?(\d+\.\d+\.\d+)/);
     if (actionMatch) {
       console.log(`Workflow action version: ${actionMatch[1]}`);
     }
@@ -35,17 +35,17 @@ function run(options, positional) {
   
   // Check if initialized
   if (!fs.existsSync(configPath)) {
-    console.log('\n⚠️  AI Team not initialized in this directory.');
-    console.log('   Run "ai-team init" to get started.\n');
+    console.log('\n⚠️  AmazingTeam not initialized in this directory.');
+    console.log('   Run "amazingteam init" to get started.\n');
   }
 }
 
 function help() {
   return `
-ai-team version - Show current foundation version
+amazingteam version - Show current foundation version
 
 Usage:
-  ai-team version
+  amazingteam version
   ai-team --version
   ai-team -v
 

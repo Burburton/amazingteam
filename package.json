@@ -1,11 +1,11 @@
 {
-  "name": "ai-team-foundation",
+  "name": "amazingteam",
   "version": "3.0.0",
   "description": "AI-powered autonomous development team foundation - Reusable development scaffolding with controlled self-bootstrap capability",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "ai-team": "./cli/ai-team.cjs"
+    "amazingteam": "./cli/amazingteam.cjs"
   },
   "files": [
     ".ai-team/",
@@ -62,7 +62,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/ai-team-foundation.git"
+    "url": "https://github.com/Burburton/amazingteam.git"
   },
   "dependencies": {
     "@actions/core": "^1.10.1",

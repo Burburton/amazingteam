@@ -1,14 +1,14 @@
-# AI Team GitHub Action Workflow
+# AmazingTeam GitHub Action Workflow
 # This workflow enables AI-powered development in your repository
 #
 # Template Variables:
-#   {{AI_TEAM_VERSION}} - Foundation version (e.g., "3.0.0")
+#   {{AMAZINGTEAM_VERSION}} - Foundation version (e.g., "3.0.0")
 #   {{PROJECT_NAME}} - Your project name
 #   {{PROJECT_DESCRIPTION}} - Project description
 #
-# After running `ai-team init`, these variables will be replaced with actual values.
+# After running `amazingteam init`, these variables will be replaced with actual values.
 
-name: AI Team
+name: AmazingTeam
 
 on:
   issue_comment:
@@ -17,7 +17,7 @@ on:
     types: [created]
 
 jobs:
-  ai-team:
+  amazingteam:
     # Trigger on /ai or /opencode commands
     if: |
       startsWith(github.event.comment.body, '/ai') ||
@@ -44,17 +44,17 @@ jobs:
           git config --global user.name "opencode-bot"
           git config --global user.email "opencode-bot@users.noreply.github.com"
 
-      # Setup AI Team Foundation
+      # Setup AmazingTeam Foundation
       # Version is locked to ensure reproducible builds
-      - name: Setup AI Team
-        uses: your-org/ai-team-action@v{{AI_TEAM_VERSION}}
+      - name: Setup AmazingTeam
+        uses: Burburton/amazingteam-action@v{{AMAZINGTEAM_VERSION}}
         with:
-          version: '{{AI_TEAM_VERSION}}'
-          config: 'ai-team.config.yaml'
+          version: '{{AMAZINGTEAM_VERSION}}'
+          config: 'amazingteam.config.yaml'
           # Uncomment to use a specific overlay:
           # overlay: 'python-backend'
 
-      # Run OpenCode with AI Team capabilities
+      # Run OpenCode with AmazingTeam capabilities
       - name: Run OpenCode
         uses: anomalyco/opencode/github@latest
         env:
@@ -69,7 +69,7 @@ jobs:
           # model: openai/gpt-4
 
   # Optional: CI check on AI-created PRs
-  ai-team-ci:
+  amazingteam-ci:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:

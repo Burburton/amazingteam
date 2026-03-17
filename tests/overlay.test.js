@@ -7,7 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const TEMP_DIR = path.join(os.tmpdir(), 'ai-team-overlay-test');
+const TEMP_DIR = path.join(os.tmpdir(), 'amazingteam-overlay-test');
 const ACTION_DIR = path.join(__dirname, '..');
 
 let originalCwd;

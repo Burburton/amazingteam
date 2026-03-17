@@ -8,8 +8,8 @@ const path = require('path');
 const os = require('os');
 const { execSync } = require('child_process');
 
-const CLI_PATH = path.join(__dirname, '..', 'cli', 'ai-team.cjs');
-const TEMP_DIR = path.join(os.tmpdir(), 'ai-team-integration-test');
+const CLI_PATH = path.join(__dirname, '..', 'cli', 'amazingteam.cjs');
+const TEMP_DIR = path.join(os.tmpdir(), 'amazingteam-integration-test');
 const ACTION_DIR = path.join(__dirname, '..');
 
 let originalCwd;
@@ -48,14 +48,14 @@ function createTestProject(name, language = 'typescript') {
   const projectDir = path.join(TEMP_DIR, name);
   fs.mkdirSync(projectDir, { recursive: true });
   
-  fs.mkdirSync(path.join(projectDir, '.ai-team', 'memory'), { recursive: true });
+  fs.mkdirSync(path.join(projectDir, '.amazingteam', 'memory'), { recursive: true });
   fs.mkdirSync(path.join(projectDir, 'tasks'), { recursive: true });
   
   const config = `project:
   name: ${name}
   language: ${language}
 `;
-  fs.writeFileSync(path.join(projectDir, 'ai-team.config.yaml'), config);
+  fs.writeFileSync(path.join(projectDir, 'amazingteam.config.yaml'), config);
   
   return projectDir;
 }
@@ -66,11 +66,11 @@ function testFullWorkflow_TypeScript() {
   const projectDir = createTestProject('ts-project', 'typescript');
   process.chdir(projectDir);
   
-  console.assert(fs.existsSync('ai-team.config.yaml'), 'Config should exist');
-  console.assert(fs.existsSync('.ai-team/memory'), 'Memory dir should exist');
+  console.assert(fs.existsSync('amazingteam.config.yaml'), 'Config should exist');
+  console.assert(fs.existsSync('.amazingteam/memory'), 'Memory dir should exist');
   console.assert(fs.existsSync('tasks'), 'Tasks dir should exist');
   
-  const config = fs.readFileSync('ai-team.config.yaml', 'utf-8');
+  const config = fs.readFileSync('amazingteam.config.yaml', 'utf-8');
   console.assert(config.includes('ts-project'), 'Config should have project name');
   console.assert(config.includes('typescript'), 'Config should have language');
   
@@ -84,7 +84,7 @@ function testFullWorkflow_Python() {
   const projectDir = createTestProject('py-project', 'python');
   process.chdir(projectDir);
   
-  const config = fs.readFileSync('ai-team.config.yaml', 'utf-8');
+  const config = fs.readFileSync('amazingteam.config.yaml', 'utf-8');
   console.assert(config.includes('py-project'), 'Config should have project name');
   console.assert(config.includes('python'), 'Config should have language');
   
@@ -98,7 +98,7 @@ function testFullWorkflow_Go() {
   const projectDir = createTestProject('go-project', 'go');
   process.chdir(projectDir);
   
-  const config = fs.readFileSync('ai-team.config.yaml', 'utf-8');
+  const config = fs.readFileSync('amazingteam.config.yaml', 'utf-8');
   console.assert(config.includes('go-project'), 'Config should have project name');
   console.assert(config.includes('language: go'), 'Config should have go language');
   
@@ -114,12 +114,12 @@ function testMemoryDirectoryStructure() {
   const roles = ['planner', 'architect', 'developer', 'qa', 'reviewer', 'triage', 'ci-analyst'];
   
   for (const role of roles) {
-    const roleDir = path.join(projectDir, '.ai-team', 'memory', role);
+    const roleDir = path.join(projectDir, '.amazingteam', 'memory', role);
     fs.mkdirSync(roleDir, { recursive: true });
     console.assert(fs.existsSync(roleDir), `Role directory ${role} should exist`);
   }
   
-  const failuresDir = path.join(projectDir, '.ai-team', 'memory', 'failures');
+  const failuresDir = path.join(projectDir, '.amazingteam', 'memory', 'failures');
   fs.mkdirSync(failuresDir, { recursive: true });
   console.assert(fs.existsSync(failuresDir), 'Failures directory should exist');
   
@@ -207,9 +207,9 @@ rules:
   max_function_lines: 30
 `;
   
-  fs.writeFileSync(path.join(projectDir, 'ai-team.config.yaml'), fullConfig);
+  fs.writeFileSync(path.join(projectDir, 'amazingteam.config.yaml'), fullConfig);
   
-  const config = fs.readFileSync(path.join(projectDir, 'ai-team.config.yaml'), 'utf-8');
+  const config = fs.readFileSync(path.join(projectDir, 'amazingteam.config.yaml'), 'utf-8');
   
   console.assert(config.includes('build:'), 'Should have build section');
   console.assert(config.includes('npm run build'), 'Should have build command');
@@ -246,9 +246,9 @@ workflows:
     auto_merge: false
 `;
   
-  fs.writeFileSync(path.join(projectDir, 'ai-team.config.yaml'), configWithWorkflows);
+  fs.writeFileSync(path.join(projectDir, 'amazingteam.config.yaml'), configWithWorkflows);
   
-  const config = fs.readFileSync(path.join(projectDir, 'ai-team.config.yaml'), 'utf-8');
+  const config = fs.readFileSync(path.join(projectDir, 'amazingteam.config.yaml'), 'utf-8');
   
   console.assert(config.includes('workflows:'), 'Should have workflows section');
   console.assert(config.includes('feature:'), 'Should have feature workflow');
@@ -266,27 +266,27 @@ function testUpgradeFlow() {
   const workflowPath = path.join(projectDir, '.github', 'workflows');
   fs.mkdirSync(workflowPath, { recursive: true });
   
-  const workflow = `name: AI Team
+  const workflow = `name: AmazingTeam
 on:
   issue_comment:
     types: [created]
 jobs:
-  ai-team:
+  amazingteam:
     runs-on: ubuntu-latest
     steps:
-      - uses: your-org/ai-team-action@v3.0.0
+      - uses: your-org/amazingteam-action@v3.0.0
 `;
-  fs.writeFileSync(path.join(workflowPath, 'ai-team.yml'), workflow);
+  fs.writeFileSync(path.join(workflowPath, 'amazingteam.yml'), workflow);
   
-  console.assert(fs.existsSync(path.join(workflowPath, 'ai-team.yml')), 'Workflow should exist');
+  console.assert(fs.existsSync(path.join(workflowPath, 'amazingteam.yml')), 'Workflow should exist');
   
-  const workflowContent = fs.readFileSync(path.join(workflowPath, 'ai-team.yml'), 'utf-8');
+  const workflowContent = fs.readFileSync(path.join(workflowPath, 'amazingteam.yml'), 'utf-8');
   console.assert(workflowContent.includes('v3.0.0'), 'Workflow should reference version');
   
   const upgradedWorkflow = workflowContent.replace('v3.0.0', 'v3.1.0');
-  fs.writeFileSync(path.join(workflowPath, 'ai-team.yml'), upgradedWorkflow);
+  fs.writeFileSync(path.join(workflowPath, 'amazingteam.yml'), upgradedWorkflow);
   
-  const upgradedContent = fs.readFileSync(path.join(workflowPath, 'ai-team.yml'), 'utf-8');
+  const upgradedContent = fs.readFileSync(path.join(workflowPath, 'amazingteam.yml'), 'utf-8');
   console.assert(upgradedContent.includes('v3.1.0'), 'Workflow should be upgraded');
   
   console.log('  ✓ upgrade flow simulation tests passed');
@@ -304,13 +304,13 @@ dist/
   fs.writeFileSync(gitignorePath, gitignoreContent);
   
   const additions = `
-# AI Team Foundation v3
-.ai-team-local/
+# AmazingTeam Foundation v3
+.amazingteam-local/
 `;
   fs.appendFileSync(gitignorePath, additions);
   
   const updated = fs.readFileSync(gitignorePath, 'utf-8');
-  console.assert(updated.includes('.ai-team-local/'), 'Should have ai-team-local entry');
+  console.assert(updated.includes('.amazingteam-local/'), 'Should have amazingteam-local entry');
   
   console.log('  ✓ .gitignore update tests passed');
 }

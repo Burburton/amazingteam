@@ -17,16 +17,16 @@ function initializeRuntimeDirectories(projectDir) {
   const created = [];
   
   const dirs = [
-    '.ai-team',
-    '.ai-team/memory',
-    '.ai-team/memory/planner',
-    '.ai-team/memory/architect',
-    '.ai-team/memory/developer',
-    '.ai-team/memory/qa',
-    '.ai-team/memory/reviewer',
-    '.ai-team/memory/triage',
-    '.ai-team/memory/ci-analyst',
-    '.ai-team/memory/failures',
+    '.amazingteam',
+    '.amazingteam/memory',
+    '.amazingteam/memory/planner',
+    '.amazingteam/memory/architect',
+    '.amazingteam/memory/developer',
+    '.amazingteam/memory/qa',
+    '.amazingteam/memory/reviewer',
+    '.amazingteam/memory/triage',
+    '.amazingteam/memory/ci-analyst',
+    '.amazingteam/memory/failures',
     'tasks',
     'tasks/_template'
   ];
@@ -52,7 +52,7 @@ function initializeRuntimeDirectories(projectDir) {
   
   for (const [role, files] of Object.entries(memoryFiles)) {
     for (const file of files) {
-      const filePath = path.join(projectDir, '.ai-team', 'memory', role, file);
+      const filePath = path.join(projectDir, '.amazingteam', 'memory', role, file);
       if (!fs.existsSync(filePath)) {
         fs.writeFileSync(filePath, `# ${role} ${file.replace('.md', '').replace(/_/g, ' ')}\n\n`);
       }
@@ -60,7 +60,7 @@ function initializeRuntimeDirectories(projectDir) {
   }
   
   // Create failure library placeholder
-  const failuresPath = path.join(projectDir, '.ai-team', 'memory', 'failures', 'failure_library.md');
+  const failuresPath = path.join(projectDir, '.amazingteam', 'memory', 'failures', 'failure_library.md');
   if (!fs.existsSync(failuresPath)) {
     fs.writeFileSync(failuresPath, `# Failure Library\n\nShared failure patterns documented by CI Analyst.\n\n## Categories\n\n### Build Failures\n\n### Test Failures\n\n### Infrastructure Issues\n\n`);
   }
@@ -171,19 +171,19 @@ function copyTaskTemplates(foundationDir, projectDir) {
 function updateGitignore(projectDir) {
   const gitignorePath = path.join(projectDir, '.gitignore');
   const additions = [
-    '# AI Team local foundation',
-    '.ai-team-local/',
+    '# AmazingTeam local foundation',
+    '.amazingteam-local/',
     '',
-    '# AI Team cache',
-    '.ai-team-cache/'
+    '# AmazingTeam cache',
+    '.amazingteam-cache/'
   ];
   
   let content = '';
   if (fs.existsSync(gitignorePath)) {
     content = fs.readFileSync(gitignorePath, 'utf-8');
     
-    // Check if already has AI Team entries
-    if (content.includes('.ai-team-local/')) {
+    // Check if already has AmazingTeam entries
+    if (content.includes('.amazingteam-local/')) {
       return false;
     }
   }
@@ -203,7 +203,7 @@ function updateGitignore(projectDir) {
  * @returns {Object} Setup result
  */
 function setup(foundationDir, projectDir, config) {
-  console.log('Setting up AI Team...');
+  console.log('Setting up AmazingTeam...');
   
   // 1. Initialize runtime directories
   console.log('Creating runtime directories...');
@@ -247,8 +247,8 @@ function verifySetup(projectDir) {
   
   // Check required directories
   const requiredDirs = [
-    '.ai-team',
-    '.ai-team/memory',
+    '.amazingteam',
+    '.amazingteam/memory',
     'tasks'
   ];
   
@@ -260,7 +260,7 @@ function verifySetup(projectDir) {
   
   // Check required files
   const requiredFiles = [
-    'ai-team.config.yaml',
+    'amazingteam.config.yaml',
     'opencode.jsonc'
   ];
   

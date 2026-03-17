@@ -16,7 +16,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const tempDir = path.join(os.tmpdir(), 'ai-team-downloader-test');
+const tempDir = path.join(os.tmpdir(), 'amazingteam-downloader-test');
 
 function setup() {
   if (!fs.existsSync(tempDir)) {
@@ -198,7 +198,7 @@ function testPathGeneration() {
   console.log('Testing path generation...');
   
   const version = '3.0.0';
-  const packageName = 'ai-team-foundation';
+  const packageName = 'amazingteam';
   const cacheDir = tempDir;
   
   const tarballName = `${packageName}-${version}.tgz`;

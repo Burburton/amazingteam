@@ -1,6 +1,6 @@
 # Migration Guide: v2 to v3
 
-This guide helps you migrate from AI Team Foundation v2 to v3.
+This guide helps you migrate from AmazingTeam Foundation v2 to v3.
 
 ---
 
@@ -54,12 +54,12 @@ Before migrating, identify what you've customized:
 
 ```bash
 # Run the migration tool
-npx ai-team-foundation migrate
+npx amazingteam migrate
 
 # This will:
 # 1. Scan for v2 structure
 # 2. Extract your customizations
-# 3. Create ai-team.config.yaml
+# 3. Create amazingteam.config.yaml
 # 4. Generate new workflow file
 # 5. Update .gitignore
 # 6. Remove foundation files from git tracking
@@ -71,14 +71,14 @@ The migration creates these files:
 
 ```
 your-project/
-├── ai-team.config.yaml      # Your extracted configuration
+├── amazingteam.config.yaml      # Your extracted configuration
 ├── .github/
 │   └── workflows/
-│       └── ai-team.yml      # Updated workflow
+│       └── amazingteam.yml      # Updated workflow
 └── .gitignore               # Updated to ignore foundation files
 ```
 
-Review `ai-team.config.yaml` and adjust as needed.
+Review `amazingteam.config.yaml` and adjust as needed.
 
 ### Step 5: Handle Customizations
 
@@ -87,7 +87,7 @@ If you modified `AGENTS.md`, you have two options:
 
 **Option A: Overlay in config**
 ```yaml
-# ai-team.config.yaml
+# amazingteam.config.yaml
 overlay:
   agents: |
     # Your custom AGENTS.md additions
@@ -140,7 +140,7 @@ git rm --cached AGENTS.md
 Add these entries to `.gitignore`:
 
 ```gitignore
-# AI Team Foundation v3
+# AmazingTeam Foundation v3
 .ai-team-local/
 ```
 
@@ -148,10 +148,10 @@ Add these entries to `.gitignore`:
 
 ```bash
 git add -A
-git commit -m "chore: migrate to AI Team Foundation v3
+git commit -m "chore: migrate to AmazingTeam Foundation v3
 
 - Remove committed foundation files
-- Add ai-team.config.yaml
+- Add amazingteam.config.yaml
 - Update workflow file
 - Update .gitignore
 "
@@ -161,13 +161,13 @@ git commit -m "chore: migrate to AI Team Foundation v3
 
 ```bash
 # Download foundation locally
-npx ai-team-foundation local
+npx amazingteam local
 
 # Verify setup
-npx ai-team-foundation validate
+npx amazingteam validate
 
 # Check status
-npx ai-team-foundation status
+npx amazingteam status
 ```
 
 ### Step 10: Push and Test in CI
@@ -188,7 +188,7 @@ git push origin main
 If you only changed presets and have no custom skills/commands:
 
 ```yaml
-# ai-team.config.yaml
+# amazingteam.config.yaml
 version: "1.0"
 project:
   name: "my-project"
@@ -218,7 +218,7 @@ If you heavily modified `AGENTS.md`:
 
 **Option A: Use as overlay**
 ```yaml
-# ai-team.config.yaml
+# amazingteam.config.yaml
 overlay:
   content: |
     # Your custom additions to AGENTS.md
@@ -266,7 +266,7 @@ Skills are loaded from foundation at runtime. Custom skills in `.ai-team/skills/
 ```
 
 **v3:**
-Commands are loaded from foundation. Custom commands defined in `ai-team.config.yaml`.
+Commands are loaded from foundation. Custom commands defined in `amazingteam.config.yaml`.
 
 ### 3. Preset Structure
 
@@ -277,7 +277,7 @@ Presets were files in `presets/` directory.
 Presets are built-in to foundation. Specify by name:
 
 ```yaml
-# ai-team.config.yaml
+# amazingteam.config.yaml
 preset: "typescript"  # or "python", "go", "default"
 ```
 
@@ -289,10 +289,10 @@ preset: "typescript"  # or "python", "go", "default"
 
 ```bash
 # Install globally first
-npm install -g ai-team-foundation
+npm install -g amazingteam
 
 # Or use npx
-npx ai-team-foundation migrate
+npx amazingteam migrate
 ```
 
 ### "v2 structure not detected"
@@ -302,26 +302,26 @@ The migration tool looks for these markers:
 - `.opencode/skills/` directory
 - `AGENTS.md` file
 
-If your project uses a different structure, you may need to create `ai-team.config.yaml` manually.
+If your project uses a different structure, you may need to create `amazingteam.config.yaml` manually.
 
 ### "My customizations were lost"
 
 1. Check the `backup-before-v3-migration` branch
-2. Look for extracted customizations in `ai-team.config.yaml`
+2. Look for extracted customizations in `amazingteam.config.yaml`
 3. Your memories and tasks are preserved in `.ai-team/memory/` and `tasks/`
 
 ### "CI fails after migration"
 
-1. Verify `ai-team.config.yaml` exists
-2. Verify `.github/workflows/ai-team.yml` exists
+1. Verify `amazingteam.config.yaml` exists
+2. Verify `.github/workflows/amazingteam.yml` exists
 3. Check GitHub Actions logs for specific error
-4. Run `npx ai-team-foundation validate` locally
+4. Run `npx amazingteam validate` locally
 
 ### "OpenCode can't find commands/skills"
 
 ```bash
 # Download foundation locally
-npx ai-team-foundation local
+npx amazingteam local
 
 # Verify opencode.jsonc exists
 cat opencode.jsonc
@@ -341,7 +341,7 @@ git checkout backup-before-v3-migration
 git checkout -b retry-v3-migration
 
 # Try migration again
-npx ai-team-foundation migrate
+npx amazingteam migrate
 ```
 
 ---
@@ -352,4 +352,4 @@ If you encounter issues:
 
 1. Check the [troubleshooting guide](./quick-start-v3.md#troubleshooting)
 2. Review [config reference](./config-reference.md)
-3. Open an issue at https://github.com/your-org/ai-team-foundation/issues
+3. Open an issue at https://github.com/your-org/amazingteam/issues

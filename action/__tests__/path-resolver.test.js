@@ -34,9 +34,9 @@ function testResolveCommandPath() {
   console.log('Testing resolveCommandPath...');
   
   const resolver = new PathResolver('/foundation', '/project');
-  const cmdPath = resolver.resolveCommandPath('.ai-team/commands/auto.md');
+  const cmdPath = resolver.resolveCommandPath('.amazingteam/commands/auto.md');
   
-  const expected = path.join('/foundation', '.ai-team/commands/auto.md');
+  const expected = path.join('/foundation', '.amazingteam/commands/auto.md');
   console.assert(cmdPath === expected, `Should resolve command path: ${cmdPath}`);
   
   console.log('  ✓ resolveCommandPath tests passed');
@@ -48,11 +48,11 @@ function testResolveMemoryPath() {
   const resolver = new PathResolver('/foundation', '/project');
   
   const plannerMemory = resolver.resolveMemoryPath('planner');
-  const expectedPlanner = path.join('/project', '.ai-team', 'memory', 'planner');
+  const expectedPlanner = path.join('/project', '.amazingteam', 'memory', 'planner');
   console.assert(plannerMemory === expectedPlanner, `Should resolve planner memory: ${plannerMemory}`);
   
   const devMemory = resolver.resolveMemoryPath('developer');
-  const expectedDev = path.join('/project', '.ai-team', 'memory', 'developer');
+  const expectedDev = path.join('/project', '.amazingteam', 'memory', 'developer');
   console.assert(devMemory === expectedDev, `Should resolve developer memory: ${devMemory}`);
   
   console.log('  ✓ resolveMemoryPath tests passed');
@@ -100,7 +100,7 @@ function testGetMemoryDirectories() {
   console.assert(dirs.length === expectedRoles.length, `Should have ${expectedRoles.length} directories`);
   
   expectedRoles.forEach(role => {
-    const expected = path.join('/project', '.ai-team', 'memory', role);
+    const expected = path.join('/project', '.amazingteam', 'memory', role);
     console.assert(dirs.includes(expected), `Should include ${role} memory directory`);
   });
   
@@ -170,10 +170,10 @@ function testFoundationDirs() {
   console.assert(skillsDir.includes('.opencode') && skillsDir.includes('skills'), 'Should resolve skills dir');
   
   const commandsDir = resolver.getFoundationCommandsDir();
-  console.assert(commandsDir.includes('.ai-team') && commandsDir.includes('commands'), 'Should resolve commands dir');
+  console.assert(commandsDir.includes('.amazingteam') && commandsDir.includes('commands'), 'Should resolve commands dir');
   
   const agentsDir = resolver.getFoundationAgentsDir();
-  console.assert(agentsDir.includes('.ai-team') && agentsDir.includes('agents'), 'Should resolve agents dir');
+  console.assert(agentsDir.includes('.amazingteam') && agentsDir.includes('agents'), 'Should resolve agents dir');
   
   console.log('  ✓ foundation directory tests passed');
 }

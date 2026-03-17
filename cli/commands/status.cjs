@@ -1,6 +1,6 @@
 /**
  * Status Command
- * Show AI Team status
+ * Show AmazingTeam status
  */
 
 const fs = require('fs');
@@ -112,17 +112,17 @@ function checkMemoryFiles(memoryPath) {
 
 async function run(options, positional) {
   const projectPath = process.cwd();
-  const configPath = path.join(projectPath, 'ai-team.config.yaml');
-  const workflowPath = path.join(projectPath, '.github', 'workflows', 'ai-team.yml');
+  const configPath = path.join(projectPath, 'amazingteam.config.yaml');
+  const workflowPath = path.join(projectPath, '.github', 'workflows', 'amazingteam.yml');
   const localPath = path.join(projectPath, '.ai-team-local');
   
-  console.log('\n📊 AI Team Status\n');
+  console.log('\n📊 AmazingTeam Status\n');
   
   const config = parseConfig(configPath);
   
   if (!config) {
-    console.log('❌ AI Team not initialized');
-    console.log('   Run "ai-team init" to get started\n');
+    console.log('❌ AmazingTeam not initialized');
+    console.log('   Run "amazingteam init" to get started\n');
     return;
   }
   
@@ -143,7 +143,7 @@ async function run(options, positional) {
   // Check workflow version
   if (fs.existsSync(workflowPath)) {
     const workflowContent = fs.readFileSync(workflowPath, 'utf-8');
-    const actionMatch = workflowContent.match(/ai-team-action@v?(\d+\.\d+\.\d+)/);
+    const actionMatch = workflowContent.match(/amazingteam-action@v?(\d+\.\d+\.\d+)/);
     if (actionMatch) {
       console.log(`  Workflow:    ${actionMatch[1]}`);
     }
@@ -161,7 +161,7 @@ async function run(options, positional) {
     console.log(`  Path:        ${LOCAL_DIR}/`);
   } else {
     console.log('  Status:      Not downloaded');
-    console.log('  Run:         ai-team local');
+    console.log('  Run:         amazingteam local');
   }
   
   // Memory status
@@ -221,10 +221,10 @@ async function run(options, positional) {
 
 function help() {
   return `
-ai-team status - Show AI Team status
+amazingteam status - Show AmazingTeam status
 
 Usage:
-  ai-team status
+  amazingteam status
 
 Displays:
   - Project configuration
@@ -234,7 +234,7 @@ Displays:
   - Task statistics
   - Quick validation check
 
-Run "ai-team validate" for detailed validation.
+Run "amazingteam validate" for detailed validation.
 `;
 }
 

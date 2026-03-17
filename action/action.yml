@@ -1,23 +1,23 @@
-# AI Team Foundation GitHub Action
-# Downloads and sets up AI Team Foundation for use in workflows
+# AmazingTeam Foundation GitHub Action
+# Downloads and sets up AmazingTeam Foundation for use in workflows
 
-name: 'AI Team Setup'
-description: 'Set up AI Team Foundation for AI-powered development'
-author: 'AI Team'
+name: 'AmazingTeam Setup'
+description: 'Set up AmazingTeam Foundation for AI-powered development'
+author: 'AmazingTeam'
 branding:
   icon: 'cpu'
   color: 'blue'
 
 inputs:
   version:
-    description: 'AI Team Foundation version to use'
+    description: 'AmazingTeam Foundation version to use'
     required: false
     default: '3.0.0'
   
   config:
-    description: 'Path to ai-team.config.yaml'
+    description: 'Path to amazingteam.config.yaml'
     required: false
-    default: 'ai-team.config.yaml'
+    default: 'amazingteam.config.yaml'
   
   overlay:
     description: 'Technology overlay to apply (e.g., python-backend, web-fullstack)'
@@ -32,7 +32,7 @@ inputs:
   cache-dir:
     description: 'Directory to cache foundation downloads'
     required: false
-    default: '~/.ai-team-cache'
+    default: '~/.amazingteam-cache'
 
 outputs:
   foundation-path:
@@ -55,7 +55,7 @@ runs:
 # runs:
 #   using: 'composite'
 #   steps:
-#     - name: Setup AI Team
+#     - name: Setup AmazingTeam
 #       shell: bash
 #       run: |
 #         node ${{ github.action_path }}/index.js

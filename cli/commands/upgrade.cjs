@@ -8,7 +8,7 @@ const path = require('path');
 const https = require('https');
 
 const VERSION = require('../../package.json').version;
-const PACKAGE_NAME = 'ai-team-foundation';
+const PACKAGE_NAME = 'amazingteam';
 const REGISTRY = 'https://registry.npmjs.org';
 
 function getLatestVersion() {
@@ -62,20 +62,20 @@ function getVersionDiff(from, to) {
 
 async function run(options, positional) {
   const projectPath = process.cwd();
-  const configPath = path.join(projectPath, 'ai-team.config.yaml');
-  const workflowPath = path.join(projectPath, '.github', 'workflows', 'ai-team.yml');
+  const configPath = path.join(projectPath, 'amazingteam.config.yaml');
+  const workflowPath = path.join(projectPath, '.github', 'workflows', 'amazingteam.yml');
   
   // Check if initialized
   if (!fs.existsSync(configPath)) {
-    console.error('\n❌ AI Team not initialized in this directory.');
-    console.error('   Run "ai-team init" first.\n');
+    console.error('\n❌ AmazingTeam not initialized in this directory.');
+    console.error('   Run "amazingteam init" first.\n');
     process.exit(1);
   }
   
   const targetVersion = options.to;
   const dryRun = options.dryRun;
   
-  console.log('\n🔄 AI Team Upgrade\n');
+  console.log('\n🔄 AmazingTeam Upgrade\n');
   
   // Determine target version
   let newVersion;
@@ -119,7 +119,7 @@ async function run(options, positional) {
   
   const changes = [];
   
-  // Update ai-team.config.yaml
+  // Update amazingteam.config.yaml
   if (fs.existsSync(configPath)) {
     let content = fs.readFileSync(configPath, 'utf-8');
     const oldContent = content;
@@ -131,11 +131,11 @@ async function run(options, positional) {
     
     if (content !== oldContent) {
       if (dryRun) {
-        console.log('  Would update: ai-team.config.yaml');
+        console.log('  Would update: amazingteam.config.yaml');
         console.log(`    version: ${currentVersion} → ${newVersion}`);
       } else {
         fs.writeFileSync(configPath, content);
-        console.log('  ✅ Updated: ai-team.config.yaml');
+        console.log('  ✅ Updated: amazingteam.config.yaml');
       }
       changes.push('config');
     }
@@ -148,8 +148,8 @@ async function run(options, positional) {
     
     // Update action version references
     content = content.replace(
-      /ai-team-action@v?\d+\.\d+\.\d+/g,
-      `ai-team-action@v${newVersion}`
+      /amazingteam-action@v?\d+\.\d+\.\d+/g,
+      `amazingteam-action@v${newVersion}`
     );
     content = content.replace(
       /version:\s*['"]?\d+\.\d+\.\d+['"]?/g,
@@ -158,11 +158,11 @@ async function run(options, positional) {
     
     if (content !== oldContent) {
       if (dryRun) {
-        console.log('  Would update: .github/workflows/ai-team.yml');
+        console.log('  Would update: .github/workflows/amazingteam.yml');
         console.log(`    action: @v${currentVersion} → @v${newVersion}`);
       } else {
         fs.writeFileSync(workflowPath, content);
-        console.log('  ✅ Updated: .github/workflows/ai-team.yml');
+        console.log('  ✅ Updated: .github/workflows/amazingteam.yml');
       }
       changes.push('workflow');
     }
@@ -176,7 +176,7 @@ async function run(options, positional) {
     console.log('\n✅ Upgrade complete!\n');
     console.log('Next steps:');
     console.log('  1. Review the changes');
-    console.log('  2. Run `ai-team local` to download the new version');
+    console.log('  2. Run `amazingteam local` to download the new version');
     console.log('  3. Test your project');
     console.log('  4. Commit the changes\n');
   } else if (dryRun) {
@@ -186,10 +186,10 @@ async function run(options, positional) {
 
 function help() {
   return `
-ai-team upgrade - Upgrade to a new version
+amazingteam upgrade - Upgrade to a new version
 
 Usage:
-  ai-team upgrade [options]
+  amazingteam upgrade [options]
 
 Options:
   --to <version>    Upgrade to specific version
@@ -197,15 +197,15 @@ Options:
   --force           Force upgrade even if already up to date
 
 Examples:
-  ai-team upgrade                Upgrade to latest version
-  ai-team upgrade --to 3.1.0     Upgrade to specific version
-  ai-team upgrade --dry-run      Preview upgrade changes
+  amazingteam upgrade                Upgrade to latest version
+  amazingteam upgrade --to 3.1.0     Upgrade to specific version
+  amazingteam upgrade --dry-run      Preview upgrade changes
 
 What gets updated:
-  - ai-team.config.yaml version
-  - .github/workflows/ai-team.yml action reference
+  - amazingteam.config.yaml version
+  - .github/workflows/amazingteam.yml action reference
 
-Note: After upgrading, run \`ai-team local\` to download the new version
+Note: After upgrading, run \`amazingteam local\` to download the new version
 for local development.
 `;
 }

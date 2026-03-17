@@ -1,12 +1,12 @@
 # Configuration Reference
 
-This document describes all configuration options for `ai-team.config.yaml`.
+This document describes all configuration options for `amazingteam.config.yaml`.
 
 ---
 
 ## Configuration File Location
 
-Default: `ai-team.config.yaml` in project root.
+Default: `amazingteam.config.yaml` in project root.
 
 Custom location: Specify via CLI `--config` flag or Action input.
 
@@ -325,7 +325,7 @@ foundation:
 # Use GitHub releases
 foundation:
   version: "3.0.0"
-  github_repo: "my-org/ai-team-foundation"
+  github_repo: "my-org/amazingteam"
 ```
 
 ---
@@ -419,7 +419,7 @@ Configuration is merged in this order (later overrides earlier):
 
 1. Foundation defaults
 2. Preset defaults
-3. User configuration (`ai-team.config.yaml`)
+3. User configuration (`amazingteam.config.yaml`)
 4. Local overlay
 
 ---
@@ -429,7 +429,7 @@ Configuration is merged in this order (later overrides earlier):
 Validate your configuration:
 
 ```bash
-npx ai-team-foundation validate
+npx amazingteam validate
 ```
 
 This checks:
@@ -454,5 +454,5 @@ Override configuration with environment variables:
 **Example:**
 
 ```bash
-AI_TEAM_CONFIG=./custom-config.yaml npx ai-team-foundation validate
+AI_TEAM_CONFIG=./custom-config.yaml npx amazingteam validate
 ```
