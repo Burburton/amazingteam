@@ -1,6 +1,6 @@
 {
   "name": "amazingteam",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "AI-powered autonomous development team foundation - Reusable development scaffolding with controlled self-bootstrap capability",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,6 +8,7 @@
     "amazingteam": "./cli/amazingteam.cjs"
   },
   "files": [
+    "dist/",
     ".ai-team/",
     ".opencode/",
     "cli/",

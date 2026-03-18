@@ -5,6 +5,15 @@ All notable changes to the AmazingTeam will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.3] - 2026-03-19
+
+### Fixed
+
+- Add `dist/` to package.json files array (critical fix - npm package was broken without it)
+- Update `templates/gitignore` to use new naming (ai-team → amazingteam)
+
+---
+
 ## [3.0.2] - 2026-03-18
 
 ### Added
