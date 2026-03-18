@@ -5,6 +5,17 @@ All notable changes to the AmazingTeam will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.5] - 2026-03-19
+
+### Added
+
+- README: 添加"安装后用户项目结构"说明
+- README: 添加"需要提交的文件"表格
+- README: 添加".gitignore 配置"说明
+- README: 添加版本历史 3.0.3, 3.0.4
+
+---
+
 ## [3.0.4] - 2026-03-19
 
 ### Fixed

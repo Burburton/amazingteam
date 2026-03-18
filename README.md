@@ -17,11 +17,95 @@
 
 ## 快速开始
 
+### 安装到现有项目
+
+```bash
+cd your-project
+
+# 初始化 AmazingTeam
+npx amazingteam init
+
+# 安装依赖
+npm install amazingteam --save-dev
+```
+
+### 安装后用户项目结构
+
+AmazingTeam 作为 NPM 包安装，**不需要提交到你的仓库**：
+
+```
+your-project/
+├── .github/
+│   └── workflows/
+│       └── amazingteam.yml     # ✅ 提交 - GitHub Actions 工作流
+│
+├── .ai-team/
+│   └── memory/                  # ✅ 可选提交 - AI 角色记忆状态
+│
+├── tasks/                       # ✅ 可选提交 - 任务历史记录
+│
+├── amazingteam.config.yaml      # ✅ 提交 - 项目配置
+├── opencode.jsonc               # ✅ 提交 - OpenCode 配置
+├── AGENTS.md                    # ✅ 提交 - 项目全局规则（可选）
+├── .gitignore                   # 添加 AmazingTeam 相关忽略
+│
+├── node_modules/                # ❌ 不提交
+│   └── amazingteam/             # NPM 包，通过 npm install 安装
+│
+└── src/                         # 你的源代码
+```
+
+### 需要提交的文件
+
+| 文件 | 是否提交 | 说明 |
+|------|---------|------|
+| `.github/workflows/amazingteam.yml` | ✅ 是 | 引用 Foundation 版本 |
+| `amazingteam.config.yaml` | ✅ 是 | 你的项目配置 |
+| `opencode.jsonc` | ✅ 是 | OpenCode 配置 |
+| `AGENTS.md` | ✅ 是 | 项目规则（可选，可自定义） |
+| `.ai-team/memory/` | 可选 | AI 记忆状态，提交可保留历史 |
+| `tasks/` | 可选 | 任务历史，提交可追溯 |
+| `node_modules/amazingteam/` | ❌ 否 | 通过 `npm install` 安装 |
+
+### .gitignore 配置
+
+AmazingTeam 初始化会自动添加：
+
+```gitignore
+# Node modules
+node_modules/
+
+# AmazingTeam cache
+.amazingteam-cache/
+.amazingteam-local/
+```
+
+### 配置 GitHub Secrets
+
+在仓库 Settings → Secrets and variables → Actions 添加：
+
+| Secret | 说明 |
+|--------|------|
+| `ALIBABA_CODING_PLAN_API_KEY` | OpenCode API 密钥（推荐） |
+| `GITHUB_TOKEN` | 自动提供，无需手动配置 |
+
+### 开始使用
+
+创建 Issue 后，评论命令触发 AI：
+
+```
+/oc /auto
+```
+
+这会自动执行：Triage → Design → Implement → Test → Create PR，等待人工审核合并。
+
+---
+
 ### 方式一：使用 Bootstrap 脚本 (推荐)
 
 ```bash
 # 克隆 Foundation
-git clone https://github.com/your-org/amazingteam.git
+git clone https://github.com/Burburton/amazingteam.git
 cd amazingteam
 
 # 初始化新项目
@@ -36,7 +120,7 @@ cd amazingteam
 ```bash
 # 使用 GitHub Template 创建新仓库
 # 或者克隆此仓库
-git clone https://github.com/your-org/amazingteam.git my-project
+git clone https://github.com/Burburton/amazingteam.git my-project
 cd my-project
 
 # 初始化配置
@@ -65,10 +149,12 @@ cd your-project
 amazingteam init
 ```
 
-## 项目结构
+## Foundation 项目结构
+
+以下是 AmazingTeam Foundation 自身的目录结构（NPM 包内容）：
 
 ```
-amazingteam/
+amazingteam/                     # Foundation 源码仓库
 ├── .opencode/                    # OpenCode 配置入口
 │   ├── agents/                   # Agent 入口文件 (YAML配置+简要描述)
 │   │   ├── planner.md            # 指向 .ai-team/agents/planner.md
@@ -985,6 +1071,17 @@ A: 以下情况建议分解：
 欢迎提交 Issue 和 Pull Request！
 
 ## 版本历史
+
+### v3.0.4 - 安装文档完善
+
+**修复：**
+- 添加 `node_modules/` 到 gitignore 模板
+- init 命令提示用户运行 `npm install amazingteam --save-dev`
+
+### v3.0.3 - 关键修复
+
+**修复：**
+- 添加 `dist/` 到 package.json files（修复 npm 包无法运行的问题）
 
 ### v3.0.2 - Workflow 配置
 
