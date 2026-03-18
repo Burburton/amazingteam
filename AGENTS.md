@@ -598,6 +598,54 @@ Default identity used when AI creates commits:
 - **Username**: `opencode-bot`
 - **Email**: `opencode-bot@users.noreply.github.com`
 
+### Workflow Commit Mode Configuration
+
+The `workflow.commit_mode` setting controls how changes are committed after issue completion:
+
+| Mode | Behavior | Use Case |
+|------|----------|----------|
+| `pr` | Create Pull Request, wait for human review (default) | Production, team projects |
+| `direct` | Commit directly to branch | Personal projects, rapid iteration |
+
+**PR Mode Configuration (`workflow.pr`):**
+
+```yaml
+workflow:
+  commit_mode: "pr"
+  pr:
+    auto_merge: false      # Auto-merge PR if CI passes (not recommended)
+    require_review: true   # Require human review before merge
+    reviewers: []          # Default reviewer list (GitHub usernames)
+  direct:
+    require_ci_pass: true  # Require CI to pass before direct commit
+```
+
+**Direct Mode Configuration (`workflow.direct`):**
+
+```yaml
+workflow:
+  commit_mode: "direct"
+  direct:
+    require_ci_pass: true  # Require CI to pass before direct commit
+```
+
+**Behavior by Mode:**
+
+| Action | PR Mode | Direct Mode |
+|--------|---------|-------------|
+| Create branch | Yes | Yes |
+| Make changes | Yes | Yes |
+| Run tests | Yes | Yes |
+| Create PR | Yes | No |
+| Wait for review | Yes (if require_review) | No |
+| Merge | Human merges | AI commits directly |
+
+**Safety Recommendations:**
+- Use `pr` mode for production projects
+- Use `direct` mode only for personal/experimental projects
+- Keep `require_ci_pass: true` in both modes
+- Never enable `auto_merge: true` in production
+
 ## Safety Constraints
 
 1. **No Direct Commits to Main**

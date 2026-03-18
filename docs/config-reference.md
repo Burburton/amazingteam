@@ -91,6 +91,7 @@ overlay:
 | `preset` | string | No | `"default"` | Preset name (default, typescript, python, go) |
 | `project` | object | **Yes** | - | Project information |
 | `llm` | object | No | Default | LLM provider configuration |
+| `workflow` | object | No | PR mode | Commit and PR workflow settings |
 | `build` | object | No | Preset default | Build commands |
 | `rules` | object | No | Preset default | Coding rules |
 | `agents` | object | No | All enabled | Agent configuration |
@@ -210,6 +211,76 @@ In GitHub Actions, add to your workflow:
 env:
   BAILIAN_API_KEY: ${{ secrets.BAILIAN_API_KEY }}
 ```
+
+---
+
+### workflow
+
+Commit and PR workflow configuration.
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `commit_mode` | string | No | `"pr"` | Commit mode: `"pr"` or `"direct"` |
+| `pr` | object | No | See below | PR mode settings |
+| `direct` | object | No | See below | Direct commit mode settings |
+
+#### commit_mode
+
+| Value | Description |
+|-------|-------------|
+| `"pr"` | Create Pull Request, wait for human review (recommended, safer) |
+| `"direct"` | Commit directly to branch (faster, less oversight) |
+
+#### pr settings
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `auto_merge` | boolean | No | `false` | Auto-merge PR after CI passes |
+| `require_review` | boolean | No | `true` | Require human review before merge |
+| `reviewers` | string[] | No | `[]` | Default reviewers for PRs |
+
+#### direct settings
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `require_ci_pass` | boolean | No | `true` | Require CI to pass before committing |
+
+**Examples:**
+
+```yaml
+# PR mode with human review (recommended for teams)
+workflow:
+  commit_mode: "pr"
+  pr:
+    auto_merge: false
+    require_review: true
+    reviewers:
+      - "team-lead"
+      - "senior-dev"
+
+# PR mode with auto-merge (trusted environments)
+workflow:
+  commit_mode: "pr"
+  pr:
+    auto_merge: true
+    require_review: false
+
+# Direct commits (solo projects, faster iteration)
+workflow:
+  commit_mode: "direct"
+  direct:
+    require_ci_pass: true
+```
+
+**When to use each mode:**
+
+| Scenario | Recommended Mode |
+|----------|------------------|
+| Team project | `pr` with `require_review: true` |
+| Solo project | `direct` or `pr` with `auto_merge: true` |
+| Production codebase | `pr` with `require_review: true` |
+| Prototype/POC | `direct` |
+| Regulated industry | `pr` with multiple `reviewers` |
 
 ---
 

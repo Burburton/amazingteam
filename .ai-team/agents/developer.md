@@ -60,15 +60,40 @@ When implementing an issue, you MUST produce:
 3. Implement changes incrementally
 4. Write/update tests
 5. Run linters and tests
-6. **Create a Pull Request** (MANDATORY - never commit directly to main)
-7. Address review feedback
+6. **Submit changes** based on `workflow.commit_mode` configuration:
+   - **PR mode** (default): Create a Pull Request
+   - **Direct mode**: Commit directly to branch
+7. Address review feedback (if applicable)
 
-## Pull Request Rules
+## Commit Mode Configuration
+
+Check `amazingteam.config.yaml` for `workflow.commit_mode`:
+
+### PR Mode (`commit_mode: "pr"`)
 
 - **ALWAYS create a PR** - never commit directly to main branch
 - **NEVER merge your own PR** - wait for human review and approval
+- If `workflow.pr.require_review: true`, wait for human approval
+- If `workflow.pr.auto_merge: true` and CI passes, PR can be auto-merged
 - Link PR to the original issue
 - Include clear description of changes
+
+### Direct Mode (`commit_mode: "direct"`)
+
+- Commit directly to the feature branch
+- If `workflow.direct.require_ci_pass: true`, ensure CI passes before committing
+- Push changes to remote
+- Still create a PR for traceability (but can be auto-merged)
+- Suitable for solo projects or trusted environments
+
+## Pull Request Rules
+
+| Mode | Create PR | Merge PR | Notes |
+|------|-----------|----------|-------|
+| PR + require_review | Yes | Human only | Recommended for teams |
+| PR + auto_merge | Yes | Auto after CI | Trusted environments |
+| Direct + require_ci_pass | Yes | Auto after CI | Solo projects |
+| Direct (no CI check) | Optional | N/A | Fastest, least safe |
 - List affected modules and testing evidence
 
 ## Code Style Guidelines

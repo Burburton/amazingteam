@@ -58,17 +58,24 @@ project:
   framework: "{{FRAMEWORK}}"
 
 llm:
-  # Provider: default, openai, anthropic, bailian, deepseek, etc.
   provider: "{{LLM_PROVIDER}}"
   model: "{{LLM_MODEL}}"
   small_model: "{{LLM_SMALL_MODEL}}"
   # Uncomment for custom endpoint:
   # base_url: "https://your-api-endpoint.com/v1"
-  # API key from environment variable:
   # api_key_env: "YOUR_API_KEY_ENV_NAME"
 
 amazingteam:
   version: "{{AMAZINGTEAM_VERSION}}"
+
+workflow:
+  commit_mode: "{{COMMIT_MODE}}"
+  pr:
+    auto_merge: false
+    require_review: {{REQUIRE_REVIEW}}
+    reviewers: []
+  direct:
+    require_ci_pass: true
 
 build:
   command: "{{BUILD_COMMAND}}"
@@ -290,6 +297,25 @@ async function run(options, positional) {
       llmBaseUrl = baseUrlAnswer || null;
     }
     
+    // Workflow Configuration
+    log('\n⚙️  Workflow Configuration\n', 'cyan');
+    
+    let commitMode = options.commitMode;
+    let requireReview = options.requireReview;
+    
+    if (!options.commitMode) {
+      console.log('  Commit modes:');
+      console.log('    pr     - Create Pull Request, wait for human review (safer, recommended)');
+      console.log('    direct - Commit directly to branch (faster, less oversight)');
+      const modeAnswer = await question(rl, 'Commit mode (pr/direct)', 'pr');
+      commitMode = modeAnswer.toLowerCase() === 'direct' ? 'direct' : 'pr';
+    }
+    
+    if (commitMode === 'pr' && options.requireReview === undefined) {
+      const reviewAnswer = await question(rl, 'Require human review before merge? (y/n)', 'y');
+      requireReview = reviewAnswer.toLowerCase() !== 'n';
+    }
+    
     const langDefaults = getLanguageDefaults(language);
     
     log('\n📦 Creating project structure...', 'blue');
@@ -341,6 +367,8 @@ async function run(options, positional) {
       .replace(/\{\{LLM_PROVIDER\}\}/g, llmProvider)
       .replace(/\{\{LLM_MODEL\}\}/g, llmModel)
       .replace(/\{\{LLM_SMALL_MODEL\}\}/g, llmSmallModel)
+      .replace(/\{\{COMMIT_MODE\}\}/g, commitMode)
+      .replace(/\{\{REQUIRE_REVIEW\}\}/g, requireReview ? 'true' : 'false')
       .replace(/\{\{BUILD_COMMAND\}\}/g, langDefaults.buildCommand)
       .replace(/\{\{TEST_COMMAND\}\}/g, langDefaults.testCommand)
       .replace(/\{\{LINT_COMMAND\}\}/g, langDefaults.lintCommand)
