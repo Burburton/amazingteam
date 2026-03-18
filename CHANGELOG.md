@@ -5,6 +5,21 @@ All notable changes to the AmazingTeam will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.2] - 2026-03-18
+
+### Added
+
+#### Workflow Commit Mode Configuration
+- `workflow.commit_mode` option: `pr` (default) or `direct`
+- `workflow.pr.auto_merge`: Auto-merge PR if CI passes
+- `workflow.pr.require_review`: Require human review before merge
+- `workflow.pr.reviewers`: Default reviewer list
+- `workflow.direct.require_ci_pass`: Require CI pass before direct commit
+- Interactive workflow configuration during `amazingteam init`
+- Documentation in `docs/config-reference.md` and `AGENTS.md`
+
+---
+
 ## [3.0.1] - 2026-03-17
 
 ### Added
