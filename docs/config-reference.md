@@ -166,28 +166,22 @@ llm:
 
 # Use Alibaba Bailian (百炼)
 llm:
-  provider: "bailian"
-  model: "qwen-max"
-  small_model: "qwen-turbo"
-  base_url: "https://bailian.aliyuncs.com/v1"
-  api_key_env: "BAILIAN_API_KEY"
+  model: "bailian-coding-plan/glm-5"
+  small_model: "bailian-coding-plan/glm-5"
 
 # Use OpenAI
 llm:
-  provider: "openai"
-  model: "gpt-4"
-  small_model: "gpt-3.5-turbo"
+  model: "openai/gpt-4"
+  small_model: "openai/gpt-3.5-turbo"
 
 # Use DeepSeek
 llm:
-  provider: "deepseek"
-  model: "deepseek-chat"
-  small_model: "deepseek-chat"
+  model: "deepseek/deepseek-chat"
+  small_model: "deepseek/deepseek-chat"
 
 # Custom endpoint
 llm:
-  provider: "custom"
-  model: "my-model"
+  model: "custom/my-model"
   base_url: "https://my-api.example.com/v1"
   api_key_env: "CUSTOM_API_KEY"
 ```
@@ -196,20 +190,13 @@ llm:
 
 Set your API key in environment:
 ```bash
-# For Bailian
-export BAILIAN_API_KEY="your-api-key"
-
-# For OpenAI
-export OPENAI_API_KEY="your-api-key"
-
-# For DeepSeek
-export DEEPSEEK_API_KEY="your-api-key"
+export AMAZINGTEAM_API_KEY="your-api-key"
 ```
 
 In GitHub Actions, add to your workflow:
 ```yaml
 env:
-  BAILIAN_API_KEY: ${{ secrets.BAILIAN_API_KEY }}
+  AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
 ```
 
 ---

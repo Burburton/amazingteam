@@ -86,7 +86,7 @@ node_modules/
 
 | Secret | 说明 |
 |--------|------|
-| `ALIBABA_CODING_PLAN_API_KEY` | OpenCode API 密钥（推荐） |
+| `AMAZINGTEAM_API_KEY` | OpenCode API 密钥 |
 | `GITHUB_TOKEN` | 自动提供，无需手动配置 |
 
 ### 开始使用
@@ -259,7 +259,7 @@ amazingteam init my-project \
 
 | Secret | 说明 |
 |--------|------|
-| `OPENCODE_API_KEY` | OpenCode API 密钥 |
+| `AMAZINGTEAM_API_KEY` | OpenCode API 密钥 |
 | `GITHUB_TOKEN` | 自动提供，无需手动配置 |
 
 ### 3. 使用 AI Team

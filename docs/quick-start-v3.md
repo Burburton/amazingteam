@@ -76,7 +76,7 @@ llm:
   model: "qwen-max"             # Main model for complex tasks
   small_model: "qwen-turbo"     # Faster model for simple tasks
   base_url: "https://bailian.aliyuncs.com/v1"
-  api_key_env: "BAILIAN_API_KEY"  # Env var name (not the actual key!)
+  api_key_env: "AMAZINGTEAM_API_KEY"  # Env var name (not the actual key!)
 
 # Build commands (override defaults)
 build:
@@ -221,10 +221,10 @@ jobs:
       - name: Run OpenCode
         uses: anomalyco/opencode/github@latest
         env:
-          ALIBABA_CODING_PLAN_API_KEY: ${{ secrets.ALIBABA_CODING_PLAN_API_KEY }}
+          AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          model: alibaba-coding-plan/glm-5
+          model: bailian-coding-plan/glm-5
 ```
 
 ---

@@ -5,6 +5,18 @@ All notable changes to the AmazingTeam will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.7] - 2026-03-19
+
+### Changed
+
+- Simplified LLM configuration:
+  - Removed `llm.provider` field from config (no longer needed)
+  - Users now input model names directly (e.g., `bailian-coding-plan/glm-5`)
+  - Unified API key environment variable: `AMAZINGTEAM_API_KEY`
+- Fixed compilation error in init.cjs (removed undefined `llmProvider` variable)
+
+---
+
 ## [3.0.6] - 2026-03-19
 
 ### Fixed

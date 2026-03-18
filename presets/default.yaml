@@ -10,14 +10,13 @@ project:
   framework: "node"
 
 llm:
-  provider: "default"
   model: "default"
   small_model: "default"
   base_url: ""
   api_key_env: ""
 
 amazingteam:
-  version: "3.0.6"
+  version: "3.0.7"
 
 workflow:
   commit_mode: "pr"

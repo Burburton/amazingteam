@@ -108,9 +108,8 @@ function validateWorkflow(workflowPath) {
   }
   
   // Check for secrets
-  if (!content.includes('ALIBABA_CODING_PLAN_API_KEY') && 
-      !content.includes('OPENCODE_API_KEY')) {
-    issues.push('No API key secret referenced');
+  if (!content.includes('AMAZINGTEAM_API_KEY')) {
+    issues.push('No API key secret referenced (AMAZINGTEAM_API_KEY)');
   }
   
   return {

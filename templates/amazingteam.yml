@@ -59,12 +59,10 @@ jobs:
         uses: anomalyco/opencode/github@latest
         env:
           # Required: Your AI provider API key
-          ALIBABA_CODING_PLAN_API_KEY: ${{ secrets.ALIBABA_CODING_PLAN_API_KEY }}
-          # Or use OpenCode API key:
-          # OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          model: alibaba-coding-plan/glm-5
+          model: bailian-coding-plan/glm-5
           # Or use other supported models:
           # model: openai/gpt-4
 

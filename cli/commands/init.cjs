@@ -58,7 +58,6 @@ project:
   framework: "{{FRAMEWORK}}"
 
 llm:
-  provider: "{{LLM_PROVIDER}}"
   model: "{{LLM_MODEL}}"
   small_model: "{{LLM_SMALL_MODEL}}"
   # Uncomment for custom endpoint:
@@ -127,7 +126,7 @@ node_modules/
   return templates[name] || '';
 }
 
-function getWorkflowTemplate(version) {
+function getWorkflowTemplate(version, model = 'bailian-coding-plan/glm-5') {
   return `# AmazingTeam GitHub Action Workflow
 # This workflow enables AI-powered development in your repository
 
@@ -167,7 +166,7 @@ jobs:
           git config --global user.email "opencode-bot@users.noreply.github.com"
 
       - name: Setup AmazingTeam
-        uses: your-org/amazingteam-action@v${version}
+        uses: Burburton/amazingteam-action@v${version}
         with:
           version: '${version}'
           config: 'amazingteam.config.yaml'
@@ -175,10 +174,10 @@ jobs:
       - name: Run OpenCode
         uses: anomalyco/opencode/github@latest
         env:
-          ALIBABA_CODING_PLAN_API_KEY: \${{ secrets.ALIBABA_CODING_PLAN_API_KEY }}
+          AMAZINGTEAM_API_KEY: \${{ secrets.AMAZINGTEAM_API_KEY }}
           GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
         with:
-          model: alibaba-coding-plan/glm-5
+          model: ${model}
 `;
 }
 
@@ -254,10 +253,8 @@ async function run(options, positional) {
     let framework = options.framework;
     let description = options.description;
     let overlay = options.overlay;
-    let llmProvider = options.llmProvider;
     let llmModel = options.llmModel;
     let llmSmallModel = options.llmSmallModel;
-    let llmBaseUrl = options.llmBaseUrl;
     
     if (!options.language) {
       language = await question(rl, 'Language', 'typescript');
@@ -280,26 +277,24 @@ async function run(options, positional) {
     // LLM Configuration
     log('\n🤖 LLM Configuration\n', 'cyan');
     
-    if (!options.llmProvider) {
-      console.log('  Common providers: default, openai, anthropic, bailian, deepseek');
-      llmProvider = await question(rl, 'LLM Provider', 'default');
+    if (!options.llmModel) {
+      console.log('  Common models:');
+      console.log('    default                     - Use OpenCode default');
+      console.log('    bailian-coding-plan/glm-5   - Alibaba Bailian GLM-5');
+      console.log('    openai/gpt-4                - OpenAI GPT-4');
+      console.log('    anthropic/claude-3-opus     - Anthropic Claude');
+      llmModel = await question(rl, 'Model', 'default');
     }
     
-    if (llmProvider === 'default') {
-      llmModel = 'default';
+    if (llmModel === 'default') {
       llmSmallModel = 'default';
-    } else {
-      if (!options.llmModel) {
-        llmModel = await question(rl, 'Model name', 'gpt-4');
-      }
-      if (!options.llmSmallModel) {
-        llmSmallModel = await question(rl, 'Small model (for simple tasks)', llmModel);
-      }
+    } else if (!options.llmSmallModel) {
+      llmSmallModel = await question(rl, 'Small model (for simple tasks)', llmModel);
     }
     
-    if (!options.llmBaseUrl && llmProvider !== 'default') {
-      const baseUrlAnswer = await question(rl, 'Custom base URL (leave empty for default)', '');
-      llmBaseUrl = baseUrlAnswer || null;
+    if (llmModel !== 'default') {
+      log('\n⚠️  Remember to set environment variable:', 'yellow');
+      log('   AMAZINGTEAM_API_KEY=your-api-key\n', 'yellow');
     }
     
     // Workflow Configuration
@@ -357,7 +352,6 @@ async function run(options, positional) {
       .replace(/\{\{LANGUAGE\}\}/g, language)
       .replace(/\{\{FRAMEWORK\}\}/g, framework)
       .replace(/\{\{AMAZINGTEAM_VERSION\}\}/g, VERSION)
-      .replace(/\{\{LLM_PROVIDER\}\}/g, llmProvider)
       .replace(/\{\{LLM_MODEL\}\}/g, llmModel)
       .replace(/\{\{LLM_SMALL_MODEL\}\}/g, llmSmallModel)
       .replace(/\{\{COMMIT_MODE\}\}/g, commitMode)
@@ -372,15 +366,15 @@ async function run(options, positional) {
     // Generate opencode.jsonc
     let opencodeContent = getTemplate('opencode.jsonc');
     opencodeContent = opencodeContent
-      .replace(/\{\{LLM_MODEL\}\}/g, llmProvider === 'default' ? 'default' : `${llmProvider}/${llmModel}`)
-      .replace(/\{\{LLM_SMALL_MODEL\}\}/g, llmProvider === 'default' ? 'default' : `${llmProvider}/${llmSmallModel}`);
+      .replace(/\{\{LLM_MODEL\}\}/g, llmModel)
+      .replace(/\{\{LLM_SMALL_MODEL\}\}/g, llmSmallModel);
     
     const opencodePath = path.join(projectPath, 'opencode.jsonc');
     fs.writeFileSync(opencodePath, opencodeContent);
     
     // Generate workflow
     const workflowPath = path.join(projectPath, '.github', 'workflows', 'amazingteam.yml');
-    fs.writeFileSync(workflowPath, getWorkflowTemplate(VERSION));
+    fs.writeFileSync(workflowPath, getWorkflowTemplate(VERSION, llmModel));
     
     // Update .gitignore
     log('📝 Updating .gitignore...', 'blue');
@@ -443,7 +437,7 @@ module_scope: []
     log('     npm install amazingteam --save-dev');
     log('  2. Review and customize amazingteam.config.yaml');
     log('  3. Add your GitHub secrets:');
-    log('     - ALIBABA_CODING_PLAN_API_KEY or OPENCODE_API_KEY');
+    log('     - AMAZINGTEAM_API_KEY');
     log('  4. Run `npx amazingteam local` for local development');
     log('  5. Create your first issue!\n');
     

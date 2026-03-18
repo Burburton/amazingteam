@@ -50,7 +50,7 @@ node cli/ai-team.cjs init --force
 
 | Secret | 说明 |
 |--------|------|
-| `ALIBABA_CODING_PLAN_API_KEY` | OpenCode API Key |
+| `AMAZINGTEAM_API_KEY` | OpenCode API Key |
 | `GITHUB_TOKEN` | 自动提供，无需配置 |
 
 ### 步骤 4: 开始使用
