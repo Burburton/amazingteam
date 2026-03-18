@@ -5,6 +5,18 @@ All notable changes to the AmazingTeam will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.6] - 2026-03-19
+
+### Fixed
+
+- 修复 opencode.jsonc 模板格式问题：
+  - 移除不支持的 `default_agent` 字段
+  - 移除不支持的 `providers` 字段（OpenCode 通过环境变量配置 API key）
+  - 修正 schema URL 为 `https://opencode.ai/schema.json`
+- 用户需通过环境变量配置 API key：`export BAILIAN_API_KEY=xxx`
+
+---
+
 ## [3.0.5] - 2026-03-19
 
 ### Added

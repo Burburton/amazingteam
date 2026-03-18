@@ -92,10 +92,9 @@ rules:
 `,
 
     'opencode.jsonc': `{
-  "$schema": "https://opencode.ai/config.json",
+  "$schema": "https://opencode.ai/schema.json",
   "model": "{{LLM_MODEL}}",
   "small_model": "{{LLM_SMALL_MODEL}}",
-  "default_agent": "build",
   "instructions": ["AGENTS.md"],
   "autoupdate": true,
   "permission": {
@@ -106,7 +105,7 @@ rules:
     "write": true,
     "edit": true,
     "bash": true
-  }{{LLM_PROVIDER_CONFIG}}
+  }
 }
 `,
 
@@ -350,18 +349,6 @@ async function run(options, positional) {
     
     log('📝 Creating configuration files...', 'blue');
     
-    // Generate LLM provider config for opencode.jsonc
-    let llmProviderConfig = '';
-    if (llmProvider !== 'default' && llmBaseUrl) {
-      llmProviderConfig = `,
-  "providers": {
-    "${llmProvider}": {
-      "base_url": "${llmBaseUrl}",
-      "api_key": "\${${llmProvider.toUpperCase()}_API_KEY}"
-    }
-  }`;
-    }
-    
     // Generate amazingteam.config.yaml
     let configContent = getTemplate('amazingteam.config.yaml');
     configContent = configContent
@@ -386,8 +373,7 @@ async function run(options, positional) {
     let opencodeContent = getTemplate('opencode.jsonc');
     opencodeContent = opencodeContent
       .replace(/\{\{LLM_MODEL\}\}/g, llmProvider === 'default' ? 'default' : `${llmProvider}/${llmModel}`)
-      .replace(/\{\{LLM_SMALL_MODEL\}\}/g, llmProvider === 'default' ? 'default' : `${llmProvider}/${llmSmallModel}`)
-      .replace(/\{\{LLM_PROVIDER_CONFIG\}\}/g, llmProviderConfig);
+      .replace(/\{\{LLM_SMALL_MODEL\}\}/g, llmProvider === 'default' ? 'default' : `${llmProvider}/${llmSmallModel}`);
     
     const opencodePath = path.join(projectPath, 'opencode.jsonc');
     fs.writeFileSync(opencodePath, opencodeContent);
