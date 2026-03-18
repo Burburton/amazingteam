@@ -111,11 +111,17 @@ rules:
 `,
 
     'gitignore_additions': `
-# AmazingTeam local foundation (downloaded by \`amazingteam local\`)
-.ai-team-local/
+# Node modules
+node_modules/
 
-# AmazingTeam cache
-.ai-team-cache/
+# AmazingTeam cache (downloaded by workflow)
+.amazingteam-cache/
+
+# AmazingTeam local foundation (downloaded by \`amazingteam local\`)
+.amazingteam-local/
+
+# OpenCode config (auto-generated, can be regenerated)
+# opencode.jsonc
 `
   };
   
@@ -447,11 +453,13 @@ module_scope: []
     log('\n✅ AmazingTeam initialized successfully!\n', 'green');
     
     log('Next steps:', 'cyan');
-    log('  1. Review and customize amazingteam.config.yaml');
-    log('  2. Add your GitHub secrets:');
+    log('  1. Install AmazingTeam:');
+    log('     npm install amazingteam --save-dev');
+    log('  2. Review and customize amazingteam.config.yaml');
+    log('  3. Add your GitHub secrets:');
     log('     - ALIBABA_CODING_PLAN_API_KEY or OPENCODE_API_KEY');
-    log('  3. Run `amazingteam local` for local development');
-    log('  4. Create your first issue!\n');
+    log('  4. Run `npx amazingteam local` for local development');
+    log('  5. Create your first issue!\n');
     
     log('Configuration:', 'cyan');
     log(`  Project: ${projectName}`);

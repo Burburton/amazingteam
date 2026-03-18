@@ -1,6 +1,9 @@
 # AmazingTeam Foundation - .gitignore additions
 # Add these lines to your project's .gitignore
 
+# Node modules
+node_modules/
+
 # AmazingTeam cache (downloaded foundation)
 .amazingteam-cache/
 
