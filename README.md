@@ -984,131 +984,38 @@ A: 以下情况建议分解：
 
 欢迎提交 Issue 和 Pull Request！
 
-## v3.0.0 开发进度
-
-### 概述
-
-v3.0.0 将实现**远程加载功能**，用户项目无需提交 Foundation 源码，只需几个配置文件即可使用 AI Team。
-
-### 用户项目结构（v3.0.0）
-
-```
-your-project/
-├── .github/workflows/amazingteam.yml   # 引用 Foundation 版本
-├── opencode.jsonc                  # 自动生成
-├── amazingteam.config.yaml             # 用户配置
-├── .ai-team/memory/                # 运行时状态
-└── src/                            # 用户代码
-```
-
-### 升级方式
-
-```bash
-# 一键升级
-npx amazingteam upgrade
-
-# 或指定版本
-npx amazingteam upgrade --to 3.1.0
-```
-
-### 开发进度
-
-| 阶段 | 任务数 | 完成数 | 进度 |
-|------|--------|--------|------|
-| Phase 1: 基础准备 | 16 | 16 | ✅ 100% |
-| Phase 2: CLI 工具 | 23 | 23 | ✅ 100% |
-| Phase 3: GitHub Action | 12 | 12 | ✅ 100% |
-| Phase 4: 文档更新 | 12 | 12 | ✅ 100% |
-| Phase 5: 测试 | 14 | 14 | ✅ 100% |
-| Phase 6: 发布 | 9 | 7 | ✅ 78% |
-| **总计** | **86** | **84** | **98%** |
-
-### Phase 1 已完成内容
-
-| 组件 | 文件 | 说明 |
-|------|------|------|
-| **Presets** | `presets/*.yaml` | 默认配置、TypeScript、Python、Go 预设 |
-| **Templates** | `templates/*` | OpenCode 配置模板、GitHub Workflow 模板 |
-| **Schemas** | `schemas/config.schema.json` | 配置文件 JSON Schema |
-| **Action** | `action/*` | GitHub Action 入口和核心模块 |
-| **Merger** | `action/lib/merger.js` | 配置合并逻辑 |
-| **Path Resolver** | `action/lib/path-resolver.js` | 路径解析 |
-| **Validator** | `action/lib/validator.js` | 配置校验 |
-| **Downloader** | `action/lib/downloader.js` | NPM/GitHub 下载 |
-| **Setup** | `action/lib/setup.js` | 运行时初始化 |
-
-### Phase 2 已完成内容
-
-| 命令 | 文件 | 说明 |
-|------|------|------|
-| **CLI 入口** | `cli/amazingteam.cjs` | 主入口，命令解析，帮助信息 |
-| **init** | `cli/commands/init.cjs` | 初始化项目，交互式提示 |
-| **version** | `cli/commands/version.cjs` | 显示版本信息 |
-| **check-update** | `cli/commands/check-update.cjs` | 检查更新 |
-| **upgrade** | `cli/commands/upgrade.cjs` | 升级到新版本 |
-| **local** | `cli/commands/local.cjs` | 下载 Foundation 到本地 |
-| **validate** | `cli/commands/validate.cjs` | 验证配置和结构 |
-| **migrate** | `cli/commands/migrate.cjs` | v2 迁移到 v3 |
-| **status** | `cli/commands/status.cjs` | 显示项目状态 |
-
-### Phase 3 已完成内容
-
-| 组件 | 文件 | 说明 |
-|------|------|------|
-| **Action Tests** | `action/__tests__/*.test.js` | Merger, PathResolver, Validator, Downloader 测试 |
-| **Merger Tests** | `action/__tests__/merger.test.js` | 深拷贝、配置合并、预设合并测试 |
-| **PathResolver Tests** | `action/__tests__/path-resolver.test.js` | 路径解析、内存目录、任务路径测试 |
-| **Validator Tests** | `action/__tests__/validator.test.js` | Schema 验证、类型检查、必填字段测试 |
-| **Downloader Tests** | `action/__tests__/downloader.test.js` | 缓存逻辑、重试机制、降级逻辑测试 |
-
-### Phase 4 已完成内容
-
-| 文档 | 文件 | 说明 |
-|------|------|------|
-| **Migration Guide** | `docs/migration-to-v3.md` | v2 到 v3 迁移指南，步骤和故障排除 |
-| **Config Reference** | `docs/config-reference.md` | 完整配置字段参考和示例 |
-| **Quick Start v3** | `docs/quick-start-v3.md` | v3 快速入门指南 |
-| **v3 Implementation Checklist** | `infra/v3-implementation-checklist.md` | 实施进度跟踪 |
-
-### Phase 5 已完成内容
-
-| 测试类型 | 文件 | 说明 |
-|---------|------|------|
-| **CLI Tests** | `cli/__tests__/cli.test.js` | CLI 命令测试：help, version, init, validate 等 |
-| **Integration Tests** | `tests/integration.test.js` | 完整工作流测试：init → local → validate |
-| **Error Tests** | `tests/error-scenarios.test.js` | 错误场景测试：无效配置、网络失败、目录缺失 |
-| **Overlay Tests** | `tests/overlay.test.js` | Overlay 测试：python-backend, web-fullstack, cpp-qt |
-| **Unit Tests** | `action/__tests__/*.test.js` | 模块单元测试（Phase 3 完成） |
-
-### Phase 6 已完成内容
-
-| 任务 | 说明 |
-|------|------|
-| **VERSION 更新** | 更新到 `3.0.0` |
-| **package.json 更新** | 版本号更新到 `3.0.0` |
-| **CHANGELOG.md 更新** | 添加 v3.0.0 完整变更记录 |
-| **Git Tag** | 待创建 `v3.0.0` |
-| **NPM 发布** | 待发布 |
-| **GitHub Release** | 待创建 |
-
-### 相关文档
-
-- [设计文档](./infra/remote_foundation_loading_design.md)
-- [评审报告](./infra/remote_foundation_loading_review.md)
-- [实施清单](./infra/v3-implementation-checklist.md)
-- [快速开始指南](./docs/quick-start-v3.md)
-
 ## 版本历史
 
-### v3.0.0 - 远程加载 ✅ 已发布
+### v3.0.2 - Workflow 配置
 
 **新增：**
-- 远程加载：Foundation 作为 NPM 包/ GitHub Release 加载，无需提交到项目
-- GitHub Action：`amazingteam-action` 自动下载和配置 Foundation
-- CLI 工具：完整的命令行工具（init, version, upgrade, local, validate, migrate, status）
+- `workflow.commit_mode`: 支持 `pr`（默认）和 `direct` 两种提交模式
+- `workflow.pr.*`: PR 模式配置（auto_merge, require_review, reviewers）
+- `workflow.direct.*`: 直接提交模式配置（require_ci_pass）
+- 交互式 workflow 配置提示
+
+### v3.0.1 - 自定义 LLM Provider
+
+**新增：**
+- 自定义 LLM Provider 支持（OpenAI, Anthropic, Bailian, DeepSeek, Moonshot, Zhipu）
+- `llm.base_url`: 自定义 API 端点
+- `llm.api_key_env`: 环境变量 API Key 管理
+- 交互式 LLM 配置提示
+
+**重命名：**
+- 包名：`ai-team-foundation` → `amazingteam`
+- CLI：`ai-team` → `amazingteam`
+- 配置文件：`ai-team.config.yaml` → `amazingteam.config.yaml`
+
+### v3.0.0 - 远程加载
+
+**新增：**
+- 远程加载：Foundation 作为 NPM 包/GitHub Release 加载，无需提交到项目
+- GitHub Action：自动下载和配置 Foundation
+- CLI 工具：init, version, upgrade, local, validate, migrate, status
 - 配置预设：TypeScript、Python、Go 等语言预设
 - JSON Schema：配置文件校验
-- 完整测试套件：单元测试、集成测试、错误场景测试
+- 完整测试套件
 
 **用户项目变化：**
 - 从 50+ 文件减少到 3-5 个配置文件
