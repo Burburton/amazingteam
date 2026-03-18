@@ -112,11 +112,11 @@ rules:
 # Node modules
 node_modules/
 
-# AmazingTeam cache (downloaded by workflow)
-.amazingteam-cache/
+# AI Team cache (downloaded by workflow)
+.ai-team-cache/
 
-# AmazingTeam local foundation (downloaded by \`amazingteam local\`)
-.amazingteam-local/
+# AI Team local foundation (downloaded by \`amazingteam local\`)
+.ai-team-local/
 
 # OpenCode config (auto-generated, can be regenerated)
 # opencode.jsonc

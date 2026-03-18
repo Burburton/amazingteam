@@ -76,8 +76,8 @@ AmazingTeam 初始化会自动添加：
 node_modules/
 
 # AmazingTeam cache
-.amazingteam-cache/
-.amazingteam-local/
+.ai-team-cache/
+.ai-team-local/
 ```
 
 ### 配置 GitHub Secrets

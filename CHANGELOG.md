@@ -15,6 +15,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Unified API key environment variable: `AMAZINGTEAM_API_KEY`
 - Fixed compilation error in init.cjs (removed undefined `llmProvider` variable)
 
+### Fixed
+
+- Unified directory naming to `.ai-team/` everywhere:
+  - User project structure: `.ai-team/memory/`
+  - Cache directories: `.ai-team-cache/`, `.ai-team-local/`
+  - Updated all presets, CLI commands, action modules, and tests
+  - Ensures consistency with foundation package structure
+
 ---
 
 ## [3.0.6] - 2026-03-19

@@ -239,8 +239,8 @@ function testDirectoryStructure() {
   console.log('\nTesting directory structure requirements...');
   
   const requiredDirs = [
-    '.amazingteam',
-    '.amazingteam/memory',
+    '.ai-team',
+    '.ai-team/memory',
     'tasks'
   ];
   

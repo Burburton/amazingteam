@@ -142,7 +142,7 @@ async function run() {
     const configPath = core.getInput('config') || 'amazingteam.config.yaml';
     const overlay = core.getInput('overlay') || '';
     const useCache = core.getInput('cache') !== 'false';
-    const cacheDir = core.getInput('cache-dir') || path.join(process.env.HOME || '', '.amazingteam-cache');
+    const cacheDir = core.getInput('cache-dir') || path.join(process.env.HOME || '', '.ai-team-cache');
     
     const projectDir = process.env.GITHUB_WORKSPACE || process.cwd();
     

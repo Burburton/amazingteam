@@ -48,7 +48,7 @@ function createTestProject(name, language = 'typescript') {
   const projectDir = path.join(TEMP_DIR, name);
   fs.mkdirSync(projectDir, { recursive: true });
   
-  fs.mkdirSync(path.join(projectDir, '.amazingteam', 'memory'), { recursive: true });
+  fs.mkdirSync(path.join(projectDir, '.ai-team', 'memory'), { recursive: true });
   fs.mkdirSync(path.join(projectDir, 'tasks'), { recursive: true });
   
   const config = `project:
@@ -67,7 +67,7 @@ function testFullWorkflow_TypeScript() {
   process.chdir(projectDir);
   
   console.assert(fs.existsSync('amazingteam.config.yaml'), 'Config should exist');
-  console.assert(fs.existsSync('.amazingteam/memory'), 'Memory dir should exist');
+  console.assert(fs.existsSync('.ai-team/memory'), 'Memory dir should exist');
   console.assert(fs.existsSync('tasks'), 'Tasks dir should exist');
   
   const config = fs.readFileSync('amazingteam.config.yaml', 'utf-8');
@@ -114,12 +114,12 @@ function testMemoryDirectoryStructure() {
   const roles = ['planner', 'architect', 'developer', 'qa', 'reviewer', 'triage', 'ci-analyst'];
   
   for (const role of roles) {
-    const roleDir = path.join(projectDir, '.amazingteam', 'memory', role);
+    const roleDir = path.join(projectDir, '.ai-team', 'memory', role);
     fs.mkdirSync(roleDir, { recursive: true });
     console.assert(fs.existsSync(roleDir), `Role directory ${role} should exist`);
   }
   
-  const failuresDir = path.join(projectDir, '.amazingteam', 'memory', 'failures');
+  const failuresDir = path.join(projectDir, '.ai-team', 'memory', 'failures');
   fs.mkdirSync(failuresDir, { recursive: true });
   console.assert(fs.existsSync(failuresDir), 'Failures directory should exist');
   
@@ -304,13 +304,13 @@ dist/
   fs.writeFileSync(gitignorePath, gitignoreContent);
   
   const additions = `
-# AmazingTeam Foundation v3
-.amazingteam-local/
+# AI Team Foundation v3
+.ai-team-local/
 `;
   fs.appendFileSync(gitignorePath, additions);
   
   const updated = fs.readFileSync(gitignorePath, 'utf-8');
-  console.assert(updated.includes('.amazingteam-local/'), 'Should have amazingteam-local entry');
+  console.assert(updated.includes('.ai-team-local/'), 'Should have ai-team-local entry');
   
   console.log('  ✓ .gitignore update tests passed');
 }

@@ -107,7 +107,7 @@ function testMissingDirectories() {
   const result = validateProjectStructure(partialDir);
   
   console.assert(result.valid === false, 'Should fail validation');
-  console.assert(result.issues.some(i => i.includes('.amazingteam')), 'Should mention .amazingteam');
+  console.assert(result.issues.some(i => i.includes('.ai-team')), 'Should mention .ai-team');
   console.assert(result.issues.some(i => i.includes('tasks')), 'Should mention tasks');
   
   console.log('  ✓ missing directories tests passed');

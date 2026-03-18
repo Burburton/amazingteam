@@ -33,56 +33,56 @@ agents:
     description: "Decomposes tasks and coordinates workflow progression"
     skills: ["task-breakdown-and-dispatch"]
     memory:
-      read: ["docs/", "AGENTS.md", ".amazingteam/memory/planner/", ".amazingteam/memory/architect/", ".amazingteam/memory/triage/", ".amazingteam/memory/failures/", "tasks/"]
-      write: [".amazingteam/memory/planner/", "tasks/{task_id}/task.yaml"]
+      read: ["docs/", "AGENTS.md", ".ai-team/memory/planner/", ".ai-team/memory/architect/", ".ai-team/memory/triage/", ".ai-team/memory/failures/", "tasks/"]
+      write: [".ai-team/memory/planner/", "tasks/{task_id}/task.yaml"]
 
   architect:
     enabled: true
     description: "Analyzes requirements and designs solutions"
     skills: ["repo-architecture-reader"]
     memory:
-      read: ["docs/", "AGENTS.md", ".amazingteam/memory/planner/", ".amazingteam/memory/architect/", ".amazingteam/memory/developer/", ".amazingteam/memory/failures/", "tasks/"]
-      write: [".amazingteam/memory/architect/", "tasks/{task_id}/analysis.md", "tasks/{task_id}/design.md"]
+      read: ["docs/", "AGENTS.md", ".ai-team/memory/planner/", ".ai-team/memory/architect/", ".ai-team/memory/developer/", ".ai-team/memory/failures/", "tasks/"]
+      write: [".ai-team/memory/architect/", "tasks/{task_id}/analysis.md", "tasks/{task_id}/design.md"]
 
   developer:
     enabled: true
     description: "Implements features and fixes bugs"
     skills: ["test-first-feature-dev", "bugfix-playbook"]
     memory:
-      read: ["docs/", "AGENTS.md", ".amazingteam/memory/planner/", ".amazingteam/memory/architect/", ".amazingteam/memory/developer/", ".amazingteam/memory/failures/", "tasks/{task_id}/"]
-      write: [".amazingteam/memory/developer/", "tasks/{task_id}/implementation.md", "src/", "tests/"]
+      read: ["docs/", "AGENTS.md", ".ai-team/memory/planner/", ".ai-team/memory/architect/", ".ai-team/memory/developer/", ".ai-team/memory/failures/", "tasks/{task_id}/"]
+      write: [".ai-team/memory/developer/", "tasks/{task_id}/implementation.md", "src/", "tests/"]
 
   qa:
     enabled: true
     description: "Validates implementations and ensures quality"
     skills: ["test-first-feature-dev", "regression-checklist"]
     memory:
-      read: ["docs/", "AGENTS.md", ".amazingteam/memory/planner/", ".amazingteam/memory/architect/", ".amazingteam/memory/qa/", ".amazingteam/memory/failures/", "tasks/{task_id}/"]
-      write: [".amazingteam/memory/qa/", "tasks/{task_id}/validation.md", "tests/"]
+      read: ["docs/", "AGENTS.md", ".ai-team/memory/planner/", ".ai-team/memory/architect/", ".ai-team/memory/qa/", ".ai-team/memory/failures/", "tasks/{task_id}/"]
+      write: [".ai-team/memory/qa/", "tasks/{task_id}/validation.md", "tests/"]
 
   reviewer:
     enabled: true
     description: "Reviews code for quality and correctness"
     skills: ["safe-refactor-checklist", "regression-checklist", "release-readiness-check"]
     memory:
-      read: ["docs/", "AGENTS.md", ".amazingteam/memory/", ".amazingteam/memory/failures/", "tasks/{task_id}/"]
-      write: [".amazingteam/memory/reviewer/", "tasks/{task_id}/review.md", "tasks/{task_id}/release.md"]
+      read: ["docs/", "AGENTS.md", ".ai-team/memory/", ".ai-team/memory/failures/", "tasks/{task_id}/"]
+      write: [".ai-team/memory/reviewer/", "tasks/{task_id}/review.md", "tasks/{task_id}/release.md"]
 
   triage:
     enabled: true
     description: "Classifies issues and performs first-pass debug analysis"
     skills: ["issue-triage", "bugfix-playbook"]
     memory:
-      read: ["docs/", "AGENTS.md", ".amazingteam/memory/triage/", ".amazingteam/memory/failures/", "tasks/{task_id}/"]
-      write: [".amazingteam/memory/triage/", "tasks/{task_id}/"]
+      read: ["docs/", "AGENTS.md", ".ai-team/memory/triage/", ".ai-team/memory/failures/", "tasks/{task_id}/"]
+      write: [".ai-team/memory/triage/", "tasks/{task_id}/"]
 
   ci_analyst:
     enabled: true
     description: "Investigates CI failures and documents patterns"
     skills: ["ci-failure-analysis", "bugfix-playbook"]
     memory:
-      read: ["docs/", "AGENTS.md", ".amazingteam/memory/ci-analyst/", ".amazingteam/memory/failures/", "tasks/{task_id}/", "docs/runbooks/ci/"]
-      write: [".amazingteam/memory/ci-analyst/", ".amazingteam/memory/failures/", "tasks/{task_id}/"]
+      read: ["docs/", "AGENTS.md", ".ai-team/memory/ci-analyst/", ".ai-team/memory/failures/", "tasks/{task_id}/", "docs/runbooks/ci/"]
+      write: [".ai-team/memory/ci-analyst/", ".ai-team/memory/failures/", "tasks/{task_id}/"]
 
 workflows:
   feature:
@@ -111,7 +111,7 @@ memory:
     write_requires_approval: true
 
   role:
-    base_path: ".amazingteam/memory"
+    base_path: ".ai-team/memory"
     roles:
       planner:
         files: ["decomposition_notes.md", "flow_rules.md", "github_issue_patterns.md"]
@@ -129,7 +129,7 @@ memory:
         files: ["failure_patterns.md", "runbook_references.md"]
 
   failures:
-    path: ".amazingteam/memory/failures"
+    path: ".ai-team/memory/failures"
     files: ["failure_library.md"]
     writable_by: ["ci_analyst"]
 

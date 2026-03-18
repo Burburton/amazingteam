@@ -32,7 +32,7 @@ inputs:
   cache-dir:
     description: 'Directory to cache foundation downloads'
     required: false
-    default: '~/.amazingteam-cache'
+    default: '~/.ai-team-cache'
 
 outputs:
   foundation-path:
