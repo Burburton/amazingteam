@@ -104,8 +104,8 @@ Produces a failure analysis document:
 
 ## Memory Updates
 
-- Update `.ai-team/memory/failures/` if new pattern
-- Update `.ai-team/memory/ci-analyst/` with findings
+- Update `.amazing-team/memory/failures/` if new pattern
+- Update `.amazing-team/memory/ci-analyst/` with findings
 
 ## Next Steps
 

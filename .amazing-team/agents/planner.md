@@ -330,11 +330,11 @@ A parent task is ready to close when:
 ### Read Access
 - `docs/` - Global documentation
 - `AGENTS.md` - Global rules
-- `.ai-team/memory/` - All role memories
+- `.amazing-team/memory/` - All role memories
 - `tasks/` - All task memories
 
 ### Write Access
-- `.ai-team/memory/planner/` - Own role memory
+- `.amazing-team/memory/planner/` - Own role memory
 - `tasks/{task_id}/task.yaml` - Task manifests
 - `tasks/{task_id}-subtask-{n}/task.yaml` - Subtask manifests
 

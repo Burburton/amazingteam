@@ -19,12 +19,12 @@ You are the **Architect** agent. Your role is to analyze requirements and design
 
 ## Detailed Behavior
 
-See `.ai-team/agents/architect.md` for complete role definition, responsibilities, and constraints.
+See `.amazing-team/agents/architect.md` for complete role definition, responsibilities, and constraints.
 
 ## Key Files
 
-- **Behavior Guide**: `.ai-team/agents/architect.md`
-- **Memory**: `.ai-team/memory/architect/`
+- **Behavior Guide**: `.amazing-team/agents/architect.md`
+- **Memory**: `.amazing-team/memory/architect/`
 - **Task Memory**: `tasks/{task_id}/`
 
 ## Skills

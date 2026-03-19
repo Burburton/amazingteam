@@ -29,13 +29,13 @@ NC='\033[0m'
 CLASS_A_FILES=(
     "tasks/_template/*"
     ".github/ISSUE_TEMPLATE/*"
-    ".ai-team/memory/*/*.md"
+    ".amazing-team/memory/*/*.md"
 )
 
 CLASS_B_FILES=(
-    ".ai-team/agents/*.md"
-    ".ai-team/skills/*/skill.md"
-    ".ai-team/commands/*.md"
+    ".amazing-team/agents/*.md"
+    ".amazing-team/skills/*/skill.md"
+    ".amazing-team/commands/*.md"
     ".github/workflows/*.yml"
     "AGENTS.md"
 )
@@ -78,36 +78,36 @@ echo ""
 
 # Check agents
 for agent in planner architect developer qa reviewer triage ci-analyst; do
-    if [[ ! -f "$PROJECT_ROOT/.ai-team/agents/$agent.md" ]]; then
-        MISSING_FILES+=(".ai-team/agents/$agent.md (Class B)")
-        echo -e "  ${YELLOW}Missing:${NC} .ai-team/agents/$agent.md"
+    if [[ ! -f "$PROJECT_ROOT/.amazing-team/agents/$agent.md" ]]; then
+        MISSING_FILES+=(".amazing-team/agents/$agent.md (Class B)")
+        echo -e "  ${YELLOW}Missing:${NC} .amazing-team/agents/$agent.md"
     fi
 done
 
 # Check skills
-for skill_dir in "$FOUNDATION_ROOT/.ai-team/skills"/*; do
+for skill_dir in "$FOUNDATION_ROOT/.amazing-team/skills"/*; do
     if [[ -d "$skill_dir" ]]; then
         skill=$(basename "$skill_dir")
-        if [[ ! -f "$PROJECT_ROOT/.ai-team/skills/$skill/skill.md" ]]; then
-            MISSING_FILES+=(".ai-team/skills/$skill/skill.md (Class B)")
-            echo -e "  ${YELLOW}Missing:${NC} .ai-team/skills/$skill/skill.md"
+        if [[ ! -f "$PROJECT_ROOT/.amazing-team/skills/$skill/skill.md" ]]; then
+            MISSING_FILES+=(".amazing-team/skills/$skill/skill.md (Class B)")
+            echo -e "  ${YELLOW}Missing:${NC} .amazing-team/skills/$skill/skill.md"
         fi
     fi
 done
 
 # Check commands
 for cmd in triage design implement test review ci-analyze release-check; do
-    if [[ ! -f "$PROJECT_ROOT/.ai-team/commands/$cmd.md" ]]; then
-        MISSING_FILES+=(".ai-team/commands/$cmd.md (Class B)")
-        echo -e "  ${YELLOW}Missing:${NC} .ai-team/commands/$cmd.md"
+    if [[ ! -f "$PROJECT_ROOT/.amazing-team/commands/$cmd.md" ]]; then
+        MISSING_FILES+=(".amazing-team/commands/$cmd.md (Class B)")
+        echo -e "  ${YELLOW}Missing:${NC} .amazing-team/commands/$cmd.md"
     fi
 done
 
 # Check memory directories
 for role in planner architect developer qa reviewer triage ci-analyst failures; do
-    if [[ ! -d "$PROJECT_ROOT/.ai-team/memory/$role" ]]; then
-        MISSING_FILES+=(".ai-team/memory/$role/ (Class A)")
-        echo -e "  ${YELLOW}Missing:${NC} .ai-team/memory/$role/"
+    if [[ ! -d "$PROJECT_ROOT/.amazing-team/memory/$role" ]]; then
+        MISSING_FILES+=(".amazing-team/memory/$role/ (Class A)")
+        echo -e "  ${YELLOW}Missing:${NC} .amazing-team/memory/$role/"
     fi
 done
 
@@ -140,8 +140,8 @@ check_outdated() {
 # Check key files for modifications
 for agent in planner architect developer qa reviewer triage ci-analyst; do
     check_outdated \
-        "$FOUNDATION_ROOT/.ai-team/agents/$agent.md" \
-        "$PROJECT_ROOT/.ai-team/agents/$agent.md" \
+        "$FOUNDATION_ROOT/.amazing-team/agents/$agent.md" \
+        "$PROJECT_ROOT/.amazing-team/agents/$agent.md" \
         "Class B"
 done
 

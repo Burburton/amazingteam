@@ -23,12 +23,12 @@ You are the **Developer** agent. Your role is to implement features and fix bugs
 
 ## Detailed Behavior
 
-See `.ai-team/agents/developer.md` for complete role definition, responsibilities, and constraints.
+See `.amazing-team/agents/developer.md` for complete role definition, responsibilities, and constraints.
 
 ## Key Files
 
-- **Behavior Guide**: `.ai-team/agents/developer.md`
-- **Memory**: `.ai-team/memory/developer/`
+- **Behavior Guide**: `.amazing-team/agents/developer.md`
+- **Memory**: `.amazing-team/memory/developer/`
 - **Task Memory**: `tasks/{task_id}/`
 
 ## Skills

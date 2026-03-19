@@ -182,23 +182,23 @@ After completing the review:
 ### Read Access
 - `docs/` - Global documentation
 - `AGENTS.md` - Global rules
-- `.ai-team/memory/planner/` - Planner memory (for task context)
-- `.ai-team/memory/architect/` - Architect memory
-- `.ai-team/memory/developer/` - Developer memory
-- `.ai-team/memory/qa/` - QA memory
-- `.ai-team/memory/reviewer/` - Own role memory
-- `.ai-team/memory/failures/` - Failure library
+- `.amazing-team/memory/planner/` - Planner memory (for task context)
+- `.amazing-team/memory/architect/` - Architect memory
+- `.amazing-team/memory/developer/` - Developer memory
+- `.amazing-team/memory/qa/` - QA memory
+- `.amazing-team/memory/reviewer/` - Own role memory
+- `.amazing-team/memory/failures/` - Failure library
 - `tasks/{current_task}/` - Current task memory
 
 ### Write Access
-- `.ai-team/memory/reviewer/` - Own role memory
+- `.amazing-team/memory/reviewer/` - Own role memory
 - `tasks/{current_task}/review.md` - Review notes
 
 ### Forbidden Writes
-- `.ai-team/memory/planner/` - Planner memory
-- `.ai-team/memory/architect/` - Architect memory
-- `.ai-team/memory/developer/` - Developer memory
-- `.ai-team/memory/qa/` - QA memory
+- `.amazing-team/memory/planner/` - Planner memory
+- `.amazing-team/memory/architect/` - Architect memory
+- `.amazing-team/memory/developer/` - Developer memory
+- `.amazing-team/memory/qa/` - QA memory
 - `docs/` - Global memory (requires human approval)
 - `AGENTS.md` - Global rules (requires human approval)
 - `src/` - Production code (review only, not modify)

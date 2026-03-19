@@ -34,26 +34,26 @@ Foundation Version: $VERSION
 
 | Role | File | Description |
 |------|------|-------------|
-| Planner | .ai-team/agents/planner.md | Task decomposition and workflow orchestration |
-| Architect | .ai-team/agents/architect.md | Design technical approach and impact boundaries |
-| Developer | .ai-team/agents/developer.md | Implement approved changes |
-| QA | .ai-team/agents/qa.md | Validate functionality and regression safety |
-| Reviewer | .ai-team/agents/reviewer.md | Assess correctness and maintainability |
-| Triage | .ai-team/agents/triage.md | Classify work and perform first-pass debug |
-| CI Analyst | .ai-team/agents/ci-analyst.md | Investigate CI failure patterns |
+| Planner | .amazing-team/agents/planner.md | Task decomposition and workflow orchestration |
+| Architect | .amazing-team/agents/architect.md | Design technical approach and impact boundaries |
+| Developer | .amazing-team/agents/developer.md | Implement approved changes |
+| QA | .amazing-team/agents/qa.md | Validate functionality and regression safety |
+| Reviewer | .amazing-team/agents/reviewer.md | Assess correctness and maintainability |
+| Triage | .amazing-team/agents/triage.md | Classify work and perform first-pass debug |
+| CI Analyst | .amazing-team/agents/ci-analyst.md | Investigate CI failure patterns |
 
 ## Memory Areas
 
 | Role | Memory Directory | Purpose |
 |------|------------------|---------|
-| Planner | .ai-team/memory/planner/ | Task decomposition patterns |
-| Architect | .ai-team/memory/architect/ | Architecture decisions |
-| Developer | .ai-team/memory/developer/ | Implementation patterns |
-| QA | .ai-team/memory/qa/ | Test strategy and cases |
-| Reviewer | .ai-team/memory/reviewer/ | Quality rules and risks |
-| Triage | .ai-team/memory/triage/ | Classification heuristics |
-| CI Analyst | .ai-team/memory/ci-analyst/ | Failure patterns |
-| Failures | .ai-team/memory/failures/ | Shared failure library |
+| Planner | .amazing-team/memory/planner/ | Task decomposition patterns |
+| Architect | .amazing-team/memory/architect/ | Architecture decisions |
+| Developer | .amazing-team/memory/developer/ | Implementation patterns |
+| QA | .amazing-team/memory/qa/ | Test strategy and cases |
+| Reviewer | .amazing-team/memory/reviewer/ | Quality rules and risks |
+| Triage | .amazing-team/memory/triage/ | Classification heuristics |
+| CI Analyst | .amazing-team/memory/ci-analyst/ | Failure patterns |
+| Failures | .amazing-team/memory/failures/ | Shared failure library |
 EOF
 echo -e "${GREEN}  Created: role-inventory.md${NC}"
 
@@ -69,25 +69,25 @@ Foundation Version: $VERSION
 
 | Skill | Directory | Purpose |
 |-------|-----------|---------|
-| repo-architecture-reader | .ai-team/skills/repo-architecture-reader/ | Quickly understand repository structure |
+| repo-architecture-reader | .amazing-team/skills/repo-architecture-reader/ | Quickly understand repository structure |
 
 ## Execution Skills
 
 | Skill | Directory | Purpose |
 |-------|-----------|---------|
-| task-breakdown-and-dispatch | .ai-team/skills/task-breakdown-and-dispatch/ | Decompose tasks into subtasks |
-| bugfix-playbook | .ai-team/skills/bugfix-playbook/ | Systematic bug fixing |
-| test-first-feature-dev | .ai-team/skills/test-first-feature-dev/ | TDD approach for features |
-| safe-refactor-checklist | .ai-team/skills/safe-refactor-checklist/ | Safe refactoring checklist |
+| task-breakdown-and-dispatch | .amazing-team/skills/task-breakdown-and-dispatch/ | Decompose tasks into subtasks |
+| bugfix-playbook | .amazing-team/skills/bugfix-playbook/ | Systematic bug fixing |
+| test-first-feature-dev | .amazing-team/skills/test-first-feature-dev/ | TDD approach for features |
+| safe-refactor-checklist | .amazing-team/skills/safe-refactor-checklist/ | Safe refactoring checklist |
 
 ## Validation Skills
 
 | Skill | Directory | Purpose |
 |-------|-----------|---------|
-| issue-triage | .ai-team/skills/issue-triage/ | Issue classification |
-| ci-failure-analysis | .ai-team/skills/ci-failure-analysis/ | CI failure investigation |
-| regression-checklist | .ai-team/skills/regression-checklist/ | Regression testing |
-| release-readiness-check | .ai-team/skills/release-readiness-check/ | Pre-release validation |
+| issue-triage | .amazing-team/skills/issue-triage/ | Issue classification |
+| ci-failure-analysis | .amazing-team/skills/ci-failure-analysis/ | CI failure investigation |
+| regression-checklist | .amazing-team/skills/regression-checklist/ | Regression testing |
+| release-readiness-check | .amazing-team/skills/release-readiness-check/ | Pre-release validation |
 EOF
 echo -e "${GREEN}  Created: skill-inventory.md${NC}"
 
@@ -139,8 +139,8 @@ Foundation Version: $VERSION
 ## Directory Structure
 
 \`\`\`
-ai-team-foundation/
-├── .ai-team/                 # AI Team core configuration
+amazing-team-foundation/
+├── .amazing-team/                 # AI Team core configuration
 │   ├── agents/               # Agent definitions (7 roles)
 │   ├── skills/               # Skill definitions (9 skills)
 │   ├── commands/             # Command definitions (7 commands)

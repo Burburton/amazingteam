@@ -17,9 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Unified directory naming to `.ai-team/` everywhere:
-  - User project structure: `.ai-team/memory/`
-  - Cache directories: `.ai-team-cache/`, `.ai-team-local/`
+- Unified directory naming to `.amazing-team/` everywhere:
+  - User project structure: `.amazing-team/memory/`
+  - Cache directories: `.amazing-team-cache/`, `.amazing-team-local/`
   - Updated all presets, CLI commands, action modules, and tests
   - Ensures consistency with foundation package structure
 
@@ -62,7 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Add `dist/` to package.json files array (critical fix - npm package was broken without it)
-- Update `templates/gitignore` to use new naming (ai-team → amazingteam)
+- Update `templates/gitignore` to use new naming (amazing-team → amazingteam)
 
 ---
 
@@ -95,11 +95,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 #### Renaming
-- Package renamed from `ai-team-foundation` to `amazingteam`
-- CLI command: `ai-team` → `amazingteam`
-- Config file: `ai-team.config.yaml` → `amazingteam.config.yaml`
-- Workflow template: `ai-team.yml` → `amazingteam.yml`
-- Repository: `your-org/ai-team-foundation` → `Burburton/amazingteam`
+- Package renamed from `amazing-team-foundation` to `amazingteam`
+- CLI command: `amazing-team` → `amazingteam`
+- Config file: `amazing-team.config.yaml` → `amazingteam.config.yaml`
+- Workflow template: `amazing-team.yml` → `amazingteam.yml`
+- Repository: `your-org/amazing-team-foundation` → `Burburton/amazingteam`
 
 All references updated across codebase.
 
@@ -162,7 +162,7 @@ All references updated across codebase.
   - `.github/workflows/amazingteam.yml` - Workflow file
   - `amazingteam.config.yaml` - User configuration
   - `opencode.jsonc` - Generated config (auto-generated)
-  - `.ai-team/memory/` - Runtime state (preserved)
+  - `.amazing-team/memory/` - Runtime state (preserved)
   - `tasks/` - Task history (preserved)
 
 #### Upgrade Process
@@ -204,7 +204,7 @@ See [Migration Guide](./docs/migration-to-v3.md) for detailed instructions.
 ### Breaking Changes
 
 - Skills and commands are now loaded from foundation at runtime
-- Custom skills should be placed in `.ai-team/skills/` (they will be merged)
+- Custom skills should be placed in `.amazing-team/skills/` (they will be merged)
 - Custom AGENTS.md will override foundation's AGENTS.md
 - Presets are now built-in, specify by name in config
 
@@ -260,8 +260,8 @@ See [Migration Guide](./docs/migration-to-v3.md) for detailed instructions.
 - Developer agent: explicit PR creation rules, no direct commits to main
 
 #### Agent Definitions
-- `.ai-team/agents/planner.md` - Added workflow orchestration section
-- `.ai-team/agents/developer.md` - Added git identity, PR rules
+- `.amazing-team/agents/planner.md` - Added workflow orchestration section
+- `.amazing-team/agents/developer.md` - Added git identity, PR rules
 - `.opencode/agents/developer.md` - Added permissions for PR creation
 
 ## [2.0.0] - 2026-03-14
@@ -285,10 +285,10 @@ See [Migration Guide](./docs/migration-to-v3.md) for detailed instructions.
 - `/release-check` - Trigger release readiness check
 
 #### New Memory Areas
-- `.ai-team/memory/planner/` - Decomposition notes and flow rules
-- `.ai-team/memory/triage/` - Classification heuristics and debug notes
-- `.ai-team/memory/ci-analyst/` - Failure patterns and runbook references
-- `.ai-team/memory/failures/` - Shared failure library
+- `.amazing-team/memory/planner/` - Decomposition notes and flow rules
+- `.amazing-team/memory/triage/` - Classification heuristics and debug notes
+- `.amazing-team/memory/ci-analyst/` - Failure patterns and runbook references
+- `.amazing-team/memory/failures/` - Shared failure library
 
 #### New Documentation Zones
 - `docs/patterns/` - Reusable implementation patterns
@@ -309,7 +309,7 @@ See [Migration Guide](./docs/migration-to-v3.md) for detailed instructions.
 ### Changed
 
 #### Configuration
-- `.ai-team/opencode.template.jsonc` - Updated with all v2 agents, skills, commands
+- `.amazing-team/opencode.template.jsonc` - Updated with all v2 agents, skills, commands
 - `AGENTS.md` - Added v2 roles, task system, governance model
 - Memory permissions matrix expanded to 7 roles
 
@@ -328,10 +328,10 @@ See [Migration Guide](./docs/migration-to-v3.md) for detailed instructions.
    ```
 
 2. **New directories will be created**:
-   - `.ai-team/memory/planner/`
-   - `.ai-team/memory/triage/`
-   - `.ai-team/memory/ci-analyst/`
-   - `.ai-team/memory/failures/`
+   - `.amazing-team/memory/planner/`
+   - `.amazing-team/memory/triage/`
+   - `.amazing-team/memory/ci-analyst/`
+   - `.amazing-team/memory/failures/`
    - `docs/patterns/`
    - `docs/releases/`
    - `docs/runbooks/ci/`

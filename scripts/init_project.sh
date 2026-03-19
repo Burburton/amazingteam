@@ -133,20 +133,20 @@ create_directory_structure() {
     log_info "Creating directory structure..."
     
     # Core directories
-    mkdir -p "$PROJECT_PATH/.ai-team/agents"
-    mkdir -p "$PROJECT_PATH/.ai-team/skills"
-    mkdir -p "$PROJECT_PATH/.ai-team/commands"
-    mkdir -p "$PROJECT_PATH/.ai-team/memory"
+    mkdir -p "$PROJECT_PATH/.amazing-team/agents"
+    mkdir -p "$PROJECT_PATH/.amazing-team/skills"
+    mkdir -p "$PROJECT_PATH/.amazing-team/commands"
+    mkdir -p "$PROJECT_PATH/.amazing-team/memory"
     
     # Memory directories for all roles
-    mkdir -p "$PROJECT_PATH/.ai-team/memory/planner"
-    mkdir -p "$PROJECT_PATH/.ai-team/memory/architect"
-    mkdir -p "$PROJECT_PATH/.ai-team/memory/developer"
-    mkdir -p "$PROJECT_PATH/.ai-team/memory/qa"
-    mkdir -p "$PROJECT_PATH/.ai-team/memory/reviewer"
-    mkdir -p "$PROJECT_PATH/.ai-team/memory/triage"
-    mkdir -p "$PROJECT_PATH/.ai-team/memory/ci-analyst"
-    mkdir -p "$PROJECT_PATH/.ai-team/memory/failures"
+    mkdir -p "$PROJECT_PATH/.amazing-team/memory/planner"
+    mkdir -p "$PROJECT_PATH/.amazing-team/memory/architect"
+    mkdir -p "$PROJECT_PATH/.amazing-team/memory/developer"
+    mkdir -p "$PROJECT_PATH/.amazing-team/memory/qa"
+    mkdir -p "$PROJECT_PATH/.amazing-team/memory/reviewer"
+    mkdir -p "$PROJECT_PATH/.amazing-team/memory/triage"
+    mkdir -p "$PROJECT_PATH/.amazing-team/memory/ci-analyst"
+    mkdir -p "$PROJECT_PATH/.amazing-team/memory/failures"
     
     # GitHub directories
     mkdir -p "$PROJECT_PATH/.github/workflows"
@@ -173,13 +173,13 @@ create_directory_structure() {
 copy_base_templates() {
     log_info "Copying base templates..."
     
-    # Copy .ai-team structure
-    if [[ -d "$FOUNDATION_ROOT/.ai-team" ]]; then
-        cp -r "$FOUNDATION_ROOT/.ai-team/agents"/* "$PROJECT_PATH/.ai-team/agents/" 2>/dev/null || true
-        cp -r "$FOUNDATION_ROOT/.ai-team/skills"/* "$PROJECT_PATH/.ai-team/skills/" 2>/dev/null || true
-        cp -r "$FOUNDATION_ROOT/.ai-team/commands"/* "$PROJECT_PATH/.ai-team/commands/" 2>/dev/null || true
-        cp -r "$FOUNDATION_ROOT/.ai-team/memory"/* "$PROJECT_PATH/.ai-team/memory/" 2>/dev/null || true
-        cp "$FOUNDATION_ROOT/.ai-team/opencode.template.jsonc" "$PROJECT_PATH/.ai-team/" 2>/dev/null || true
+    # Copy .amazing-team structure
+    if [[ -d "$FOUNDATION_ROOT/.amazing-team" ]]; then
+        cp -r "$FOUNDATION_ROOT/.amazing-team/agents"/* "$PROJECT_PATH/.amazing-team/agents/" 2>/dev/null || true
+        cp -r "$FOUNDATION_ROOT/.amazing-team/skills"/* "$PROJECT_PATH/.amazing-team/skills/" 2>/dev/null || true
+        cp -r "$FOUNDATION_ROOT/.amazing-team/commands"/* "$PROJECT_PATH/.amazing-team/commands/" 2>/dev/null || true
+        cp -r "$FOUNDATION_ROOT/.amazing-team/memory"/* "$PROJECT_PATH/.amazing-team/memory/" 2>/dev/null || true
+        cp "$FOUNDATION_ROOT/.amazing-team/opencode.template.jsonc" "$PROJECT_PATH/.amazing-team/" 2>/dev/null || true
     fi
     
     # Copy GitHub workflows
@@ -219,8 +219,8 @@ apply_overlay() {
     fi
     
     # Copy overlay files (these may override base files)
-    if [[ -d "$OVERLAY_PATH/.ai-team" ]]; then
-        cp -r "$OVERLAY_PATH/.ai-team"/* "$PROJECT_PATH/.ai-team/" 2>/dev/null || true
+    if [[ -d "$OVERLAY_PATH/.amazing-team" ]]; then
+        cp -r "$OVERLAY_PATH/.amazing-team"/* "$PROJECT_PATH/.amazing-team/" 2>/dev/null || true
     fi
     
     if [[ -d "$OVERLAY_PATH/.github" ]]; then
@@ -236,7 +236,7 @@ create_foundation_lock() {
     log_info "Creating foundation lock file..."
     
     cat > "$PROJECT_PATH/.foundation/foundation.lock" << EOF
-foundation_repo: ai-team-foundation
+foundation_repo: amazing-team-foundation
 foundation_version: $VERSION
 overlay: ${OVERLAY:-none}
 initialized_at: $(date -I)
@@ -284,7 +284,7 @@ EOF
 create_project_config() {
     log_info "Creating project configuration..."
     
-    cat > "$PROJECT_PATH/ai-team.config.yaml" << EOF
+    cat > "$PROJECT_PATH/amazing-team.config.yaml" << EOF
 # AI Team Project Configuration
 # This file is project-specific and will not be overwritten during upgrades
 
@@ -335,14 +335,14 @@ EOF
 generate_opencode_config() {
     log_info "Generating opencode.jsonc..."
     
-    if [[ -f "$FOUNDATION_ROOT/.ai-team/opencode.template.jsonc" ]]; then
+    if [[ -f "$FOUNDATION_ROOT/.amazing-team/opencode.template.jsonc" ]]; then
         # Replace template variables
         sed -e "s/{{AI_TEAM_VERSION}}/$VERSION/g" \
             -e "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" \
             -e "s/{{PROJECT_DESCRIPTION}}/${DESCRIPTION:-My awesome project}/g" \
             -e "s/{{LANGUAGE}}/$LANGUAGE/g" \
             -e "s/{{FRAMEWORK}}/$FRAMEWORK/g" \
-            "$FOUNDATION_ROOT/.ai-team/opencode.template.jsonc" \
+            "$FOUNDATION_ROOT/.amazing-team/opencode.template.jsonc" \
             > "$PROJECT_PATH/opencode.jsonc"
     fi
 }
@@ -357,7 +357,7 @@ ${DESCRIPTION:-}
 
 ## AI Team
 
-This project uses [AI Team Foundation](https://github.com/your-org/ai-team-foundation) v$VERSION.
+This project uses [AI Team Foundation](https://github.com/your-org/amazing-team-foundation) v$VERSION.
 
 ### Quick Start
 
@@ -413,7 +413,7 @@ print_next_steps() {
     echo ""
     echo -e "${CYAN}Next steps:${NC}"
     echo "  1. cd $PROJECT_PATH"
-    echo "  2. Review and customize ai-team.config.yaml"
+    echo "  2. Review and customize amazing-team.config.yaml"
     echo "  3. Add your GitHub secrets (ALIBABA_CODING_PLAN_API_KEY)"
     echo "  4. Create your first issue!"
     echo ""

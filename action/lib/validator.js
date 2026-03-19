@@ -176,8 +176,8 @@ function validateProjectStructure(projectDir) {
   
   // Check required directories
   const requiredDirs = [
-    '.ai-team',
-    '.ai-team/memory',
+    '.amazing-team',
+    '.amazing-team/memory',
     'tasks'
   ];
   

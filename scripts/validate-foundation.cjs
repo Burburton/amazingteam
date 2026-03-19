@@ -55,11 +55,11 @@ function checkDir(dirPath, description, required = true) {
 function validateStructure() {
   log('\n📁 目录结构验证', 'cyan');
   
-  checkDir('.ai-team', '核心目录');
-  checkDir('.ai-team/agents', 'Agents 目录');
-  checkDir('.ai-team/skills', 'Skills 目录');
-  checkDir('.ai-team/commands', 'Commands 目录');
-  checkDir('.ai-team/memory', 'Memory 目录');
+  checkDir('.amazing-team', '核心目录');
+  checkDir('.amazing-team/agents', 'Agents 目录');
+  checkDir('.amazing-team/skills', 'Skills 目录');
+  checkDir('.amazing-team/commands', 'Commands 目录');
+  checkDir('.amazing-team/memory', 'Memory 目录');
   checkDir('.github/workflows', 'GitHub Workflows 目录');
   checkDir('.github/ISSUE_TEMPLATE', 'Issue 模板目录');
   checkDir('docs', '文档目录');
@@ -71,13 +71,13 @@ function validateAgents() {
   log('\n🤖 AI 角色验证 (v2)', 'cyan');
   
   const agents = [
-    { name: 'Planner', file: '.ai-team/agents/planner.md', v2: true },
-    { name: 'Architect', file: '.ai-team/agents/architect.md', v2: false },
-    { name: 'Developer', file: '.ai-team/agents/developer.md', v2: false },
-    { name: 'QA', file: '.ai-team/agents/qa.md', v2: false },
-    { name: 'Reviewer', file: '.ai-team/agents/reviewer.md', v2: false },
-    { name: 'Triage', file: '.ai-team/agents/triage.md', v2: true },
-    { name: 'CI Analyst', file: '.ai-team/agents/ci-analyst.md', v2: true },
+    { name: 'Planner', file: '.amazing-team/agents/planner.md', v2: true },
+    { name: 'Architect', file: '.amazing-team/agents/architect.md', v2: false },
+    { name: 'Developer', file: '.amazing-team/agents/developer.md', v2: false },
+    { name: 'QA', file: '.amazing-team/agents/qa.md', v2: false },
+    { name: 'Reviewer', file: '.amazing-team/agents/reviewer.md', v2: false },
+    { name: 'Triage', file: '.amazing-team/agents/triage.md', v2: true },
+    { name: 'CI Analyst', file: '.amazing-team/agents/ci-analyst.md', v2: true },
   ];
   
   agents.forEach(agent => {
@@ -103,7 +103,7 @@ function validateSkills() {
   
   skills.forEach(skill => {
     const label = skill.v2 ? `${skill.name} (v2)` : skill.name;
-    checkFile(`.ai-team/skills/${skill.dir}/skill.md`, label);
+    checkFile(`.amazing-team/skills/${skill.dir}/skill.md`, label);
   });
 }
 
@@ -111,13 +111,13 @@ function validateCommands() {
   log('\n⚡ 命令验证', 'cyan');
   
   const commands = [
-    { name: 'Triage', file: '.ai-team/commands/triage.md' },
-    { name: 'Design', file: '.ai-team/commands/design.md' },
-    { name: 'Implement', file: '.ai-team/commands/implement.md' },
-    { name: 'Test', file: '.ai-team/commands/test.md' },
-    { name: 'Review', file: '.ai-team/commands/review.md' },
-    { name: 'CI Analyze (v2)', file: '.ai-team/commands/ci-analyze.md', v2: true },
-    { name: 'Release Check (v2)', file: '.ai-team/commands/release-check.md', v2: true },
+    { name: 'Triage', file: '.amazing-team/commands/triage.md' },
+    { name: 'Design', file: '.amazing-team/commands/design.md' },
+    { name: 'Implement', file: '.amazing-team/commands/implement.md' },
+    { name: 'Test', file: '.amazing-team/commands/test.md' },
+    { name: 'Review', file: '.amazing-team/commands/review.md' },
+    { name: 'CI Analyze (v2)', file: '.amazing-team/commands/ci-analyze.md', v2: true },
+    { name: 'Release Check (v2)', file: '.amazing-team/commands/release-check.md', v2: true },
   ];
   
   commands.forEach(cmd => {
@@ -142,9 +142,9 @@ function validateMemory() {
   
   memoryAreas.forEach(area => {
     const label = area.v2 ? `${area.role} (v2)` : area.role;
-    checkDir(`.ai-team/memory/${area.dir}`, label);
+    checkDir(`.amazing-team/memory/${area.dir}`, label);
     area.files.forEach(file => {
-      checkFile(`.ai-team/memory/${area.dir}/${file}`, `  └ ${file}`);
+      checkFile(`.amazing-team/memory/${area.dir}/${file}`, `  └ ${file}`);
     });
   });
 }
@@ -193,15 +193,15 @@ function validateGitHubWorkflows() {
 function validateConfig() {
   log('\n🔧 配置验证', 'cyan');
   
-  checkFile('.ai-team/opencode.template.jsonc', 'OpenCode 模板配置');
-  checkFile('ai-team.config.yaml', '项目配置', false);
+  checkFile('.amazing-team/opencode.template.jsonc', 'OpenCode 模板配置');
+  checkFile('amazing-team.config.yaml', '项目配置', false);
   checkFile('package.json', 'Package 配置');
   checkFile('tsconfig.json', 'TypeScript 配置');
   
-  const config = fileExists('.ai-team/opencode.template.jsonc');
+  const config = fileExists('.amazing-team/opencode.template.jsonc');
   if (config) {
     try {
-      const content = fs.readFileSync('.ai-team/opencode.template.jsonc', 'utf-8');
+      const content = fs.readFileSync('.amazing-team/opencode.template.jsonc', 'utf-8');
       const jsonStr = content.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '');
       const config = JSON.parse(jsonStr);
       
@@ -250,7 +250,7 @@ function printSummary() {
     log('\n✅ AI Team 底座结构验证通过！', 'green');
     log('\n下一步:', 'cyan');
     log('  1. 运行 npm test 验证代码');
-    log('  2. 运行 node cli/ai-team.cjs status 检查状态');
+    log('  2. 运行 node cli/amazing-team.cjs status 检查状态');
     log('  3. 创建测试 Issue 验证 GitHub Actions');
   } else {
     log('\n❌ 验证失败，请检查上述错误项', 'red');

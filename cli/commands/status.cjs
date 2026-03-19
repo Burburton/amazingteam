@@ -114,7 +114,7 @@ async function run(options, positional) {
   const projectPath = process.cwd();
   const configPath = path.join(projectPath, 'amazingteam.config.yaml');
   const workflowPath = path.join(projectPath, '.github', 'workflows', 'amazingteam.yml');
-  const localPath = path.join(projectPath, '.ai-team-local');
+  const localPath = path.join(projectPath, '.amazing-team-local');
   
   console.log('\n📊 AmazingTeam Status\n');
   
@@ -166,7 +166,7 @@ async function run(options, positional) {
   
   // Memory status
   console.log('\nMemory:');
-  const memoryPath = path.join(projectPath, '.ai-team', 'memory');
+  const memoryPath = path.join(projectPath, '.amazing-team', 'memory');
   const memoryFiles = checkMemoryFiles(memoryPath);
   
   if (Object.keys(memoryFiles).length > 0) {
@@ -206,8 +206,8 @@ async function run(options, positional) {
   }
   
   const gitignore = fs.readFileSync(path.join(projectPath, '.gitignore'), 'utf-8');
-  if (!gitignore.includes('.ai-team-local/')) {
-    issues.push('.ai-team-local/ not in .gitignore');
+  if (!gitignore.includes('.amazing-team-local/')) {
+    issues.push('.amazing-team-local/ not in .gitignore');
   }
   
   if (issues.length === 0) {

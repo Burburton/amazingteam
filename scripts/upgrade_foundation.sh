@@ -91,16 +91,16 @@ is_class_a() {
     # Class A: Auto-generatable
     [[ "$file" == tasks/_template/* ]] && return 0
     [[ "$file" == .github/ISSUE_TEMPLATE/* ]] && return 0
-    [[ "$file" == .ai-team/memory/* ]] && return 0
+    [[ "$file" == .amazing-team/memory/* ]] && return 0
     return 1
 }
 
 is_class_b() {
     local file="$1"
     # Class B: Review required
-    [[ "$file" == .ai-team/agents/* ]] && return 0
-    [[ "$file" == .ai-team/skills/* ]] && return 0
-    [[ "$file" == .ai-team/commands/* ]] && return 0
+    [[ "$file" == .amazing-team/agents/* ]] && return 0
+    [[ "$file" == .amazing-team/skills/* ]] && return 0
+    [[ "$file" == .amazing-team/commands/* ]] && return 0
     [[ "$file" == .github/workflows/* ]] && return 0
     [[ "$file" == AGENTS.md ]] && return 0
     return 1
@@ -132,7 +132,7 @@ create_backup() {
     else
         mkdir -p "$backup_dir"
         # Backup key directories
-        [[ -d "$PROJECT_ROOT/.ai-team" ]] && cp -r "$PROJECT_ROOT/.ai-team" "$backup_dir/"
+        [[ -d "$PROJECT_ROOT/.amazing-team" ]] && cp -r "$PROJECT_ROOT/.amazing-team" "$backup_dir/"
         [[ -f "$PROJECT_ROOT/AGENTS.md" ]] && cp "$PROJECT_ROOT/AGENTS.md" "$backup_dir/"
         [[ -f "$PROJECT_ROOT/opencode.jsonc" ]] && cp "$PROJECT_ROOT/opencode.jsonc" "$backup_dir/"
     fi
@@ -147,8 +147,8 @@ add_missing_files() {
     
     # Agents
     for agent in planner architect developer qa reviewer triage ci-analyst; do
-        local target="$PROJECT_ROOT/.ai-team/agents/$agent.md"
-        local source="$FOUNDATION_ROOT/.ai-team/agents/$agent.md"
+        local target="$PROJECT_ROOT/.amazing-team/agents/$agent.md"
+        local source="$FOUNDATION_ROOT/.amazing-team/agents/$agent.md"
         
         if [[ ! -f "$target" ]] && [[ -f "$source" ]]; then
             if [[ "$DRY_RUN" == true ]]; then
@@ -156,17 +156,17 @@ add_missing_files() {
             else
                 mkdir -p "$(dirname "$target")"
                 cp "$source" "$target"
-                log_success "Added: .ai-team/agents/$agent.md"
+                log_success "Added: .amazing-team/agents/$agent.md"
             fi
             ((added++))
         fi
     done
     
     # Skills
-    for skill_dir in "$FOUNDATION_ROOT/.ai-team/skills"/*; do
+    for skill_dir in "$FOUNDATION_ROOT/.amazing-team/skills"/*; do
         if [[ -d "$skill_dir" ]]; then
             local skill=$(basename "$skill_dir")
-            local target="$PROJECT_ROOT/.ai-team/skills/$skill/skill.md"
+            local target="$PROJECT_ROOT/.amazing-team/skills/$skill/skill.md"
             local source="$skill_dir/skill.md"
             
             if [[ ! -f "$target" ]] && [[ -f "$source" ]]; then
@@ -175,7 +175,7 @@ add_missing_files() {
                 else
                     mkdir -p "$(dirname "$target")"
                     cp "$source" "$target"
-                    log_success "Added: .ai-team/skills/$skill/skill.md"
+                    log_success "Added: .amazing-team/skills/$skill/skill.md"
                 fi
                 ((added++))
             fi
@@ -184,8 +184,8 @@ add_missing_files() {
     
     # Memory directories
     for role in planner architect developer qa reviewer triage ci-analyst failures; do
-        local target="$PROJECT_ROOT/.ai-team/memory/$role"
-        local source="$FOUNDATION_ROOT/.ai-team/memory/$role"
+        local target="$PROJECT_ROOT/.amazing-team/memory/$role"
+        local source="$FOUNDATION_ROOT/.amazing-team/memory/$role"
         
         if [[ ! -d "$target" ]] && [[ -d "$source" ]]; then
             if [[ "$DRY_RUN" == true ]]; then
@@ -193,7 +193,7 @@ add_missing_files() {
             else
                 mkdir -p "$target"
                 cp -r "$source"/* "$target/" 2>/dev/null || true
-                log_success "Added: .ai-team/memory/$role/"
+                log_success "Added: .amazing-team/memory/$role/"
             fi
             ((added++))
         fi
@@ -229,8 +229,8 @@ update_outdated_files() {
     
     # Check agents (Class B)
     for agent in planner architect developer qa reviewer triage ci-analyst; do
-        local target="$PROJECT_ROOT/.ai-team/agents/$agent.md"
-        local source="$FOUNDATION_ROOT/.ai-team/agents/$agent.md"
+        local target="$PROJECT_ROOT/.amazing-team/agents/$agent.md"
+        local source="$FOUNDATION_ROOT/.amazing-team/agents/$agent.md"
         
         if [[ -f "$target" ]] && [[ -f "$source" ]]; then
             if ! diff -q "$source" "$target" > /dev/null 2>&1; then
@@ -239,11 +239,11 @@ update_outdated_files() {
                         log_dry_run "update $target"
                     else
                         cp "$source" "$target"
-                        log_success "Updated: .ai-team/agents/$agent.md"
+                        log_success "Updated: .amazing-team/agents/$agent.md"
                     fi
                     ((updated++))
                 else
-                    log_warning "Modified: .ai-team/agents/$agent.md (use --force to update)"
+                    log_warning "Modified: .amazing-team/agents/$agent.md (use --force to update)"
                     ((skipped++))
                 fi
             fi

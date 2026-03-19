@@ -114,7 +114,7 @@ Documents all changes in each release:
 Each downstream project has `.foundation/foundation.lock`:
 
 ```yaml
-foundation_repo: ai-team-foundation
+foundation_repo: amazing-team-foundation
 foundation_version: 2.0.0
 overlay: python-backend
 initialized_at: 2026-03-14

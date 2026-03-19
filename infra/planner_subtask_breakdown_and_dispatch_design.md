@@ -16,7 +16,7 @@ The key principle is:
 
 **Large issues should be decomposed into explicit subtasks before broad implementation begins.**
 
-This document is intended to be used as part of an `ai-team-foundation` repository and downstream project repositories.
+This document is intended to be used as part of an `amazing-team-foundation` repository and downstream project repositories.
 
 ---
 

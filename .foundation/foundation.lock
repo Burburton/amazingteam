@@ -3,7 +3,7 @@
 This file tracks the foundation version and configuration for this project.
 
 ```yaml
-foundation_repo: ai-team-foundation
+foundation_repo: amazing-team-foundation
 foundation_version: 2.0.0
 overlay: none
 initialized_at: YYYY-MM-DD

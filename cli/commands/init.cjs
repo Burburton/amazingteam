@@ -113,10 +113,10 @@ rules:
 node_modules/
 
 # AI Team cache (downloaded by workflow)
-.ai-team-cache/
+.amazing-team-cache/
 
 # AI Team local foundation (downloaded by \`amazingteam local\`)
-.ai-team-local/
+.amazing-team-local/
 
 # OpenCode config (auto-generated, can be regenerated)
 # opencode.jsonc
@@ -139,7 +139,7 @@ on:
     types: [created]
 
 jobs:
-  ai-team:
+  amazing-team:
     if: |
       startsWith(github.event.comment.body, '/ai') ||
       startsWith(github.event.comment.body, '/opencode') ||
@@ -322,14 +322,14 @@ async function run(options, positional) {
     
     // Create directories
     const dirs = [
-      '.ai-team/memory/planner',
-      '.ai-team/memory/architect',
-      '.ai-team/memory/developer',
-      '.ai-team/memory/qa',
-      '.ai-team/memory/reviewer',
-      '.ai-team/memory/triage',
-      '.ai-team/memory/ci-analyst',
-      '.ai-team/memory/failures',
+      '.amazing-team/memory/planner',
+      '.amazing-team/memory/architect',
+      '.amazing-team/memory/developer',
+      '.amazing-team/memory/qa',
+      '.amazing-team/memory/reviewer',
+      '.amazing-team/memory/triage',
+      '.amazing-team/memory/ci-analyst',
+      '.amazing-team/memory/failures',
       '.github/workflows',
       'tasks/_template',
       'src'
@@ -383,7 +383,7 @@ async function run(options, positional) {
     
     if (fileExists(gitignorePath)) {
       gitignoreContent = fs.readFileSync(gitignorePath, 'utf-8');
-      if (!gitignoreContent.includes('.ai-team-local/')) {
+      if (!gitignoreContent.includes('.amazing-team-local/')) {
         gitignoreContent += getTemplate('gitignore_additions');
         fs.writeFileSync(gitignorePath, gitignoreContent);
       }
@@ -406,7 +406,7 @@ async function run(options, positional) {
     
     for (const [role, files] of Object.entries(memoryFiles)) {
       for (const file of files) {
-        const filePath = path.join(projectPath, '.ai-team', 'memory', role, file);
+        const filePath = path.join(projectPath, '.amazing-team', 'memory', role, file);
         if (!fileExists(filePath)) {
           fs.writeFileSync(filePath, `# ${role} ${file.replace('.md', '').replace(/_/g, ' ')}\n\n`);
         }
@@ -480,7 +480,7 @@ ${COLORS.yellow}Created Files:${COLORS.reset}
   amazingteam.config.yaml      Project configuration
   opencode.jsonc           OpenCode configuration
   .github/workflows/amazingteam.yml   GitHub Action workflow
-  .ai-team/memory/         Role memory directories
+  .amazing-team/memory/         Role memory directories
   tasks/_template/         Task template directory
 `;
 }

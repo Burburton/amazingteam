@@ -14,12 +14,12 @@ You are the **QA** agent. Your role is to validate implementations and ensure qu
 
 ## Detailed Behavior
 
-See `.ai-team/agents/qa.md` for complete role definition, responsibilities, and constraints.
+See `.amazing-team/agents/qa.md` for complete role definition, responsibilities, and constraints.
 
 ## Key Files
 
-- **Behavior Guide**: `.ai-team/agents/qa.md`
-- **Memory**: `.ai-team/memory/qa/`
+- **Behavior Guide**: `.amazing-team/agents/qa.md`
+- **Memory**: `.amazing-team/memory/qa/`
 - **Task Memory**: `tasks/{task_id}/`
 
 ## Skills

@@ -10,9 +10,9 @@ const VERSION = require('../../package.json').version;
 
 function detectV2Project(projectPath) {
   const indicators = [
-    '.ai-team/agents',
-    '.ai-team/skills',
-    '.ai-team/commands',
+    '.amazing-team/agents',
+    '.amazing-team/skills',
+    '.amazing-team/commands',
     '.opencode/skills',
     'tasks/_template/task.yaml'
   ];
@@ -135,10 +135,10 @@ async function run(options, positional) {
   
   // Create backup
   if (!options.dryRun) {
-    const backupDir = `.ai-team-v2-backup-${Date.now()}`;
+    const backupDir = `.amazing-team-v2-backup-${Date.now()}`;
     console.log(`Creating backup: ${backupDir}`);
     
-    const dirsToBackup = ['.ai-team', '.opencode', '.foundation', 'tasks'];
+    const dirsToBackup = ['.amazing-team', '.opencode', '.foundation', 'tasks'];
     for (const dir of dirsToBackup) {
       const src = path.join(projectPath, dir);
       if (fs.existsSync(src)) {
@@ -171,7 +171,7 @@ on:
     types: [created]
 
 jobs:
-  ai-team:
+  amazing-team:
     if: |
       startsWith(github.event.comment.body, '/ai') ||
       startsWith(github.event.comment.body, '/opencode')
@@ -211,14 +211,14 @@ jobs:
   // Create minimal directories
   console.log('Creating minimal runtime directories...');
   const dirs = [
-    '.ai-team/memory/planner',
-    '.ai-team/memory/architect',
-    '.ai-team/memory/developer',
-    '.ai-team/memory/qa',
-    '.ai-team/memory/reviewer',
-    '.ai-team/memory/triage',
-    '.ai-team/memory/ci-analyst',
-    '.ai-team/memory/failures',
+    '.amazing-team/memory/planner',
+    '.amazing-team/memory/architect',
+    '.amazing-team/memory/developer',
+    '.amazing-team/memory/qa',
+    '.amazing-team/memory/reviewer',
+    '.amazing-team/memory/triage',
+    '.amazing-team/memory/ci-analyst',
+    '.amazing-team/memory/failures',
     'tasks/_template'
   ];
   
@@ -234,12 +234,12 @@ jobs:
   // Update .gitignore
   console.log('Updating .gitignore...');
   const gitignorePath = path.join(projectPath, '.gitignore');
-  const additions = '\n# AmazingTeam v3\n.ai-team-local/\n.ai-team-cache/\n';
+  const additions = '\n# AmazingTeam v3\n.amazing-team-local/\n.amazing-team-cache/\n';
   
   if (!options.dryRun) {
     if (fs.existsSync(gitignorePath)) {
       let content = fs.readFileSync(gitignorePath, 'utf-8');
-      if (!content.includes('.ai-team-local/')) {
+      if (!content.includes('.amazing-team-local/')) {
         content += additions;
         fs.writeFileSync(gitignorePath, content);
       }
@@ -253,7 +253,7 @@ jobs:
     console.log('\nRemoving v2 foundation files...');
     console.log('  (Backup created, safe to remove)');
     
-    const v2Dirs = ['.ai-team/agents', '.ai-team/skills', '.ai-team/commands', '.opencode'];
+    const v2Dirs = ['.amazing-team/agents', '.amazing-team/skills', '.amazing-team/commands', '.opencode'];
     for (const dir of v2Dirs) {
       const fullPath = path.join(projectPath, dir);
       if (fs.existsSync(fullPath)) {

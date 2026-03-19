@@ -39,7 +39,7 @@ Example:
 
 ### Agent Prompt Modifications
 
-Document any changes to `.ai-team/agents/`:
+Document any changes to `.amazing-team/agents/`:
 
 - [ ] Modified agent behavior
 - [ ] Added project-specific instructions
@@ -55,8 +55,8 @@ Example:
 
 Document any custom skills or commands added:
 
-- [ ] Custom skills in `.ai-team/skills/`
-- [ ] Custom commands in `.ai-team/commands/`
+- [ ] Custom skills in `.amazing-team/skills/`
+- [ ] Custom commands in `.amazing-team/commands/`
 
 ```
 Example:
@@ -74,7 +74,7 @@ Document any custom memory rules or files:
 
 ```
 Example:
-- Added .ai-team/memory/project-specific/
+- Added .amazing-team/memory/project-specific/
 ```
 
 ---

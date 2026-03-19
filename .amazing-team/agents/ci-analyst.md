@@ -161,22 +161,22 @@ A test is considered flaky if:
 ### Read Access
 - `docs/` - Global documentation
 - `AGENTS.md` - Global rules
-- `.ai-team/memory/ci-analyst/` - Own role memory
-- `.ai-team/memory/failures/` - Failure library
+- `.amazing-team/memory/ci-analyst/` - Own role memory
+- `.amazing-team/memory/failures/` - Failure library
 - CI logs and artifacts
 
 ### Write Access
-- `.ai-team/memory/ci-analyst/` - Own role memory
-- `.ai-team/memory/failures/` - Failure patterns
+- `.amazing-team/memory/ci-analyst/` - Own role memory
+- `.amazing-team/memory/failures/` - Failure patterns
 - `docs/runbooks/ci/` - CI runbooks
 
 ### Forbidden Writes
-- `.ai-team/memory/planner/` - Planner memory
-- `.ai-team/memory/architect/` - Architect memory
-- `.ai-team/memory/developer/` - Developer memory
-- `.ai-team/memory/qa/` - QA memory
-- `.ai-team/memory/reviewer/` - Reviewer memory
-- `.ai-team/memory/triage/` - Triage memory
+- `.amazing-team/memory/planner/` - Planner memory
+- `.amazing-team/memory/architect/` - Architect memory
+- `.amazing-team/memory/developer/` - Developer memory
+- `.amazing-team/memory/qa/` - QA memory
+- `.amazing-team/memory/reviewer/` - Reviewer memory
+- `.amazing-team/memory/triage/` - Triage memory
 - Production code
 - Test code (without assignment)
 

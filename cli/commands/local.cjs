@@ -10,8 +10,8 @@ const { execSync } = require('child_process');
 const VERSION = require('../../package.json').version;
 const PACKAGE_NAME = 'amazingteam';
 const REGISTRY = 'https://registry.npmjs.org';
-const CACHE_DIR = path.join(process.env.HOME || process.env.USERPROFILE, '.ai-team-cache');
-const LOCAL_DIR = '.ai-team-local';
+const CACHE_DIR = path.join(process.env.HOME || process.env.USERPROFILE, '.amazing-team-cache');
+const LOCAL_DIR = '.amazing-team-local';
 
 function downloadFromNpm(version, destDir) {
   const url = `${REGISTRY}/${PACKAGE_NAME}/-/${PACKAGE_NAME}-${version}.tgz`;
@@ -229,7 +229,7 @@ async function run(options, positional) {
   console.log('\nYou can now use OpenCode locally with full AmazingTeam capabilities.\n');
   
   // Update .gitignore reminder
-  console.log('Reminder: Add .ai-team-local/ to .gitignore if not already done.');
+  console.log('Reminder: Add .amazing-team-local/ to .gitignore if not already done.');
   console.log('');
 }
 
@@ -250,14 +250,14 @@ Examples:
   amazingteam local --force              Force re-download
 
 What it does:
-  1. Downloads AmazingTeam Foundation to .ai-team-local/
+  1. Downloads AmazingTeam Foundation to .amazing-team-local/
   2. Generates opencode.jsonc with local paths
-  3. Caches downloads in ~/.ai-team-cache/
+  3. Caches downloads in ~/.amazing-team-cache/
 
 The local foundation allows you to use OpenCode locally
 with all AmazingTeam skills and configurations.
 
-Note: .ai-team-local/ should be in .gitignore.
+Note: .amazing-team-local/ should be in .gitignore.
 `;
 }
 

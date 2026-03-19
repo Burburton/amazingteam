@@ -683,7 +683,7 @@ This project uses a **layered memory architecture** to prevent role contaminatio
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                     ROLE MEMORY                                  │
-│  Location: .ai-team/memory/{role}/                              │
+│  Location: .amazing-team/memory/{role}/                              │
 │  Access: Read/Write for owning role, Read for others            │
 │  Update: Automatic by role agent                                │
 │  Content: Role-specific knowledge, patterns, observations       │
@@ -748,7 +748,7 @@ This project uses a **layered memory architecture** to prevent role contaminatio
 ### Memory Directory Structure
 
 ```
-.ai-team/memory/
+.amazing-team/memory/
 ├── planner/
 │   ├── decomposition_notes.md  # Task decomposition patterns
 │   ├── flow_rules.md           # Workflow state machine rules

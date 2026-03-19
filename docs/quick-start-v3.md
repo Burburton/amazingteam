@@ -36,7 +36,7 @@ my-project/
 │   └── workflows/
 │       └── amazingteam.yml      # GitHub Action workflow
 ├── amazingteam.config.yaml      # Your configuration
-└── .gitignore               # Updated (ignores .ai-team-local/)
+└── .gitignore               # Updated (ignores .amazing-team-local/)
 ```
 
 **That's it!** Only 3 files added to your repository.
@@ -122,7 +122,7 @@ overlay: "web-fullstack"
 # Download foundation for local use
 npx amazingteam local
 
-# This creates .ai-team-local/ with all foundation files
+# This creates .amazing-team-local/ with all foundation files
 # Now you can use OpenCode locally with full AmazingTeam capabilities
 ```
 
@@ -143,7 +143,7 @@ npx amazingteam check-update
 # - feat: New skill for API documentation
 # - fix: Memory handling improvement
 # 
-# Run `ai-team upgrade` to update
+# Run `amazing-team upgrade` to update
 ```
 
 ### Upgrade
@@ -196,7 +196,7 @@ on:
     types: [created]
 
 jobs:
-  ai-team:
+  amazing-team:
     if: |
       startsWith(github.event.comment.body, '/ai') ||
       startsWith(github.event.comment.body, '/opencode')
@@ -236,7 +236,7 @@ jobs:
 | Files in user repo | ~50+ files | 2-3 files |
 | Upgrade method | Manual copy/merge | Single command |
 | Foundation location | Committed to repo | Loaded at runtime |
-| Local development | Files already present | `ai-team local` command |
+| Local development | Files already present | `amazing-team local` command |
 | Version control | Hard to track | Explicit in workflow |
 
 ---
@@ -267,15 +267,15 @@ A: You can create a local `AGENTS.md` in your project root. It will override the
 
 ### Q: What if I need custom skills?
 
-A: Create `.ai-team/skills/` in your project. These will be merged with foundation skills at runtime.
+A: Create `.amazing-team/skills/` in your project. These will be merged with foundation skills at runtime.
 
 ### Q: What if CI fails to download foundation?
 
-A: The action caches foundation downloads. If network fails, it uses cache. You can also run `ai-team local` and commit `.ai-team-local/` as fallback.
+A: The action caches foundation downloads. If network fails, it uses cache. You can also run `amazing-team local` and commit `.amazing-team-local/` as fallback.
 
 ### Q: Can I use a specific version?
 
-A: Yes, specify version in workflow file or use `ai-team upgrade --to x.x.x`.
+A: Yes, specify version in workflow file or use `amazing-team upgrade --to x.x.x`.
 
 ### Q: How do I migrate from v2?
 
@@ -287,7 +287,7 @@ A: Yes. The GitHub Action uses `GITHUB_TOKEN` which has access to the current re
 
 ### Q: What happens to my agent memories?
 
-A: Your memories in `.ai-team/memory/` are preserved during migration and upgrades. They are local to your project and not affected by foundation updates.
+A: Your memories in `.amazing-team/memory/` are preserved during migration and upgrades. They are local to your project and not affected by foundation updates.
 
 ### Q: Can I disable specific agents?
 

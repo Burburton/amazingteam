@@ -50,6 +50,6 @@ go:
   test_framework: "testing"
 
 template:
-  source: "https://github.com/your-org/ai-team-template.git"
+  source: "https://github.com/your-org/amazing-team-template.git"
   version: "1.0.0"
   last_sync: null

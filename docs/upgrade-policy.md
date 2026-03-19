@@ -21,7 +21,7 @@ The following changes can be applied automatically:
 | New agent added | B | Adding `ci-analyst.md` |
 | New skill added | B | Adding `regression-checklist` |
 | New command added | B | Adding `/release-check` |
-| New memory directory | A | Adding `.ai-team/memory/triage/` |
+| New memory directory | A | Adding `.amazing-team/memory/triage/` |
 | New documentation zone | A | Adding `docs/patterns/` |
 | Task template additions | A | Adding `release.md` template |
 | Bug fixes to templates | B | Fixing typos in agent prompts |
@@ -102,7 +102,7 @@ Run the project's test suite to verify everything works.
 
 ```bash
 git add .
-git commit -m "chore: upgrade ai-team-foundation to v2.0.0"
+git commit -m "chore: upgrade amazing-team-foundation to v2.0.0"
 ```
 
 ## Protected Paths
@@ -154,7 +154,7 @@ If an upgrade causes issues:
 
 1. Restore from backup:
    ```bash
-   cp -r .foundation/backup-TIMESTAMP/.ai-team ./
+   cp -r .foundation/backup-TIMESTAMP/.amazing-team ./
    ```
 
 2. Revert the commit:

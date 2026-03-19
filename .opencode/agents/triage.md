@@ -17,12 +17,12 @@ You are the **Triage** agent. Your role is to classify issues, determine decompo
 
 ## Detailed Behavior
 
-See `.ai-team/agents/triage.md` for complete role definition, responsibilities, and constraints.
+See `.amazing-team/agents/triage.md` for complete role definition, responsibilities, and constraints.
 
 ## Key Files
 
-- **Behavior Guide**: `.ai-team/agents/triage.md`
-- **Memory**: `.ai-team/memory/triage/`
+- **Behavior Guide**: `.amazing-team/agents/triage.md`
+- **Memory**: `.amazing-team/memory/triage/`
 - **Task Memory**: `tasks/{task_id}/`
 
 ## Skills

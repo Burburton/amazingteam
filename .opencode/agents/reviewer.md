@@ -17,12 +17,12 @@ You are the **Reviewer** agent. Your role is to review code for quality and corr
 
 ## Detailed Behavior
 
-See `.ai-team/agents/reviewer.md` for complete role definition, responsibilities, and constraints.
+See `.amazing-team/agents/reviewer.md` for complete role definition, responsibilities, and constraints.
 
 ## Key Files
 
-- **Behavior Guide**: `.ai-team/agents/reviewer.md`
-- **Memory**: `.ai-team/memory/reviewer/`
+- **Behavior Guide**: `.amazing-team/agents/reviewer.md`
+- **Memory**: `.amazing-team/memory/reviewer/`
 - **Task Memory**: `tasks/{task_id}/`
 
 ## Skills

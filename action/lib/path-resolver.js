@@ -44,7 +44,7 @@ class PathResolver {
    * @returns {string} Absolute path to role memory directory
    */
   resolveMemoryPath(role) {
-    return path.join(this.projectDir, '.ai-team', 'memory', role);
+    return path.join(this.projectDir, '.amazing-team', 'memory', role);
   }
 
   /**
@@ -52,7 +52,7 @@ class PathResolver {
    * @returns {string} Absolute path to failures directory
    */
   resolveFailuresPath() {
-    return path.join(this.projectDir, '.ai-team', 'memory', 'failures');
+    return path.join(this.projectDir, '.amazing-team', 'memory', 'failures');
   }
 
   /**
@@ -119,7 +119,7 @@ class PathResolver {
       ...this.getMemoryDirectories(),
       this.resolveFailuresPath(),
       this.resolveTaskTemplatePath(),
-      path.join(this.projectDir, '.ai-team'),
+      path.join(this.projectDir, '.amazing-team'),
       path.join(this.projectDir, 'tasks')
     ];
   }
@@ -134,18 +134,18 @@ class PathResolver {
 
   /**
    * Get foundation commands directory
-   * @returns {string} Path to foundation .ai-team/commands
+   * @returns {string} Path to foundation .amazing-team/commands
    */
   getFoundationCommandsDir() {
-    return path.join(this.foundationDir, '.ai-team', 'commands');
+    return path.join(this.foundationDir, '.amazing-team', 'commands');
   }
 
   /**
    * Get foundation agents directory
-   * @returns {string} Path to foundation .ai-team/agents
+   * @returns {string} Path to foundation .amazing-team/agents
    */
   getFoundationAgentsDir() {
-    return path.join(this.foundationDir, '.ai-team', 'agents');
+    return path.join(this.foundationDir, '.amazing-team', 'agents');
   }
 
   /**

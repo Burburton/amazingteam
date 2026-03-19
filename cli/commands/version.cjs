@@ -46,8 +46,8 @@ amazingteam version - Show current foundation version
 
 Usage:
   amazingteam version
-  ai-team --version
-  ai-team -v
+  amazing-team --version
+  amazing-team -v
 
 Displays:
   - CLI version

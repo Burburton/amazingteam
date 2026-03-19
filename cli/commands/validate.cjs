@@ -43,8 +43,8 @@ function validateStructure(projectPath) {
   const issues = [];
   
   const requiredDirs = [
-    '.ai-team',
-    '.ai-team/memory',
+    '.amazing-team',
+    '.amazing-team/memory',
     'tasks'
   ];
   
@@ -131,12 +131,12 @@ function validateGitignore(projectPath) {
   
   const content = fs.readFileSync(gitignorePath, 'utf-8');
   
-  if (!content.includes('.ai-team-local/')) {
-    warnings.push('.ai-team-local/ not in .gitignore');
+  if (!content.includes('.amazing-team-local/')) {
+    warnings.push('.amazing-team-local/ not in .gitignore');
   }
   
-  if (!content.includes('.ai-team-cache/')) {
-    warnings.push('.ai-team-cache/ not in .gitignore');
+  if (!content.includes('.amazing-team-cache/')) {
+    warnings.push('.amazing-team-cache/ not in .gitignore');
   }
   
   return {
@@ -243,7 +243,7 @@ Usage:
 
 Validates:
   - amazingteam.config.yaml configuration
-  - Required directories (.ai-team/, tasks/)
+  - Required directories (.amazing-team/, tasks/)
   - GitHub workflow configuration
   - .gitignore entries
 

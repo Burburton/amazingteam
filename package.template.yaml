@@ -1,19 +1,19 @@
-name: ai-team
+name: amazing-team
 description: AI-powered autonomous development team template
 version: 1.0.0
 license: MIT
 author: AI Team
 repository:
   type: git
-  url: https://github.com/your-org/ai-team-template.git
+  url: https://github.com/your-org/amazing-team-template.git
 
 bin:
-  ai-team: ./cli/ai-team.cjs
+  amazing-team: ./cli/amazing-team.cjs
 
 files:
-  - .ai-team/
+  - .amazing-team/
   - cli/
-  - ai-team.config.yaml
+  - amazing-team.config.yaml
   - README.md
   - LICENSE
 

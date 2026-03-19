@@ -59,7 +59,7 @@ This skill provides systematic investigation and resolution of CI pipeline failu
 ```
 1. Query failure library for similar issues
 2. Check docs/runbooks/ci/ for known problems
-3. Review .ai-team/memory/failures/ for patterns
+3. Review .amazing-team/memory/failures/ for patterns
 4. Identify if this is a recurring issue
 5. Note any infrastructure issues
 ```

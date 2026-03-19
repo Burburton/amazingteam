@@ -1,8 +1,8 @@
 ---
 name: AI Team Self-Improvement
 about: Propose improvements to the AI Team system itself
-title: '[AI-TEAM] '
-labels: 'ai-team-enhancement'
+title: '[amazing-team] '
+labels: 'amazing-team-enhancement'
 assignees: ''
 ---
 
@@ -26,10 +26,10 @@ assignees: ''
 
 ## Implementation Area
 
-- [ ] `.ai-team/agents/` - Agent definitions
-- [ ] `.ai-team/skills/` - Skills
-- [ ] `.ai-team/commands/` - Commands
-- [ ] `.ai-team/memory/` - Memory structure
+- [ ] `.amazing-team/agents/` - Agent definitions
+- [ ] `.amazing-team/skills/` - Skills
+- [ ] `.amazing-team/commands/` - Commands
+- [ ] `.amazing-team/memory/` - Memory structure
 - [ ] `AGENTS.md` - Global rules
 - [ ] `docs/` - Documentation
 - [ ] `.github/workflows/` - Automation

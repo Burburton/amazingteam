@@ -5,11 +5,11 @@ compatible_foundation_versions:
   - "2.0.0"
 
 overrides:
-  - .ai-team/agents/developer.md
+  - .amazing-team/agents/developer.md
   - .github/workflows/ci.yml
 
 additions:
-  - .ai-team/skills/python-testing/
+  - .amazing-team/skills/python-testing/
   - docs/python-style.md
 
 language: python

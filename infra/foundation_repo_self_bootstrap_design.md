@@ -1,7 +1,7 @@
 # Foundation Repo Self-Bootstrap Capability Design
-## Design Specification for a Reusable `ai-team-foundation` Repository
+## Design Specification for a Reusable `amazing-team-foundation` Repository
 
-This document defines the **self-bootstrap capability model** for a reusable `ai-team-foundation` repository.
+This document defines the **self-bootstrap capability model** for a reusable `amazing-team-foundation` repository.
 
 The purpose of this design is to make the foundation repository capable of:
 
@@ -232,7 +232,7 @@ Example command concept:
 # 5. Recommended Repository Structure for Bootstrap
 
 ```text
-ai-team-foundation/
+amazing-team-foundation/
 ├─ base/
 │  ├─ .github/
 │  ├─ .opencode/
@@ -348,7 +348,7 @@ Each downstream project should contain a lock file such as:
 Recommended contents:
 
 ```yaml
-foundation_repo: ai-team-foundation
+foundation_repo: amazing-team-foundation
 foundation_version: 2.0.0
 overlay: cpp-qt-desktop
 initialized_at: 2026-03-14
@@ -890,7 +890,7 @@ This is enough to support real reuse safely.
 
 # 20. Final Design Summary
 
-A reusable `ai-team-foundation` repository should absolutely have self-bootstrap capability.
+A reusable `amazing-team-foundation` repository should absolutely have self-bootstrap capability.
 
 But that capability must be controlled, versioned, and review-aware.
 

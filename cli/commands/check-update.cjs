@@ -140,10 +140,10 @@ async function run(options, positional) {
 
 function help() {
   return `
-ai-team check-update - Check for available updates
+amazing-team check-update - Check for available updates
 
 Usage:
-  ai-team check-update
+  amazing-team check-update
 
 Checks NPM registry for the latest version and displays:
   - Current installed version

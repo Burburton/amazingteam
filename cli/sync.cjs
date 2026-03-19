@@ -18,40 +18,40 @@ function log(message, color = 'reset') {
 }
 
 const TEMPLATE_FILES = [
-  '.ai-team/agents/architect.md',
-  '.ai-team/agents/developer.md',
-  '.ai-team/agents/qa.md',
-  '.ai-team/agents/reviewer.md',
-  '.ai-team/skills/bugfix-playbook/skill.md',
-  '.ai-team/skills/repo-architecture-reader/skill.md',
-  '.ai-team/skills/safe-refactor-checklist/skill.md',
-  '.ai-team/skills/test-first-feature-dev/skill.md',
-  '.ai-team/commands/design.md',
-  '.ai-team/commands/implement.md',
-  '.ai-team/commands/review.md',
-  '.ai-team/commands/test.md',
-  '.ai-team/commands/triage.md',
-  '.ai-team/workflows/opencode.yml',
-  '.ai-team/workflows/ci.yml',
-  '.ai-team/workflows/pr-check.yml',
-  '.ai-team/workflows/nightly-ai-maintenance.yml',
-  '.ai-team/memory/architect/architecture_notes.md',
-  '.ai-team/memory/architect/module_map.md',
-  '.ai-team/memory/architect/design_rationale.md',
-  '.ai-team/memory/developer/implementation_notes.md',
-  '.ai-team/memory/developer/bug_investigation.md',
-  '.ai-team/memory/developer/build_issues.md',
-  '.ai-team/memory/qa/test_strategy.md',
-  '.ai-team/memory/qa/regression_cases.md',
-  '.ai-team/memory/qa/validation_notes.md',
-  '.ai-team/memory/reviewer/review_notes.md',
-  '.ai-team/memory/reviewer/quality_rules.md',
-  '.ai-team/memory/reviewer/recurring_risks.md',
+  '.amazing-team/agents/architect.md',
+  '.amazing-team/agents/developer.md',
+  '.amazing-team/agents/qa.md',
+  '.amazing-team/agents/reviewer.md',
+  '.amazing-team/skills/bugfix-playbook/skill.md',
+  '.amazing-team/skills/repo-architecture-reader/skill.md',
+  '.amazing-team/skills/safe-refactor-checklist/skill.md',
+  '.amazing-team/skills/test-first-feature-dev/skill.md',
+  '.amazing-team/commands/design.md',
+  '.amazing-team/commands/implement.md',
+  '.amazing-team/commands/review.md',
+  '.amazing-team/commands/test.md',
+  '.amazing-team/commands/triage.md',
+  '.amazing-team/workflows/opencode.yml',
+  '.amazing-team/workflows/ci.yml',
+  '.amazing-team/workflows/pr-check.yml',
+  '.amazing-team/workflows/nightly-ai-maintenance.yml',
+  '.amazing-team/memory/architect/architecture_notes.md',
+  '.amazing-team/memory/architect/module_map.md',
+  '.amazing-team/memory/architect/design_rationale.md',
+  '.amazing-team/memory/developer/implementation_notes.md',
+  '.amazing-team/memory/developer/bug_investigation.md',
+  '.amazing-team/memory/developer/build_issues.md',
+  '.amazing-team/memory/qa/test_strategy.md',
+  '.amazing-team/memory/qa/regression_cases.md',
+  '.amazing-team/memory/qa/validation_notes.md',
+  '.amazing-team/memory/reviewer/review_notes.md',
+  '.amazing-team/memory/reviewer/quality_rules.md',
+  '.amazing-team/memory/reviewer/recurring_risks.md',
 ];
 
 const USER_CONFIGURABLE_FILES = [
   'AGENTS.md',
-  'ai-team.config.yaml',
+  'amazing-team.config.yaml',
   '.github/ISSUE_TEMPLATE/',
   '.github/pull_request_template.md',
 ];
@@ -148,13 +148,13 @@ function checkForUpdates(templateRepo) {
 function syncFromTemplate(projectDir, templateDir, options = {}) {
   log('\n📦 Syncing AI Team template files...\n', 'cyan');
   
-  const backupDir = path.join(projectDir, `.ai-team-backup-${Date.now()}`);
+  const backupDir = path.join(projectDir, `.amazing-team-backup-${Date.now()}`);
   
-  if (fs.existsSync(path.join(projectDir, '.ai-team'))) {
+  if (fs.existsSync(path.join(projectDir, '.amazing-team'))) {
     if (options.backup !== false) {
       log('Creating backup...', 'blue');
       fs.cpSync(
-        path.join(projectDir, '.ai-team'),
+        path.join(projectDir, '.amazing-team'),
         backupDir,
         { recursive: true }
       );
@@ -189,7 +189,7 @@ function syncFromTemplate(projectDir, templateDir, options = {}) {
   ];
   
   workflowFiles.forEach(file => {
-    const srcPath = path.join(templateDir, '.ai-team/workflows', file);
+    const srcPath = path.join(templateDir, '.amazing-team/workflows', file);
     const destPath = path.join(projectDir, '.github/workflows', file);
     
     if (fs.existsSync(srcPath)) {

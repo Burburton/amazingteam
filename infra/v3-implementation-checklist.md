@@ -20,12 +20,12 @@ This checklist tracks the implementation of remote foundation loading feature (v
 ### 1.2 Templates Directory
 - [x] Create `templates/` directory
 - [x] Create `templates/opencode.jsonc` - OpenCode config template
-- [x] Create `templates/ai-team.yml` - GitHub workflow template
+- [x] Create `templates/amazing-team.yml` - GitHub workflow template
 - [x] Create `templates/gitignore` - .gitignore additions template
 
 ### 1.3 Schemas
 - [x] Create `schemas/` directory
-- [x] Create `schemas/config.schema.json` - JSON Schema for ai-team.config.yaml
+- [x] Create `schemas/config.schema.json` - JSON Schema for amazing-team.config.yaml
 
 ### 1.4 Action Modules
 - [x] Create `action/lib/merger.js` - configuration merge logic
@@ -47,17 +47,17 @@ This checklist tracks the implementation of remote foundation loading feature (v
 ## Phase 2: CLI Tool (8 commands) ✅ COMPLETE
 
 ### 2.1 CLI Entry Point
-- [x] Create `cli/ai-team.cjs` - main CLI entry
+- [x] Create `cli/amazing-team.cjs` - main CLI entry
 - [x] Add command parsing logic
 - [x] Add help text and version display
 
 ### 2.2 Init Command
 - [x] Create `cli/commands/init.cjs`
 - [x] Implement interactive prompts
-- [x] Generate `ai-team.config.yaml`
-- [x] Generate `.github/workflows/ai-team.yml`
+- [x] Generate `amazing-team.config.yaml`
+- [x] Generate `.github/workflows/amazing-team.yml`
 - [x] Generate `opencode.jsonc`
-- [x] Create `.ai-team/memory/` directories
+- [x] Create `.amazing-team/memory/` directories
 - [x] Create `tasks/_template/` directory
 - [x] Update `.gitignore`
 
@@ -80,10 +80,10 @@ This checklist tracks the implementation of remote foundation loading feature (v
 
 ### 2.6 Local Command
 - [x] Create `cli/commands/local.cjs`
-- [x] Download foundation to `.ai-team-local/`
+- [x] Download foundation to `.amazing-team-local/`
 - [x] Generate local `opencode.jsonc`
 - [x] Support `--from /path` for offline use
-- [x] Implement local caching (`~/.ai-team-cache/`)
+- [x] Implement local caching (`~/.amazing-team-cache/`)
 
 ### 2.7 Validate Command
 - [x] Create `cli/commands/validate.cjs`
@@ -121,7 +121,7 @@ This checklist tracks the implementation of remote foundation loading feature (v
 - [x] Implement opencode.jsonc generation
 
 ### 3.3 Workflow Template
-- [x] Create final `templates/ai-team.yml`
+- [x] Create final `templates/amazing-team.yml`
 - [x] Include all necessary steps
 - [x] Add comments for customization
 

@@ -33,10 +33,10 @@ jobs:
           
           echo ""
           echo "Role Memory Files:"
-          if [ -d ".ai-team/memory" ]; then
-            find .ai-team/memory -name "*.md" -exec wc -l {} \; 2>/dev/null || echo "No memory files found"
+          if [ -d ".amazing-team/memory" ]; then
+            find .amazing-team/memory -name "*.md" -exec wc -l {} \; 2>/dev/null || echo "No memory files found"
           else
-            echo "No .ai-team/memory directory found"
+            echo "No .amazing-team/memory directory found"
           fi
           
           echo ""

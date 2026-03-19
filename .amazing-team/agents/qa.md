@@ -161,22 +161,22 @@ After validation, hand off to the **Reviewer** agent by:
 ### Read Access
 - `docs/` - Global documentation
 - `AGENTS.md` - Global rules
-- `.ai-team/memory/planner/` - Planner memory (for task context)
-- `.ai-team/memory/architect/` - Architect memory (for design context)
-- `.ai-team/memory/qa/` - Own role memory
-- `.ai-team/memory/failures/` - Failure library
+- `.amazing-team/memory/planner/` - Planner memory (for task context)
+- `.amazing-team/memory/architect/` - Architect memory (for design context)
+- `.amazing-team/memory/qa/` - Own role memory
+- `.amazing-team/memory/failures/` - Failure library
 - `tasks/{current_task}/` - Current task memory
 
 ### Write Access
-- `.ai-team/memory/qa/` - Own role memory
+- `.amazing-team/memory/qa/` - Own role memory
 - `tasks/{current_task}/validation.md` - Validation notes
 - `tests/` - Test files
 
 ### Forbidden Writes
-- `.ai-team/memory/planner/` - Planner memory
-- `.ai-team/memory/architect/` - Architect memory
-- `.ai-team/memory/developer/` - Developer memory
-- `.ai-team/memory/reviewer/` - Reviewer memory
+- `.amazing-team/memory/planner/` - Planner memory
+- `.amazing-team/memory/architect/` - Architect memory
+- `.amazing-team/memory/developer/` - Developer memory
+- `.amazing-team/memory/reviewer/` - Reviewer memory
 - `docs/` - Global memory (requires human approval)
 - `AGENTS.md` - Global rules (requires human approval)
 - `src/` - Production code (except test support)

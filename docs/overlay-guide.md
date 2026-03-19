@@ -43,7 +43,7 @@ Overlays allow the foundation to support different project types without duplica
 ```
 overlays/
 └── my-overlay/
-    ├── .ai-team/
+    ├── .amazing-team/
     │   ├── agents/           # Override or add agents
     │   ├── skills/           # Add overlay-specific skills
     │   └── commands/         # Add overlay-specific commands
@@ -66,12 +66,12 @@ compatible_foundation_versions:
 
 # Files that will override base foundation
 overrides:
-  - .ai-team/agents/developer.md
+  - .amazing-team/agents/developer.md
   - .github/workflows/ci.yml
 
 # Files that will be added (not override)
 additions:
-  - .ai-team/skills/my-skill/
+  - .amazing-team/skills/my-skill/
   - docs/my-docs/
 ```
 
@@ -89,11 +89,11 @@ additions:
 **Purpose**: Python backend service configuration
 
 **Overrides**:
-- `.ai-team/agents/developer.md` - Python-specific implementation guidelines
+- `.amazing-team/agents/developer.md` - Python-specific implementation guidelines
 - `.github/workflows/ci.yml` - Python test/lint commands
 
 **Additions**:
-- `.ai-team/skills/python-testing/` - Python testing skill
+- `.amazing-team/skills/python-testing/` - Python testing skill
 - `docs/python-style.md` - Python style guide
 
 ### cpp-qt-desktop Overlay
@@ -101,12 +101,12 @@ additions:
 **Purpose**: C++ Qt desktop application configuration
 
 **Overrides**:
-- `.ai-team/agents/developer.md` - C++ implementation guidelines
-- `.ai-team/skills/bugfix-playbook/skill.md` - C++ debugging patterns
+- `.amazing-team/agents/developer.md` - C++ implementation guidelines
+- `.amazing-team/skills/bugfix-playbook/skill.md` - C++ debugging patterns
 - `.github/workflows/ci.yml` - CMake/build commands
 
 **Additions**:
-- `.ai-team/skills/qt-signals-slots/` - Qt patterns skill
+- `.amazing-team/skills/qt-signals-slots/` - Qt patterns skill
 - `docs/qt-conventions.md` - Qt coding conventions
 
 ## Maintaining Overlays
@@ -140,7 +140,7 @@ To contribute a new overlay:
 Overlays can add skills for their technology stack:
 
 ```
-overlays/python-backend/.ai-team/skills/
+overlays/python-backend/.amazing-team/skills/
 └── python-testing/
     └── skill.md
 ```

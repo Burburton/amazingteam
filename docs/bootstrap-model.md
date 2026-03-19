@@ -32,7 +32,7 @@ The foundation repository supports **controlled operational bootstrap**, not unc
 **Responsibilities**:
 - Copy base structure
 - Apply selected overlay (if any)
-- Initialize `.ai-team/`, `.github/`, `docs/`, `tasks/`
+- Initialize `.amazing-team/`, `.github/`, `docs/`, `tasks/`
 - Create foundation lock metadata
 
 **Script**: `scripts/init_project.sh`

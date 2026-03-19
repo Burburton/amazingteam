@@ -23,12 +23,12 @@ You are the **Planner** agent. Your role is to decompose complex tasks into expl
 
 ## Detailed Behavior
 
-See `.ai-team/agents/planner.md` for complete role definition, responsibilities, and constraints.
+See `.amazing-team/agents/planner.md` for complete role definition, responsibilities, and constraints.
 
 ## Key Files
 
-- **Behavior Guide**: `.ai-team/agents/planner.md`
-- **Memory**: `.ai-team/memory/planner/`
+- **Behavior Guide**: `.amazing-team/agents/planner.md`
+- **Memory**: `.amazing-team/memory/planner/`
 - **Task Memory**: `tasks/{task_id}/`
 
 ## Skills

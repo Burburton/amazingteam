@@ -69,7 +69,7 @@ echo ""
 
 # 1. Core Structure
 echo -e "${CYAN}[1] Core Structure${NC}"
-check_dir "$FOUNDATION_ROOT/.ai-team" "Core .ai-team directory"
+check_dir "$FOUNDATION_ROOT/.amazing-team" "Core .amazing-team directory"
 check_dir "$FOUNDATION_ROOT/.github" "GitHub configuration"
 check_dir "$FOUNDATION_ROOT/docs" "Documentation directory"
 check_dir "$FOUNDATION_ROOT/tasks" "Tasks directory"
@@ -79,29 +79,29 @@ echo ""
 # 2. Agents
 echo -e "${CYAN}[2] AI Agents${NC}"
 for agent in planner architect developer qa reviewer triage ci-analyst; do
-    check_file "$FOUNDATION_ROOT/.ai-team/agents/$agent.md" "Agent: $agent"
+    check_file "$FOUNDATION_ROOT/.amazing-team/agents/$agent.md" "Agent: $agent"
 done
 echo ""
 
 # 3. Skills
 echo -e "${CYAN}[3] Skills${NC}"
-check_dir "$FOUNDATION_ROOT/.ai-team/skills" "Skills directory"
+check_dir "$FOUNDATION_ROOT/.amazing-team/skills" "Skills directory"
 for skill in repo-architecture-reader bugfix-playbook test-first-feature-dev safe-refactor-checklist task-breakdown-and-dispatch issue-triage ci-failure-analysis regression-checklist release-readiness-check; do
-    check_file "$FOUNDATION_ROOT/.ai-team/skills/$skill/skill.md" "Skill: $skill"
+    check_file "$FOUNDATION_ROOT/.amazing-team/skills/$skill/skill.md" "Skill: $skill"
 done
 echo ""
 
 # 4. Commands
 echo -e "${CYAN}[4] Commands${NC}"
 for cmd in triage design implement test review ci-analyze release-check; do
-    check_file "$FOUNDATION_ROOT/.ai-team/commands/$cmd.md" "Command: $cmd"
+    check_file "$FOUNDATION_ROOT/.amazing-team/commands/$cmd.md" "Command: $cmd"
 done
 echo ""
 
 # 5. Memory Structure
 echo -e "${CYAN}[5] Memory Structure${NC}"
 for role in planner architect developer qa reviewer triage ci-analyst failures; do
-    check_dir "$FOUNDATION_ROOT/.ai-team/memory/$role" "Memory: $role"
+    check_dir "$FOUNDATION_ROOT/.amazing-team/memory/$role" "Memory: $role"
 done
 echo ""
 
@@ -144,7 +144,7 @@ echo -e "${CYAN}[10] Version & Metadata${NC}"
 check_file "$FOUNDATION_ROOT/VERSION" "VERSION file"
 check_file "$FOUNDATION_ROOT/CHANGELOG.md" "CHANGELOG"
 check_file "$FOUNDATION_ROOT/AGENTS.md" "AGENTS.md (global rules)"
-check_file "$FOUNDATION_ROOT/.ai-team/opencode.template.jsonc" "OpenCode template config"
+check_file "$FOUNDATION_ROOT/.amazing-team/opencode.template.jsonc" "OpenCode template config"
 check_file "$FOUNDATION_ROOT/README.md" "README"
 echo ""
 

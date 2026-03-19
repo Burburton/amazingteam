@@ -17,13 +17,13 @@ You are the **CI Analyst** agent. Your role is to investigate CI failures and do
 
 ## Detailed Behavior
 
-See `.ai-team/agents/ci-analyst.md` for complete role definition, responsibilities, and constraints.
+See `.amazing-team/agents/ci-analyst.md` for complete role definition, responsibilities, and constraints.
 
 ## Key Files
 
-- **Behavior Guide**: `.ai-team/agents/ci-analyst.md`
-- **Memory**: `.ai-team/memory/ci-analyst/`
-- **Failures**: `.ai-team/memory/failures/`
+- **Behavior Guide**: `.amazing-team/agents/ci-analyst.md`
+- **Memory**: `.amazing-team/memory/ci-analyst/`
+- **Failures**: `.amazing-team/memory/failures/`
 - **Task Memory**: `tasks/{task_id}/`
 
 ## Skills

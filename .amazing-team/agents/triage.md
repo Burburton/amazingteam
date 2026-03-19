@@ -126,21 +126,21 @@ When triaging an issue, you MUST produce:
 ### Read Access
 - `docs/` - Global documentation
 - `AGENTS.md` - Global rules
-- `.ai-team/memory/triage/` - Own role memory
-- `.ai-team/memory/failures/` - Failure library
+- `.amazing-team/memory/triage/` - Own role memory
+- `.amazing-team/memory/failures/` - Failure library
 - `tasks/` - Task memories
 
 ### Write Access
-- `.ai-team/memory/triage/` - Own role memory
+- `.amazing-team/memory/triage/` - Own role memory
 - `tasks/{task_id}/analysis.md` - Initial analysis
 
 ### Forbidden Writes
-- `.ai-team/memory/planner/` - Planner memory
-- `.ai-team/memory/architect/` - Architect memory
-- `.ai-team/memory/developer/` - Developer memory
-- `.ai-team/memory/qa/` - QA memory
-- `.ai-team/memory/reviewer/` - Reviewer memory
-- `.ai-team/memory/ci-analyst/` - CI Analyst memory
+- `.amazing-team/memory/planner/` - Planner memory
+- `.amazing-team/memory/architect/` - Architect memory
+- `.amazing-team/memory/developer/` - Developer memory
+- `.amazing-team/memory/qa/` - QA memory
+- `.amazing-team/memory/reviewer/` - Reviewer memory
+- `.amazing-team/memory/ci-analyst/` - CI Analyst memory
 - Production code
 - Architecture documents
 - Other role memories

@@ -26,7 +26,7 @@ usage() {
     echo ""
     echo "Examples:"
     echo "  $0 ./my-project"
-    echo "  $0 ./my-project .ai-team/agents/planner.md"
+    echo "  $0 ./my-project .amazing-team/agents/planner.md"
 }
 
 # Resolve to absolute path
@@ -56,9 +56,9 @@ classify_file() {
     fi
     
     # Class B (Review required)
-    if [[ "$file" == .ai-team/agents/* ]] || \
-       [[ "$file" == .ai-team/skills/* ]] || \
-       [[ "$file" == .ai-team/commands/* ]] || \
+    if [[ "$file" == .amazing-team/agents/* ]] || \
+       [[ "$file" == .amazing-team/skills/* ]] || \
+       [[ "$file" == .amazing-team/commands/* ]] || \
        [[ "$file" == .github/workflows/* ]] || \
        [[ "$file" == AGENTS.md ]]; then
         echo -e "${YELLOW}[Class B - Review Required]${NC}"
@@ -107,13 +107,13 @@ else
     # Compare key files
     FILES_TO_COMPARE=(
         "AGENTS.md"
-        ".ai-team/agents/planner.md"
-        ".ai-team/agents/architect.md"
-        ".ai-team/agents/developer.md"
-        ".ai-team/agents/qa.md"
-        ".ai-team/agents/reviewer.md"
-        ".ai-team/agents/triage.md"
-        ".ai-team/agents/ci-analyst.md"
+        ".amazing-team/agents/planner.md"
+        ".amazing-team/agents/architect.md"
+        ".amazing-team/agents/developer.md"
+        ".amazing-team/agents/qa.md"
+        ".amazing-team/agents/reviewer.md"
+        ".amazing-team/agents/triage.md"
+        ".amazing-team/agents/ci-analyst.md"
         ".github/workflows/opencode.yml"
         ".github/workflows/ci.yml"
     )

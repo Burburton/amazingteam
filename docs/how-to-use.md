@@ -28,7 +28,7 @@
 ```bash
 # 方式 A: GitHub "Use this template" 按钮
 # 方式 B: 克隆后删除模板配置
-git clone https://github.com/your-org/ai-team-template.git my-project
+git clone https://github.com/your-org/amazing-team-template.git my-project
 cd my-project
 rm -rf .git && git init
 ```
@@ -36,11 +36,11 @@ rm -rf .git && git init
 ### 步骤 2: 运行初始化
 
 ```bash
-node cli/ai-team.cjs init --force
+node cli/amazing-team.cjs init --force
 ```
 
 这会：
-- 创建 `ai-team.config.yaml` (项目配置)
+- 创建 `amazing-team.config.yaml` (项目配置)
 - 更新 `AGENTS.md` (项目规则)
 - 创建目录结构
 
@@ -68,18 +68,18 @@ node cli/ai-team.cjs init --force
 
 | 文件 | 用途 | 用户是否修改 |
 |------|------|-------------|
-| `.ai-team/agents/*.md` | Agent 定义 | ❌ 不建议 |
-| `.ai-team/skills/*/skill.md` | Skill 定义 | ❌ 不建议 |
-| `.ai-team/commands/*.md` | Command 定义 | ❌ 不建议 |
-| `.ai-team/memory/*/` | Memory 模板 | ❌ 不建议 |
-| `.ai-team/opencode.template.jsonc` | 配置模板 | ❌ 不建议 |
+| `.amazing-team/agents/*.md` | Agent 定义 | ❌ 不建议 |
+| `.amazing-team/skills/*/skill.md` | Skill 定义 | ❌ 不建议 |
+| `.amazing-team/commands/*.md` | Command 定义 | ❌ 不建议 |
+| `.amazing-team/memory/*/` | Memory 模板 | ❌ 不建议 |
+| `.amazing-team/opencode.template.jsonc` | 配置模板 | ❌ 不建议 |
 
 ### 项目仓库配置 (可自定义)
 
 | 文件 | 用途 | 用户是否修改 |
 |------|------|-------------|
 | `opencode.jsonc` | 运行时配置 | ✅ 应该 |
-| `ai-team.config.yaml` | 项目配置 | ✅ 应该 |
+| `amazing-team.config.yaml` | 项目配置 | ✅ 应该 |
 | `AGENTS.md` | 全局规则 | ✅ 应该 |
 | `docs/` | 项目文档 | ✅ 应该 |
 | `tasks/` | 任务记忆 | ✅ 自动创建 |
@@ -117,21 +117,21 @@ node cli/ai-team.cjs init --force
 
 ```bash
 # 在你的项目仓库中
-ai-team upgrade
+amazing-team upgrade
 
 # 或强制升级
-ai-team upgrade --force
+amazing-team upgrade --force
 ```
 
 **升级只覆盖**:
-- `.ai-team/agents/`
-- `.ai-team/skills/`
-- `.ai-team/commands/`
+- `.amazing-team/agents/`
+- `.amazing-team/skills/`
+- `.amazing-team/commands/`
 - `.github/workflows/` (可选)
 
 **升级不会覆盖**:
 - `opencode.jsonc`
-- `ai-team.config.yaml`
+- `amazing-team.config.yaml`
 - `AGENTS.md`
 - `docs/`
 - `tasks/`
@@ -149,7 +149,7 @@ A: 不会。模板仓库和你的项目仓库是独立的。你需要在**自己
 A: 可以，但建议通过自定义 Agent 而不是修改模板文件：
 
 ```yaml
-# ai-team.config.yaml
+# amazing-team.config.yaml
 ai_team:
   custom_agents:
     - name: my-custom-agent
@@ -158,14 +158,14 @@ ai_team:
 
 ### Q: 模板仓库更新后，我的项目会自动更新吗？
 
-A: 不会。需要手动运行 `ai-team upgrade` 来同步更新。
+A: 不会。需要手动运行 `amazing-team upgrade` 来同步更新。
 
 ### Q: 我不想用某些 Agent，可以禁用吗？
 
 A: 可以：
 
 ```yaml
-# ai-team.config.yaml
+# amazing-team.config.yaml
 ai_team:
   agents:
     planner: true

@@ -117,22 +117,22 @@ After completing your analysis, hand off to the **Developer** agent by:
 ### Read Access
 - `docs/` - Global documentation
 - `AGENTS.md` - Global rules
-- `.ai-team/memory/planner/` - Planner memory (for task context)
-- `.ai-team/memory/architect/` - Own role memory
-- `.ai-team/memory/developer/` - Developer memory (for context)
-- `.ai-team/memory/failures/` - Failure library
+- `.amazing-team/memory/planner/` - Planner memory (for task context)
+- `.amazing-team/memory/architect/` - Own role memory
+- `.amazing-team/memory/developer/` - Developer memory (for context)
+- `.amazing-team/memory/failures/` - Failure library
 - `tasks/*` - All task memories
 
 ### Write Access
-- `.ai-team/memory/architect/` - Own role memory
+- `.amazing-team/memory/architect/` - Own role memory
 - `tasks/{current_task}/analysis.md` - Task analysis
 - `tasks/{current_task}/design.md` - Task design
 
 ### Forbidden Writes
-- `.ai-team/memory/planner/` - Planner memory
-- `.ai-team/memory/developer/` - Developer memory
-- `.ai-team/memory/qa/` - QA memory
-- `.ai-team/memory/reviewer/` - Reviewer memory
+- `.amazing-team/memory/planner/` - Planner memory
+- `.amazing-team/memory/developer/` - Developer memory
+- `.amazing-team/memory/qa/` - QA memory
+- `.amazing-team/memory/reviewer/` - Reviewer memory
 - `docs/` - Global memory (requires human approval)
 - `AGENTS.md` - Global rules (requires human approval)
 

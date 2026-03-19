@@ -86,7 +86,7 @@ echo ""
 
 # 2. Core Structure
 echo -e "${CYAN}[2] Core Structure${NC}"
-check_dir ".ai-team" ".ai-team directory"
+check_dir ".amazing-team" ".amazing-team directory"
 check_dir ".github" ".github directory"
 check_dir "docs" "docs directory"
 check_dir "tasks" "tasks directory"
@@ -95,14 +95,14 @@ echo ""
 # 3. Agent Files
 echo -e "${CYAN}[3] Agent Files${NC}"
 for agent in planner architect developer qa reviewer triage ci-analyst; do
-    check_file ".ai-team/agents/$agent.md" "Agent: $agent"
+    check_file ".amazing-team/agents/$agent.md" "Agent: $agent"
 done
 echo ""
 
 # 4. Memory Directories
 echo -e "${CYAN}[4] Memory Directories${NC}"
 for role in planner architect developer qa reviewer triage ci-analyst failures; do
-    check_dir ".ai-team/memory/$role" "Memory: $role"
+    check_dir ".amazing-team/memory/$role" "Memory: $role"
 done
 echo ""
 
@@ -130,7 +130,7 @@ echo ""
 
 # 8. Project Configuration
 echo -e "${CYAN}[8] Project Configuration${NC}"
-check_file "ai-team.config.yaml" "Project configuration"
+check_file "amazing-team.config.yaml" "Project configuration"
 check_file "opencode.jsonc" "OpenCode runtime config"
 echo ""
 

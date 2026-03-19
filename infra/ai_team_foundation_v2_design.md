@@ -2,7 +2,7 @@
 # AI Team Foundation v2
 ## Complete Design Specification
 
-This document defines the full v2 design of a reusable `ai-team-foundation` repository.
+This document defines the full v2 design of a reusable `amazing-team-foundation` repository.
 
 The purpose of this repository is to provide a portable AI engineering team base that can be reused across future project repositories.
 
@@ -24,7 +24,7 @@ It is the reusable AI team product base.
 
 # 1. Repository Purpose
 
-The `ai-team-foundation` repository should act as:
+The `amazing-team-foundation` repository should act as:
 
 - a reusable AI development operating base
 - a template/scaffold source for future projects
@@ -61,7 +61,7 @@ The v2 foundation is built around these goals:
 Recommended top-level layout:
 
 ```text
-ai-team-foundation/
+amazing-team-foundation/
 ├─ base/
 │  ├─ .github/
 │  │  ├─ workflows/
@@ -626,7 +626,7 @@ This policy should be documented in `docs/upgrade-policy.md`.
 # 18. Example Foundation Lifecycle
 
 ## Step 1
-Maintain `ai-team-foundation` as the product base.
+Maintain `amazing-team-foundation` as the product base.
 
 ## Step 2
 Create a new project repository.
@@ -695,7 +695,7 @@ The foundation v2 is successful if downstream project repositories gain:
 
 # 22. Final Summary
 
-`ai-team-foundation v2` is a reusable AI engineering base that upgrades the original memory-isolated AI team into a more capable execution system.
+`amazing-team-foundation v2` is a reusable AI engineering base that upgrades the original memory-isolated AI team into a more capable execution system.
 
 Compared with v1, v2 adds:
 

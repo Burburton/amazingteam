@@ -8,7 +8,7 @@ This guide helps you migrate from AmazingTeam Foundation v2 to v3.
 
 ### v2 Architecture
 - Foundation files committed to each project
-- ~50+ files in `.ai-team/`, `.opencode/`, `tasks/`, etc.
+- ~50+ files in `.amazing-team/`, `.opencode/`, `tasks/`, etc.
 - Upgrades require manual copy/merge
 - Difficult to track which version is being used
 
@@ -43,10 +43,10 @@ Before migrating, identify what you've customized:
 ```bash
 # Files you may have customized:
 # - AGENTS.md (global rules)
-# - .ai-team/agents/*.md (agent behaviors)
-# - .ai-team/skills/*/skill.md (custom skills)
-# - .ai-team/commands/*.md (custom commands)
-# - .ai-team/memory/*/ (agent memories)
+# - .amazing-team/agents/*.md (agent behaviors)
+# - .amazing-team/skills/*/skill.md (custom skills)
+# - .amazing-team/commands/*.md (custom commands)
+# - .amazing-team/memory/*/ (agent memories)
 # - presets/ (if you created custom presets)
 ```
 
@@ -103,7 +103,7 @@ overlay:
 
 #### Custom Skills
 ```bash
-# Keep your custom skills in .ai-team/skills/
+# Keep your custom skills in .amazing-team/skills/
 # They will be merged with foundation skills
 ```
 
@@ -123,15 +123,15 @@ commands:
 
 ```bash
 # The migration tool does this automatically, but verify:
-git rm -r --cached .ai-team/agents/
-git rm -r --cached .ai-team/skills/
-git rm -r --cached .ai-team/commands/
+git rm -r --cached .amazing-team/agents/
+git rm -r --cached .amazing-team/skills/
+git rm -r --cached .amazing-team/commands/
 git rm -r --cached .opencode/skills/
 git rm -r --cached .opencode/commands/
 git rm --cached AGENTS.md
 
 # But KEEP these directories (they contain your data):
-# - .ai-team/memory/ (your agent memories)
+# - .amazing-team/memory/ (your agent memories)
 # - tasks/ (your task history)
 ```
 
@@ -141,7 +141,7 @@ Add these entries to `.gitignore`:
 
 ```gitignore
 # AmazingTeam Foundation v3
-.ai-team-local/
+.amazing-team-local/
 ```
 
 ### Step 8: Commit Migration
@@ -206,8 +206,8 @@ If you created custom skills:
 
 ```bash
 # Keep your skills
-mkdir -p .ai-team/skills
-# Your existing skills remain in .ai-team/skills/
+mkdir -p .amazing-team/skills
+# Your existing skills remain in .amazing-team/skills/
 
 # They will be automatically merged with foundation skills
 ```
@@ -235,12 +235,12 @@ overlay:
 
 ### Scenario 4: Custom Memory Content
 
-Your agent memories in `.ai-team/memory/` are preserved:
+Your agent memories in `.amazing-team/memory/` are preserved:
 
 ```bash
 # These directories are NOT removed during migration:
-.ai-team/memory/planner/
-.ai-team/memory/developer/
+.amazing-team/memory/planner/
+.amazing-team/memory/developer/
 # etc.
 ```
 
@@ -256,7 +256,7 @@ Your agent memories in `.ai-team/memory/` are preserved:
 ```
 
 **v3:**
-Skills are loaded from foundation at runtime. Custom skills in `.ai-team/skills/` are merged.
+Skills are loaded from foundation at runtime. Custom skills in `.amazing-team/skills/` are merged.
 
 ### 2. Command Path Changes
 
@@ -298,7 +298,7 @@ npx amazingteam migrate
 ### "v2 structure not detected"
 
 The migration tool looks for these markers:
-- `.ai-team/agents/` directory
+- `.amazing-team/agents/` directory
 - `.opencode/skills/` directory
 - `AGENTS.md` file
 
@@ -308,7 +308,7 @@ If your project uses a different structure, you may need to create `amazingteam.
 
 1. Check the `backup-before-v3-migration` branch
 2. Look for extracted customizations in `amazingteam.config.yaml`
-3. Your memories and tasks are preserved in `.ai-team/memory/` and `tasks/`
+3. Your memories and tasks are preserved in `.amazing-team/memory/` and `tasks/`
 
 ### "CI fails after migration"
 
