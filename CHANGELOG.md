@@ -5,6 +5,26 @@ All notable changes to the AmazingTeam will be documented in this file.
 The format is based on [Keep a Changelog](https://keepchangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.13] - 2026-03-19
+
+### Fixed
+
+- **Critical Fix**: GitHub Actions workflow now copies AGENTS.md and .opencode to user project
+- Added `copyAgentsMd()` and `copyOpenCodeDir()` functions in `setup.js`
+- Fixed `templates/opencode.jsonc`: Updated schema URL to `config.json`, removed unused fields
+- Updated init next steps: Users must run `amazingteam local` before `opencode`
+
+### Why This Was Critical
+
+Without AGENTS.md and .opencode/ in the user project, OpenCode would fail with:
+```
+ERROR: Cannot read "AGENTS.md" - file not found
+```
+
+Now the workflow properly copies these files from the downloaded foundation.
+
+---
+
 ## [3.0.12] - 2026-03-19
 
 ### Fixed

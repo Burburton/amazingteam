@@ -404,13 +404,15 @@ module_scope: []
     log('\n✅ AmazingTeam initialized successfully!\n', 'green');
     
     log('Next steps:', 'cyan');
-    log('  1. Run OpenCode in this directory:');
+    log('  1. Download foundation for local development:');
+    log('     npx amazingteam local');
+    log('  2. Run OpenCode:');
     log('     opencode');
-    log('  2. Configure your LLM provider:');
+    log('  3. Configure your LLM provider:');
     log('     /connect    - Add API credentials');
     log('     /models     - Select a model');
-    log('  3. Review amazingteam.config.yaml');
-    log('  4. Create your first issue!\n');
+    log('  4. Review amazingteam.config.yaml');
+    log('  5. Create your first issue!\n');
     
     log('Configuration:', 'cyan');
     log(`  Project: ${projectName}`);

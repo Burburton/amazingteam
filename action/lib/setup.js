@@ -157,6 +157,94 @@ function copyTaskTemplates(foundationDir, projectDir) {
 }
 
 /**
+ * Copy AGENTS.md from foundation to project
+ * @param {string} foundationDir - Foundation directory
+ * @param {string} projectDir - Project directory
+ * @returns {boolean} Whether file was copied
+ */
+function copyAgentsMd(foundationDir, projectDir) {
+  const srcPath = path.join(foundationDir, 'AGENTS.md');
+  const destPath = path.join(projectDir, 'AGENTS.md');
+  
+  // Don't overwrite if user has their own AGENTS.md
+  if (fs.existsSync(destPath)) {
+    console.log('AGENTS.md already exists in project, skipping');
+    return false;
+  }
+  
+  if (fs.existsSync(srcPath)) {
+    fs.copyFileSync(srcPath, destPath);
+    console.log('Copied AGENTS.md to project');
+    return true;
+  }
+  
+  console.log('AGENTS.md not found in foundation');
+  return false;
+}
+
+/**
+ * Copy .opencode directory from foundation to project
+ * @param {string} foundationDir - Foundation directory
+ * @param {string} projectDir - Project directory
+ * @returns {string[]} Copied items
+ */
+function copyOpenCodeDir(foundationDir, projectDir) {
+  const srcDir = path.join(foundationDir, '.opencode');
+  const destDir = path.join(projectDir, '.opencode');
+  
+  const copied = [];
+  
+  if (!fs.existsSync(srcDir)) {
+    console.log('.opencode not found in foundation');
+    return copied;
+  }
+  
+  // Create destination directory
+  if (!fs.existsSync(destDir)) {
+    fs.mkdirSync(destDir, { recursive: true });
+  }
+  
+  // Copy subdirectories recursively
+  const subdirs = ['skills', 'commands', 'agents'];
+  
+  for (const subdir of subdirs) {
+    const srcSubdir = path.join(srcDir, subdir);
+    const destSubdir = path.join(destDir, subdir);
+    
+    if (fs.existsSync(srcSubdir)) {
+      copyDirRecursive(srcSubdir, destSubdir);
+      copied.push(`.opencode/${subdir}`);
+    }
+  }
+  
+  return copied;
+}
+
+/**
+ * Copy directory recursively
+ * @param {string} src - Source directory
+ * @param {string} dest - Destination directory
+ */
+function copyDirRecursive(src, dest) {
+  if (!fs.existsSync(dest)) {
+    fs.mkdirSync(dest, { recursive: true });
+  }
+  
+  const entries = fs.readdirSync(src, { withFileTypes: true });
+  
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+    
+    if (entry.isDirectory()) {
+      copyDirRecursive(srcPath, destPath);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
+}
+
+/**
  * Update .gitignore
  * @param {string} projectDir - Project directory
  * @returns {boolean} Whether .gitignore was updated
@@ -203,17 +291,26 @@ function setup(foundationDir, projectDir, config) {
   const createdDirs = initializeRuntimeDirectories(projectDir);
   console.log(`Created ${createdDirs.length} directories`);
   
-  // 2. Copy task templates
+  // 2. Copy AGENTS.md from foundation
+  console.log('Copying AGENTS.md...');
+  const copiedAgentsMd = copyAgentsMd(foundationDir, projectDir);
+  
+  // 3. Copy .opencode directory from foundation
+  console.log('Copying .opencode directory...');
+  const copiedOpenCode = copyOpenCodeDir(foundationDir, projectDir);
+  console.log(`Copied: ${copiedOpenCode.join(', ') || 'none'}`);
+  
+  // 4. Copy task templates
   console.log('Copying task templates...');
   const copiedTemplates = copyTaskTemplates(foundationDir, projectDir);
   console.log(`Copied ${copiedTemplates.length} templates`);
   
-  // 3. Generate opencode.jsonc
+  // 5. Generate opencode.jsonc
   console.log('Generating opencode.jsonc...');
   const opencodePath = generateOpenCodeConfig(foundationDir, projectDir, config);
   console.log(`Generated: ${opencodePath}`);
   
-  // 4. Update .gitignore
+  // 6. Update .gitignore
   console.log('Updating .gitignore...');
   const gitignoreUpdated = updateGitignore(projectDir);
   if (gitignoreUpdated) {
@@ -224,6 +321,8 @@ function setup(foundationDir, projectDir, config) {
   
   return {
     createdDirectories: createdDirs,
+    copiedAgentsMd,
+    copiedOpenCode,
     copiedTemplates,
     opencodePath,
     gitignoreUpdated
@@ -273,6 +372,9 @@ module.exports = {
   initializeRuntimeDirectories,
   generateOpenCodeConfig,
   copyTaskTemplates,
+  copyAgentsMd,
+  copyOpenCodeDir,
+  copyDirRecursive,
   updateGitignore,
   setup,
   verifySetup

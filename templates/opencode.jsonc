@@ -1,7 +1,5 @@
 {
-  "$schema": "https://opencode.ai/schema.json",
-  "model": "{{LLM_MODEL}}",
-  "small_model": "{{LLM_SMALL_MODEL}}",
+  "$schema": "https://opencode.ai/config.json",
   "instructions": ["AGENTS.md"],
   "autoupdate": true,
   "permission": {
