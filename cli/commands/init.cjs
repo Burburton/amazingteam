@@ -59,10 +59,8 @@ project:
 
 llm:
   model: "{{LLM_MODEL}}"
-  small_model: "{{LLM_SMALL_MODEL}}"
-  # Uncomment for custom endpoint:
-  # base_url: "https://your-api-endpoint.com/v1"
-  # api_key_env: "YOUR_API_KEY_ENV_NAME"
+  small_model: "{{LLM_SMALL_MODEL}}"{{LLM_BASE_URL_SECTION}}
+  # API key is set via environment variable: AMAZINGTEAM_API_KEY
 
 amazingteam:
   version: "{{AMAZINGTEAM_VERSION}}"
@@ -277,12 +275,15 @@ async function run(options, positional) {
     // LLM Configuration
     log('\n🤖 LLM Configuration\n', 'cyan');
     
+    let llmBaseUrl = options.llmBaseUrl || '';
+    
     if (!options.llmModel) {
       console.log('  Common models:');
       console.log('    default                     - Use OpenCode default');
       console.log('    bailian-coding-plan/glm-5   - Alibaba Bailian GLM-5');
       console.log('    openai/gpt-4                - OpenAI GPT-4');
       console.log('    anthropic/claude-3-opus     - Anthropic Claude');
+      console.log('    deepseek/deepseek-chat      - DeepSeek');
       llmModel = await question(rl, 'Model', 'default');
     }
     
@@ -290,6 +291,13 @@ async function run(options, positional) {
       llmSmallModel = 'default';
     } else if (!options.llmSmallModel) {
       llmSmallModel = await question(rl, 'Small model (for simple tasks)', llmModel);
+    }
+    
+    // Ask for custom base_url (for private deployments)
+    if (!options.llmBaseUrl && llmModel !== 'default') {
+      console.log('\n  Custom endpoint (leave empty for default):');
+      console.log('    Example: https://your-api.example.com/v1');
+      llmBaseUrl = await question(rl, 'Base URL', '');
     }
     
     if (llmModel !== 'default') {
@@ -346,6 +354,9 @@ async function run(options, positional) {
     
     // Generate amazingteam.config.yaml
     let configContent = getTemplate('amazingteam.config.yaml');
+    const baseUrlSection = llmBaseUrl 
+      ? `\n  base_url: "${llmBaseUrl}"` 
+      : '';
     configContent = configContent
       .replace(/\{\{PROJECT_NAME\}\}/g, projectName)
       .replace(/\{\{PROJECT_DESCRIPTION\}\}/g, description)
@@ -354,6 +365,7 @@ async function run(options, positional) {
       .replace(/\{\{AMAZINGTEAM_VERSION\}\}/g, VERSION)
       .replace(/\{\{LLM_MODEL\}\}/g, llmModel)
       .replace(/\{\{LLM_SMALL_MODEL\}\}/g, llmSmallModel)
+      .replace(/\{\{LLM_BASE_URL_SECTION\}\}/g, baseUrlSection)
       .replace(/\{\{COMMIT_MODE\}\}/g, commitMode)
       .replace(/\{\{REQUIRE_REVIEW\}\}/g, requireReview ? 'true' : 'false')
       .replace(/\{\{BUILD_COMMAND\}\}/g, langDefaults.buildCommand)
@@ -468,12 +480,18 @@ ${COLORS.yellow}Options:${COLORS.reset}
   --framework <fw>         Framework (default: based on language)
   --overlay, -o <name>     Apply overlay (python-backend, web-fullstack, etc.)
   --description, -d <desc> Project description
+  --llm-model <model>      LLM model (e.g., bailian-coding-plan/glm-5)
+  --llm-small-model <model> Small LLM model for simple tasks
+  --llm-base-url <url>     Custom API endpoint URL
+  --commit-mode <mode>     Commit mode: pr or direct (default: pr)
   --force                  Force reinitialization
 
 ${COLORS.yellow}Examples:${COLORS.reset}
   amazingteam init                              Interactive initialization
   amazingteam init my-project                   Create project with defaults
   amazingteam init -l python -o python-backend  Python with overlay
+  amazingteam init --llm-model openai/gpt-4     Use GPT-4
+  amazingteam init --llm-base-url https://api.example.com/v1  Custom endpoint
   amazingteam init --force                      Reinitialize existing project
 
 ${COLORS.yellow}Created Files:${COLORS.reset}
