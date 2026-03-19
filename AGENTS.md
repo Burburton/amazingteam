@@ -6,7 +6,72 @@ This file defines the global rules and guidelines that all AI agents must follow
 
 This is an AI-powered autonomous development team project that uses OpenCode, GitHub, and GitHub Actions to enable semi-autonomous software development.
 
-## Coding Standards
+---
+
+## ⚠️ CRITICAL: Two-Repository Release Process
+
+**This project requires maintaining TWO repositories. Every release MUST update both.**
+
+### Repositories
+
+| Repository | Purpose | URL |
+|------------|---------|-----|
+| `amazingteam` | NPM package, foundation files | https://github.com/Burburton/amazingteam |
+| `amazingteam-action` | GitHub Action for CI/CD | https://github.com/Burburton/amazingteam-action |
+
+### Release Checklist
+
+When releasing a new version (e.g., `3.0.12`):
+
+**1. Update `amazingteam` repository:**
+```bash
+# Update these files:
+VERSION                    # e.g., "3.0.12"
+package.json               # version field
+presets/default.yaml       # amazingteam.version
+CHANGELOG.md               # Add new version section
+```
+
+**2. Update `amazingteam-action` repository:**
+```bash
+git clone https://github.com/Burburton/amazingteam-action.git
+cd amazingteam-action
+
+# Update these files:
+action.yml                 # inputs.version default
+README.md                  # version examples
+
+# Commit, push, and tag:
+git add -A && git commit -m "Update to v3.0.12"
+git push origin main
+git tag v3.0.12
+git push origin v3.0.12
+```
+
+**3. Publish NPM:**
+```bash
+cd amazingteam
+npm publish --otp=<OTP>
+```
+
+### Related Files
+
+- `cli/commands/init.cjs` - `getWorkflowTemplate()` function
+- `cli/commands/migrate.cjs` - workflow template
+- `templates/amazingteam.yml` - reference template
+- `presets/default.yaml` - `github_action` default value
+
+### Default GitHub Action
+
+All users use: `Burburton/amazingteam-action@v1`
+
+Users can override in their `amazingteam.config.yaml`:
+```yaml
+amazingteam:
+  github_action: "your-org/amazingteam-action@v1"
+```
+
+---
 
 ### General Principles
 
