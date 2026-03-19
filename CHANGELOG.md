@@ -5,6 +5,25 @@ All notable changes to the AmazingTeam will be documented in this file.
 The format is based on [Keep a Changelog](https://keepchangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.9] - 2026-03-19
+
+### Fixed
+
+- Fixed model configuration to use OpenCode built-in providers correctly
+- Updated model suggestions to use supported formats:
+  - `openai/gpt-4o`, `anthropic/claude-sonnet-4`, `deepseek/deepseek-chat`, `zai/glm-4.7`
+- Added custom provider configuration generation when `--llm-base-url` is provided
+- Fixed opencode.jsonc schema URL to `https://opencode.ai/config.json`
+
+### Changed
+
+- Updated init prompts to clarify built-in vs custom provider usage
+- For custom providers (e.g., Alibaba Bailian), users now need to:
+  1. Enter model name (e.g., `bailian/glm-5`)
+  2. Enter base URL (e.g., `https://bailian.aliyuncs.com/v1`)
+
+---
+
 ## [3.0.8] - 2026-03-19
 
 ### Added

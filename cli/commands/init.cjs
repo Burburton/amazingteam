@@ -89,9 +89,9 @@ rules:
 `,
 
     'opencode.jsonc': `{
-  "$schema": "https://opencode.ai/schema.json",
+  "$schema": "https://opencode.ai/config.json",
   "model": "{{LLM_MODEL}}",
-  "small_model": "{{LLM_SMALL_MODEL}}",
+  "small_model": "{{LLM_SMALL_MODEL}}"{{PROVIDER_CONFIG}},
   "instructions": ["AGENTS.md"],
   "autoupdate": true,
   "permission": {
@@ -278,12 +278,17 @@ async function run(options, positional) {
     let llmBaseUrl = options.llmBaseUrl || '';
     
     if (!options.llmModel) {
-      console.log('  Common models:');
-      console.log('    default                     - Use OpenCode default');
-      console.log('    bailian-coding-plan/glm-5   - Alibaba Bailian GLM-5');
-      console.log('    openai/gpt-4                - OpenAI GPT-4');
-      console.log('    anthropic/claude-3-opus     - Anthropic Claude');
-      console.log('    deepseek/deepseek-chat      - DeepSeek');
+      console.log('  Common models (OpenCode built-in):');
+      console.log('    default                    - Use OpenCode default');
+      console.log('    openai/gpt-4o              - OpenAI GPT-4o');
+      console.log('    anthropic/claude-sonnet-4  - Anthropic Claude Sonnet 4');
+      console.log('    deepseek/deepseek-chat     - DeepSeek');
+      console.log('    zai/glm-4.7                - Z.AI GLM-4.7 (GLM Coding Plan)');
+      console.log('    openrouter/auto            - OpenRouter (many models)');
+      console.log('');
+      console.log('  For custom providers (e.g., Alibaba Bailian):');
+      console.log('    1. Enter any model name');
+      console.log('    2. Enter your custom base URL');
       llmModel = await question(rl, 'Model', 'default');
     }
     
@@ -377,9 +382,37 @@ async function run(options, positional) {
     
     // Generate opencode.jsonc
     let opencodeContent = getTemplate('opencode.jsonc');
+    
+    // Generate provider config if custom base_url is provided
+    let providerConfig = '';
+    if (llmBaseUrl) {
+      // Extract provider name from model (e.g., "bailian/glm-5" -> "bailian")
+      const providerMatch = llmModel.match(/^([^\/]+)\/(.+)$/);
+      const providerName = providerMatch ? providerMatch[1] : 'custom';
+      const modelName = providerMatch ? providerMatch[2] : llmModel;
+      
+      providerConfig = `
+  "provider": {
+    "${providerName}": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "${providerName.charAt(0).toUpperCase() + providerName.slice(1)}",
+      "options": {
+        "baseURL": "${llmBaseUrl}"
+      }
+    }
+  },`;
+      
+      // Update model to use the custom provider format
+      llmModel = `${providerName}/${modelName}`;
+      if (llmSmallModel !== 'default' && !llmSmallModel.includes('/')) {
+        llmSmallModel = `${providerName}/${llmSmallModel}`;
+      }
+    }
+    
     opencodeContent = opencodeContent
       .replace(/\{\{LLM_MODEL\}\}/g, llmModel)
-      .replace(/\{\{LLM_SMALL_MODEL\}\}/g, llmSmallModel);
+      .replace(/\{\{LLM_SMALL_MODEL\}\}/g, llmSmallModel)
+      .replace(/\{\{PROVIDER_CONFIG\}\}/g, providerConfig);
     
     const opencodePath = path.join(projectPath, 'opencode.jsonc');
     fs.writeFileSync(opencodePath, opencodeContent);
@@ -480,9 +513,9 @@ ${COLORS.yellow}Options:${COLORS.reset}
   --framework <fw>         Framework (default: based on language)
   --overlay, -o <name>     Apply overlay (python-backend, web-fullstack, etc.)
   --description, -d <desc> Project description
-  --llm-model <model>      LLM model (e.g., bailian-coding-plan/glm-5)
+  --llm-model <model>      LLM model (e.g., openai/gpt-4o, zai/glm-4.7)
   --llm-small-model <model> Small LLM model for simple tasks
-  --llm-base-url <url>     Custom API endpoint URL
+  --llm-base-url <url>     Custom API endpoint URL (for custom providers)
   --commit-mode <mode>     Commit mode: pr or direct (default: pr)
   --force                  Force reinitialization
 
@@ -490,8 +523,9 @@ ${COLORS.yellow}Examples:${COLORS.reset}
   amazingteam init                              Interactive initialization
   amazingteam init my-project                   Create project with defaults
   amazingteam init -l python -o python-backend  Python with overlay
-  amazingteam init --llm-model openai/gpt-4     Use GPT-4
-  amazingteam init --llm-base-url https://api.example.com/v1  Custom endpoint
+  amazingteam init --llm-model openai/gpt-4o    Use GPT-4o
+  amazingteam init --llm-model zai/glm-4.7      Use GLM-4.7 (Z.AI)
+  amazingteam init --llm-model bailian/glm-5 --llm-base-url https://bailian.aliyuncs.com/v1
   amazingteam init --force                      Reinitialize existing project
 
 ${COLORS.yellow}Created Files:${COLORS.reset}
