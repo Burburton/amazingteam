@@ -5,6 +5,24 @@ All notable changes to the AmazingTeam will be documented in this file.
 The format is based on [Keep a Changelog](https://keepchangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.10] - 2026-03-19
+
+### Changed
+
+- Simplified init command - no longer prompts for LLM configuration
+- opencode.jsonc now uses minimal template - users configure via OpenCode's `/connect` and `/models` commands
+- Removed `--llm-model`, `--llm-small-model`, `--llm-base-url` options from init
+- Removed LLM-related fields from amazingteam.config.yaml template
+- Updated next steps to guide users to OpenCode's built-in provider configuration
+
+### Why
+
+- OpenCode has excellent built-in provider configuration via `/connect` and `/models`
+- Each user's needs are different - better to let them configure via OpenCode UI
+- Reduces complexity and potential for misconfiguration
+
+---
+
 ## [3.0.9] - 2026-03-19
 
 ### Fixed

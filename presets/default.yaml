@@ -16,7 +16,7 @@ llm:
   api_key_env: ""
 
 amazingteam:
-  version: "3.0.9"
+  version: "3.0.10"
 
 workflow:
   commit_mode: "pr"
