@@ -21,7 +21,7 @@ const { execSync } = require('child_process');
  */
 
 const DEFAULT_REGISTRY = 'https://registry.npmjs.org';
-const GITHUB_REPO = 'your-org/amazingteam';
+const GITHUB_REPO = 'Burburton/amazingteam';
 const DEFAULT_CACHE_DIR = path.join(process.env.HOME || process.env.USERPROFILE, '.amazing-team-cache');
 const MAX_RETRIES = 3;
 const TIMEOUT = 60000; // 60 seconds

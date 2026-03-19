@@ -5,6 +5,20 @@ All notable changes to the AmazingTeam will be documented in this file.
 The format is based on [Keep a Changelog](https://keepchangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.12] - 2026-03-19
+
+### Fixed
+
+- Fixed `downloader.js`: Changed `GITHUB_REPO` from `your-org/amazingteam` to `Burburton/amazingteam`
+- Fixed `setup.js`: Updated opencode.jsonc template schema URL to `https://opencode.ai/config.json`
+- Simplified default opencode.jsonc template (removed unused template variables)
+
+### Changed
+
+- Added release process documentation to `AGENTS.md` (critical section)
+
+---
+
 ## [3.0.11] - 2026-03-19
 
 ### Added

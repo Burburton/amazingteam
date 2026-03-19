@@ -112,14 +112,7 @@ function generateOpenCodeConfig(foundationDir, projectDir, config) {
  */
 function getDefaultOpenCodeTemplate() {
   return `{
-  "$schema": "https://opencode.ai/schema.json",
-  "version": "{{AI_TEAM_VERSION}}",
-  "project": {
-    "name": "{{PROJECT_NAME}}",
-    "description": "{{PROJECT_DESCRIPTION}}",
-    "language": "{{LANGUAGE}}",
-    "framework": "{{FRAMEWORK}}"
-  },
+  "$schema": "https://opencode.ai/config.json",
   "instructions": ["AGENTS.md"],
   "autoupdate": true,
   "permission": {
