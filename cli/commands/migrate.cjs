@@ -190,13 +190,13 @@ jobs:
           git config --global user.name "opencode-bot"
           git config --global user.email "opencode-bot@users.noreply.github.com"
       - name: Setup AmazingTeam
-        uses: Burburton/amazingteam-action@v${VERSION}
+        uses: Burburton/amazingteam-action@v1
         with:
           version: '${VERSION}'
+          config: 'amazingteam.config.yaml'
       - name: Run OpenCode
         uses: anomalyco/opencode/github@latest
         env:
-          AMAZINGTEAM_API_KEY: \${{ secrets.AMAZINGTEAM_API_KEY }}
           GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
 `;
   

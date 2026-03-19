@@ -7,6 +7,7 @@
 #   {{PROJECT_DESCRIPTION}} - Project description
 #
 # After running `amazingteam init`, these variables will be replaced with actual values.
+# You can change the GitHub Action reference if using your own fork.
 
 name: AmazingTeam
 
@@ -45,9 +46,9 @@ jobs:
           git config --global user.email "opencode-bot@users.noreply.github.com"
 
       # Setup AmazingTeam Foundation
-      # Version is locked to ensure reproducible builds
+      # Change this if using your own fork of amazingteam-action
       - name: Setup AmazingTeam
-        uses: Burburton/amazingteam-action@v{{AMAZINGTEAM_VERSION}}
+        uses: Burburton/amazingteam-action@v1
         with:
           version: '{{AMAZINGTEAM_VERSION}}'
           config: 'amazingteam.config.yaml'
@@ -58,13 +59,7 @@ jobs:
       - name: Run OpenCode
         uses: anomalyco/opencode/github@latest
         env:
-          # Required: Your AI provider API key
-          AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          model: bailian-coding-plan/glm-5
-          # Or use other supported models:
-          # model: openai/gpt-4
 
   # Optional: CI check on AI-created PRs
   amazingteam-ci:

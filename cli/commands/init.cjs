@@ -59,6 +59,8 @@ project:
 
 amazingteam:
   version: "{{AMAZINGTEAM_VERSION}}"
+  # GitHub Action for CI/CD (change if using your own fork)
+  github_action: "Burburton/amazingteam-action@v1"
 
 workflow:
   commit_mode: "{{COMMIT_MODE}}"
@@ -117,7 +119,7 @@ node_modules/
   return templates[name] || '';
 }
 
-function getWorkflowTemplate(version) {
+function getWorkflowTemplate(githubAction, version) {
   return `# AmazingTeam GitHub Action Workflow
 # This workflow enables AI-powered development in your repository
 
@@ -157,7 +159,7 @@ jobs:
           git config --global user.email "opencode-bot@users.noreply.github.com"
 
       - name: Setup AmazingTeam
-        uses: Burburton/amazingteam-action@v${version}
+        uses: ${githubAction}
         with:
           version: '${version}'
           config: 'amazingteam.config.yaml'
@@ -265,6 +267,7 @@ async function run(options, positional) {
     
     let commitMode = options.commitMode;
     let requireReview = options.requireReview;
+    let githubAction = options.githubAction || 'Burburton/amazingteam-action@v1';
     
     if (!options.commitMode) {
       console.log('  Commit modes:');
@@ -277,6 +280,14 @@ async function run(options, positional) {
     if (commitMode === 'pr' && options.requireReview === undefined) {
       const reviewAnswer = await question(rl, 'Require human review before merge? (y/n)', 'y');
       requireReview = reviewAnswer.toLowerCase() !== 'n';
+    }
+    
+    if (!options.githubAction) {
+      console.log('\n  GitHub Action for CI/CD:');
+      console.log('    Default: Burburton/amazingteam-action@v1');
+      console.log('    Change this only if using your own fork');
+      const actionAnswer = await question(rl, 'GitHub Action', 'Burburton/amazingteam-action@v1');
+      githubAction = actionAnswer || 'Burburton/amazingteam-action@v1';
     }
     
     const langDefaults = getLanguageDefaults(language);
@@ -334,7 +345,7 @@ async function run(options, positional) {
     
     // Generate workflow
     const workflowPath = path.join(projectPath, '.github', 'workflows', 'amazingteam.yml');
-    fs.writeFileSync(workflowPath, getWorkflowTemplate(VERSION));
+    fs.writeFileSync(workflowPath, getWorkflowTemplate(githubAction, VERSION));
     
     // Update .gitignore
     log('📝 Updating .gitignore...', 'blue');

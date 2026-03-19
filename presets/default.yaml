@@ -16,7 +16,8 @@ llm:
   api_key_env: ""
 
 amazingteam:
-  version: "3.0.10"
+  version: "3.0.11"
+  github_action: "Burburton/amazingteam-action@v1"
 
 workflow:
   commit_mode: "pr"

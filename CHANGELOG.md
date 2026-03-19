@@ -5,6 +5,30 @@ All notable changes to the AmazingTeam will be documented in this file.
 The format is based on [Keep a Changelog](https://keepchangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.11] - 2026-03-19
+
+### Added
+
+- Added `github_action` configuration option in `amazingteam.config.yaml`
+- Added interactive prompt for GitHub Action during `amazingteam init`
+- Default: `Burburton/amazingteam-action@v1`
+- Users can specify their own fork if needed
+
+### Changed
+
+- Workflow template now uses the configured GitHub Action
+- Updated `templates/amazingteam.yml` with clearer documentation
+- Removed hardcoded `AMAZINGTEAM_API_KEY` from workflow (users configure via OpenCode)
+
+### Note for Maintainers
+
+When releasing a new version, remember to also update:
+1. `Burburton/amazingteam-action` repository
+2. Tag new version (e.g., `v3.0.11`)
+3. Update default tag reference if needed
+
+---
+
 ## [3.0.10] - 2026-03-19
 
 ### Changed
