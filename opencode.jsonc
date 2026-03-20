@@ -5,6 +5,7 @@
   "default_agent": "build",
   "instructions": ["AGENTS.md"],
   "autoupdate": true,
+  "plugin": ["superpowers@git+https://github.com/obra/superpowers.git"],
   "permission": {
     "edit": "ask",
     "bash": "ask"
