@@ -34,6 +34,14 @@ jobs:
       issues: write
     
     steps:
+      - name: React to comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Add 👀 reaction to show we're working on it
+          gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions \
+            -f content='eyes' || true
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -57,9 +65,42 @@ jobs:
 
       # Run OpenCode with AmazingTeam capabilities
       - name: Run OpenCode
+        id: opencode
         uses: anomalyco/opencode/github@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Post summary
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get issue number
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
+          
+          # Check if a PR was created
+          PR_URL=""
+          if git log -1 --pretty=%B | grep -q "Pull Request"; then
+            PR_URL=$(git log -1 --pretty=%B | grep -oE 'https://github.com/[^ ]+pull/[0-9]+' || true)
+          fi
+          
+          # Check for open PRs by opencode-bot
+          if [ -z "$PR_URL" ]; then
+            PR_URL=$(gh pr list --author opencode-bot --state open --json url -q '.[0].url' 2>/dev/null || true)
+          fi
+          
+          # Build comment body
+          COMMENT_BODY="## ✅ AmazingTeam Workflow Complete"
+          
+          if [ -n "$PR_URL" ]; then
+            COMMENT_BODY+="\n\n📎 **Pull Request:** ${PR_URL}"
+          else
+            COMMENT_BODY+="\n\nNo pull request was created. Check the logs for details."
+          fi
+          
+          # Post comment to issue
+          if [ -n "$ISSUE_NUMBER" ]; then
+            echo "$COMMENT_BODY" | gh issue comment "$ISSUE_NUMBER" --body-file -
+          fi
 
   # Optional: CI check on AI-created PRs
   amazingteam-ci:

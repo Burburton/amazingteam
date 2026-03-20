@@ -2,8 +2,23 @@
 
 All notable changes to the AmazingTeam will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepchangelog.com/en/1.0.0/),
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [3.0.14] - 2026-03-20
+
+### Added
+
+- **Workflow UX Improvements**:
+  - AI now adds 👀 reaction to comment when starting to work (visual feedback)
+  - AI posts summary comment to issue when workflow completes
+  - Summary includes PR link if a pull request was created
+
+### Fixed
+
+- Removed unused `llmBaseUrl` variable reference in `init.cjs`
+
+---
 
 ## [3.0.13] - 2026-03-19
 
