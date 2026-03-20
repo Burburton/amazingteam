@@ -88,18 +88,23 @@ jobs:
             PR_URL=$(gh pr list --author opencode-bot --state open --json url -q '.[0].url' 2>/dev/null || true)
           fi
           
-          # Build comment body
-          COMMENT_BODY="## ✅ AmazingTeam Workflow Complete"
-          
-          if [ -n "$PR_URL" ]; then
-            COMMENT_BODY+="\n\n📎 **Pull Request:** ${PR_URL}"
-          else
-            COMMENT_BODY+="\n\nNo pull request was created. Check the logs for details."
-          fi
-          
           # Post comment to issue
           if [ -n "$ISSUE_NUMBER" ]; then
-            echo "$COMMENT_BODY" | gh issue comment "$ISSUE_NUMBER" --body-file -
+            if [ -n "$PR_URL" ]; then
+              gh issue comment "$ISSUE_NUMBER" --body "$(cat <<EOF
+          ## ✅ AmazingTeam Workflow Complete
+          
+          📎 **Pull Request:** ${PR_URL}
+          EOF
+          )"
+            else
+              gh issue comment "$ISSUE_NUMBER" --body "$(cat <<EOF
+          ## ✅ AmazingTeam Workflow Complete
+          
+          No pull request was created. Check the logs for details.
+          EOF
+          )"
+            fi
           fi
 
   # Optional: CI check on AI-created PRs
