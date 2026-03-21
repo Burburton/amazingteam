@@ -36,6 +36,9 @@ Located in `.opencode/skills/`:
 | regression-checklist | Prevent regressions | QA, Reviewer |
 | release-readiness-check | Validate releases | Reviewer |
 | safe-refactor-checklist | Safe refactoring | Reviewer |
+| **github-integration** | GitHub API operations | All agents |
+| **release-automation** | Version release workflow | Reviewer, Planner |
+| **documentation-sync** | Keep docs synchronized | Developer, Reviewer |
 
 ## Usage
 
