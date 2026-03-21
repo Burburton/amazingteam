@@ -254,13 +254,13 @@ jobs:
           # Escape the prompt for JSON
           ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs '.')
           
-          # Use Bailian/Anthropic compatible API
+          # Use Bailian/Anthropic compatible API with glm-5 (more stable)
           RESULT=$(curl -s -X POST "https://coding.dashscope.aliyuncs.com/apps/anthropic/v1/messages" \
             -H "x-api-key: $AMAZINGTEAM_API_KEY" \
             -H "anthropic-version: 2023-06-01" \
             -H "Content-Type: application/json" \
             -d "{
-              \"model\": \"qwen3.5-plus\",
+              \"model\": \"glm-5\",
               \"max_tokens\": 1000,
               \"messages\": [{\"role\": \"user\", \"content\": $ESCAPED_PROMPT}]
             }" 2>&1 || echo '{"content":[{"text":"{\"subtasks\":[]}"}]}')
