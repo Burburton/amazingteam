@@ -300,7 +300,7 @@ jobs:
               
               echo "Creating issue: $ST_TITLE (role: $ST_ROLE)"
               
-              URL=$(gh issue create --title "$ST_TITLE" --body "Parent: #$PARENT_NUM\nRole: $ST_ROLE\nPriority: $ST_PRIO" --label "type:subtask,role:$ST_ROLE,status:pending" 2>&1 || echo "")
+              URL=$(gh issue create --title "$ST_TITLE" --body "Parent: #$PARENT_NUM\nRole: $ST_ROLE\nPriority: $ST_PRIO" 2>&1 || echo "")
               
               if [ -n "$URL" ] && [[ "$URL" == https://* ]]; then
                 ST_NUM=$(echo "$URL" | grep -oP '\d+$')
