@@ -324,9 +324,11 @@ jobs:
           echo "First to execute: #$FIRST"
           echo "All issues: $ALL_ISSUES"
           
+          ALL_ISSUES_COMPACT=$(echo "$ALL_ISSUES" | jq -c '.')
+          
           echo "first_subtask=$FIRST" >> $GITHUB_OUTPUT
           echo "subtask_count=$COUNT" >> $GITHUB_OUTPUT
-          echo "all_subtasks=$ALL_ISSUES" >> $GITHUB_OUTPUT
+          echo "all_subtasks=$ALL_ISSUES_COMPACT" >> $GITHUB_OUTPUT
           
           gh issue comment "$PARENT_NUM" --body "## Decomposed: $COUNT subtasks\n\nStarting with first subtask..."
 
