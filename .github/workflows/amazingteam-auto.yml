@@ -289,7 +289,7 @@ jobs:
           TITLE=$(echo "$DATA" | jq -r '.title')
           BODY=$(echo "$DATA" | jq -r '.body')
           
-          PROMPT="Task: $TITLE. Description: $(echo "$BODY" | head -c 300 | tr '\n' ' '). Decompose into 2-5 subtasks with dependencies. Output ONLY JSON: {\"subtasks\":[{\"title\":\"...\",\"role\":\"architect|developer|qa\",\"depends_on\":[]}]}. Dependencies use index (0=first). Empty depends_on means no dependencies."
+          PROMPT="Decompose this task into ATOMIC subtasks (5-10 small tasks, each completable in 5-15 minutes). Task: $TITLE. Desc: $(echo "$BODY" | head -c 300 | tr '\n' ' '). Rules: 1) Each subtask = ONE specific action on ONE file/component 2) Break 'implement X' into: create model, add endpoint, add validation, write tests 3) Order: design -> core -> tests. Output JSON: {\"subtasks\":[{\"title\":\"[Action] for [Component]\",\"role\":\"architect|developer|qa\",\"depends_on\":[]}]}. depends_on uses index 0=first task."
           
           ESCAPED=$(echo "$PROMPT" | jq -Rs '.')
           
@@ -335,7 +335,7 @@ jobs:
             echo "Parsed JSON directly"
           else
             echo "Warning: Using default decomposition"
-            JSON='{"subtasks":[{"title":"Analyze and design","role":"architect","depends_on":[]},{"title":"Implement solution","role":"developer","depends_on":[0]},{"title":"Test and validate","role":"qa","depends_on":[1]}]}'
+            JSON='{"subtasks":[{"title":"Analyze requirements and design approach","role":"architect","depends_on":[]},{"title":"Create core data structures","role":"developer","depends_on":[0]},{"title":"Implement main logic","role":"developer","depends_on":[1]},{"title":"Add error handling and edge cases","role":"developer","depends_on":[2]},{"title":"Write unit tests","role":"qa","depends_on":[3]},{"title":"Integration test and validation","role":"qa","depends_on":[4]}]}'
           fi
           
           echo ""
@@ -533,7 +533,7 @@ jobs:
           if [ ! -f "tasks/issue-$ISSUE_NUM/context.md" ]; then
             mkdir -p "tasks/issue-$ISSUE_NUM"
             cat > "tasks/issue-$ISSUE_NUM/context.md" << EOF
-          # Task: $TITLE
+          # Atomic Task: $TITLE
           
           ## Issue Number
           $ISSUE_NUM
@@ -544,11 +544,18 @@ jobs:
           ## Dependencies
           $DEPS
           
-          ## Instructions for AI
+          ## Important: This is an ATOMIC task
+          - This is ONE small task in a larger workflow
+          - Focus ONLY on what's described above
+          - Do NOT implement unrelated features
+          - Keep changes minimal and focused
+          - Estimated time: 5-15 minutes
+          
+          ## Instructions
           1. Read the task description above
           2. Create a branch: \`ai/issue-$ISSUE_NUM\`
-          3. Implement the changes
-          4. Create a PR
+          3. Implement ONLY what's needed for this task
+          4. Create a PR with minimal changes
           5. Reference this issue: "Closes #$ISSUE_NUM"
           EOF
             echo "Created context file"
