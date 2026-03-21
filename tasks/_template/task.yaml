@@ -4,6 +4,7 @@ type: feature
 status: backlog
 priority: medium
 owner_role: planner
+level: 0
 depends_on: []
 blocked_by: []
 acceptance_criteria:
@@ -30,35 +31,55 @@ subtasks:
     type: analysis
     owner_role: architect
     status: pending
+    level: 1
+    execution_order: 1
     depends_on: []
+    acceptance_criteria:
+      - Analysis document created
+      - Architecture decisions documented
+    
   - id: issue-000-subtask-02
     github_issue: null
     title: "[Subtask] Design"
     type: design
     owner_role: architect
     status: pending
+    level: 1
+    execution_order: 2
     depends_on: [issue-000-subtask-01]
+    acceptance_criteria:
+      - Design document created
+      - API specification defined
+    
   - id: issue-000-subtask-03
     github_issue: null
     title: "[Subtask] Implementation"
     type: implementation
     owner_role: developer
     status: pending
+    level: 1
+    execution_order: 3
     depends_on: [issue-000-subtask-02]
+    acceptance_criteria:
+      - Code implemented
+      - Unit tests pass
+      
   - id: issue-000-subtask-04
     github_issue: null
     title: "[Subtask] Validation"
     type: validation
     owner_role: qa
     status: pending
+    level: 1
+    execution_order: 4
     depends_on: [issue-000-subtask-03]
-  - id: issue-000-subtask-05
-    github_issue: null
-    title: "[Subtask] Review"
-    type: review
-    owner_role: reviewer
-    status: pending
-    depends_on: [issue-000-subtask-04]
+    acceptance_criteria:
+      - All tests pass
+      - No regressions
+
+parallel_config:
+  max_concurrent: 3
+  strategy: dependency_aware
 
 notes: |
   Additional notes about this task.

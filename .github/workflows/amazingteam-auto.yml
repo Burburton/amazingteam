@@ -4,219 +4,251 @@ on:
   issue_comment:
     types: [created]
   issues:
-    types: [labeled]
+    types: [labeled, closed]
   pull_request:
     types: [closed]
 
 env:
   OPENCODE_MODEL: bailian-coding-plan/glm-5
+  MAX_PARALLEL: 3
 
 jobs:
-  triage:
-    if: github.event_name == 'issues' && github.event.label.name == 'ai:process' || github.event_name == 'issue_comment' && contains(github.event.comment.body, '/ai') || github.event_name == 'issue_comment' && contains(github.event.comment.body, '/oc') || github.event_name == 'issue_comment' && contains(github.event.comment.body, '/opencode')
+  planner:
+    if: |
+      github.event_name == 'issues' && github.event.label.name == 'ai:process' ||
+      github.event_name == 'issue_comment' && contains(github.event.comment.body, '/ai') ||
+      github.event_name == 'issue_comment' && contains(github.event.comment.body, '/oc') ||
+      github.event_name == 'issue_comment' && contains(github.event.comment.body, '/opencode') ||
+      github.event_name == 'pull_request' && github.event.pull_request.merged == true ||
+      github.event_name == 'issues' && github.event.action == 'closed'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     outputs:
-      needs_decomposition: ${{ steps.analyze.outputs.needs_decomposition }}
-      parent_issue: ${{ steps.analyze.outputs.parent_issue }}
+      action: ${{ steps.decide.outputs.action }}
+      issue_num: ${{ steps.decide.outputs.issue_num }}
+      parent_issue: ${{ steps.decide.outputs.parent_issue }}
       commit_mode: ${{ steps.config.outputs.commit_mode }}
+      ready_subtasks: ${{ steps.decide.outputs.ready_subtasks }}
     permissions:
       issues: write
       contents: read
+      pull-requests: read
     steps:
-      - name: "Start"
+      - name: "Planner Start"
         run: |
           echo "============================================"
-          echo "  AmazingTeam Auto-Decomposition Workflow"
+          echo "  AmazingTeam Planner - Orchestrator"
           echo "============================================"
           echo "Event: ${{ github.event_name }}"
-          echo "Repo: ${{ github.repository }}"
+          echo "Action: ${{ github.event.action }}"
+
+      - uses: actions/checkout@v4
+
+      - name: "Read Config"
+        id: config
+        run: |
+          if [ -f "amazingteam.config.yaml" ]; then
+            MODE=$(grep -A10 "workflow:" amazingteam.config.yaml 2>/dev/null | grep "commit_mode:" | head -1 | awk '{print $2}' | tr -d '"' || echo "pr")
+            MAX_PAR=$(grep -A10 "workflow:" amazingteam.config.yaml 2>/dev/null | grep "max_concurrent:" | head -1 | awk '{print $2}' || echo "3")
+          else
+            MODE="pr"
+            MAX_PAR="3"
+          fi
+          echo "Commit Mode: $MODE"
+          echo "Max Parallel: $MAX_PAR"
+          echo "commit_mode=$MODE" >> $GITHUB_OUTPUT
+          echo "max_parallel=$MAX_PAR" >> $GITHUB_OUTPUT
+
+      - name: "Decide Action"
+        id: decide
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo ""
+          echo "=== ANALYZING EVENT ==="
+          
+          EVENT="${{ github.event_name }}"
+          ACTION="${{ github.event.action }}"
+          
+          case "$EVENT" in
+            issue_comment)
+              ISSUE_NUM="${{ github.event.issue.number }}"
+              COMMENT="${{ github.event.comment.body }}"
+              
+              echo "Issue: #$ISSUE_NUM"
+              echo "Comment: $COMMENT"
+              
+              DATA=$(gh issue view "$ISSUE_NUM" --json title,body,labels 2>/dev/null || echo '{}')
+              TITLE=$(echo "$DATA" | jq -r '.title // "Unknown"')
+              IS_SUBTASK=$(echo "$DATA" | jq -r '.body // ""' | grep -qi "parent: #" && echo "true" || echo "false")
+              
+              echo "Title: $TITLE"
+              echo "Is Subtask: $IS_SUBTASK"
+              
+              if [ "$IS_SUBTASK" = "true" ]; then
+                PARENT=$(echo "$DATA" | jq -r '.body // ""' | grep -oiE 'parent: #[0-9]+' | grep -oE '[0-9]+' | head -1)
+                echo "Parent: #$PARENT"
+                echo "action=execute_subtask" >> $GITHUB_OUTPUT
+                echo "issue_num=$ISSUE_NUM" >> $GITHUB_OUTPUT
+                echo "parent_issue=$PARENT" >> $GITHUB_OUTPUT
+              else
+                echo "action=triage" >> $GITHUB_OUTPUT
+                echo "issue_num=$ISSUE_NUM" >> $GITHUB_OUTPUT
+                echo "parent_issue=$ISSUE_NUM" >> $GITHUB_OUTPUT
+              fi
+              ;;
+              
+            issues)
+              if [ "$ACTION" = "labeled" ] && [ "${{ github.event.label.name }}" = "ai:process" ]; then
+                ISSUE_NUM="${{ github.event.issue.number }}"
+                echo "Label trigger on #$ISSUE_NUM"
+                echo "action=triage" >> $GITHUB_OUTPUT
+                echo "issue_num=$ISSUE_NUM" >> $GITHUB_OUTPUT
+                echo "parent_issue=$ISSUE_NUM" >> $GITHUB_OUTPUT
+              elif [ "$ACTION" = "closed" ]; then
+                ISSUE_NUM="${{ github.event.issue.number }}"
+                echo "Issue #$ISSUE_NUM closed - checking for parent"
+                
+                DATA=$(gh issue view "$ISSUE_NUM" --json body 2>/dev/null || echo '{}')
+                PARENT=$(echo "$DATA" | jq -r '.body // ""' | grep -oiE 'parent: #[0-9]+' | grep -oE '[0-9]+' | head -1)
+                
+                if [ -n "$PARENT" ]; then
+                  echo "Subtask closed, checking parent #$PARENT for more work"
+                  echo "action=check_parent" >> $GITHUB_OUTPUT
+                  echo "issue_num=$ISSUE_NUM" >> $GITHUB_OUTPUT
+                  echo "parent_issue=$PARENT" >> $GITHUB_OUTPUT
+                else
+                  echo "Parent issue closed, no action needed"
+                  echo "action=none" >> $GITHUB_OUTPUT
+                fi
+              else
+                echo "action=none" >> $GITHUB_OUTPUT
+              fi
+              ;;
+              
+            pull_request)
+              PR_NUM="${{ github.event.pull_request.number }}"
+              PR_BODY="${{ github.event.pull_request.body }}"
+              MERGED="${{ github.event.pull_request.merged }}"
+              AUTHOR="${{ github.event.pull_request.user.login }}"
+              
+              echo "PR: #$PR_NUM"
+              echo "Merged: $MERGED"
+              echo "Author: $AUTHOR"
+              
+              if [ "$MERGED" = "true" ] && [ "$AUTHOR" = "opencode-bot" ]; then
+                SUBTASK=$(echo "$PR_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | grep -oE '[0-9]+' | head -1)
+                
+                if [ -n "$SUBTASK" ]; then
+                  echo "PR closes subtask #$SUBTASK"
+                  
+                  DATA=$(gh issue view "$SUBTASK" --json body 2>/dev/null || echo '{}')
+                  PARENT=$(echo "$DATA" | jq -r '.body // ""' | grep -oiE 'parent: #[0-9]+' | grep -oE '[0-9]+' | head -1)
+                  
+                  echo "action=pr_merged" >> $GITHUB_OUTPUT
+                  echo "issue_num=$SUBTASK" >> $GITHUB_OUTPUT
+                  echo "parent_issue=$PARENT" >> $GITHUB_OUTPUT
+                else
+                  echo "action=none" >> $GITHUB_OUTPUT
+                fi
+              else
+                echo "action=none" >> $GITHUB_OUTPUT
+              fi
+              ;;
+              
+            *)
+              echo "Unknown event: $EVENT"
+              echo "action=none" >> $GITHUB_OUTPUT
+              ;;
+          esac
 
       - name: "React"
         if: github.event_name == 'issue_comment'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: "gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions -f content='eyes' || true"
+        run: gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions -f content='eyes' || true
 
+  triage:
+    needs: planner
+    if: needs.planner.outputs.action == 'triage'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      needs_decomposition: ${{ steps.analyze.outputs.needs_decomposition }}
+      complexity: ${{ steps.analyze.outputs.complexity }}
+    permissions:
+      issues: write
+      contents: read
+    steps:
       - uses: actions/checkout@v4
 
       - uses: Burburton/amazingteam-action@v3.0.23
         with:
           version: '3.0.23'
 
-      - name: "Read Config"
-        id: config
-        run: |
-          echo "Reading workflow configuration..."
-          
-          if [ -f "amazingteam.config.yaml" ]; then
-            MODE=$(grep -A5 "workflow:" amazingteam.config.yaml 2>/dev/null | grep "commit_mode:" | head -1 | awk '{print $2}' | tr -d '"' || echo "pr")
-          elif [ -f "amazing-team.config.yaml" ]; then
-            MODE=$(grep -A5 "workflow:" amazing-team.config.yaml 2>/dev/null | grep "commit_mode:" | head -1 | awk '{print $2}' | tr -d '"' || echo "pr")
-          else
-            MODE="pr"
-          fi
-          
-          echo "Commit Mode: $MODE"
-          echo "commit_mode=$MODE" >> $GITHUB_OUTPUT
-
-      - name: "Analyze"
+      - name: "Analyze Complexity"
         id: analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
-          ISSUE_NUM: ${{ github.event.issue.number }}
+          ISSUE_NUM: ${{ needs.planner.outputs.issue_num }}
         run: |
-          echo ""
-          echo "=== PHASE 1: TRIAGE ==="
-          echo ""
-          echo "Fetching issue #$ISSUE_NUM..."
+          echo "=== TRIAGE: #$ISSUE_NUM ==="
           
           DATA=$(gh issue view "$ISSUE_NUM" --json title,body)
           TITLE=$(echo "$DATA" | jq -r '.title')
           BODY=$(echo "$DATA" | jq -r '.body')
           
           echo "Title: $TITLE"
-          echo "Body length: $(echo "$BODY" | wc -c) chars"
+          echo "Body: $(echo "$BODY" | wc -c) chars"
           
-          ANALYSIS_CONTENT="$TITLE\n\n$BODY"
-          REFERENCED_FILES=""
+          FUNCTIONAL_AREAS=0
+          ANALYSIS_CONTENT="$TITLE $BODY"
           
-          echo ""
-          echo "=== Checking for referenced files ==="
-          
-          REF_PATHS=$(echo "$BODY" | grep -oE '[a-zA-Z0-9_/.-]+\.(md|txt|yaml|yml|json)' | sort -u || echo "")
-          
-          for ref in $REF_PATHS; do
-            if [ -f "$ref" ]; then
-              echo "Found referenced file: $ref"
-              FILE_LINES=$(wc -l < "$ref")
-              FILE_SIZE=$(wc -c < "$ref")
-              echo "  Lines: $FILE_LINES, Size: $FILE_SIZE bytes"
-              
-              if [ "$FILE_LINES" -gt 100 ]; then
-                echo "  Content preview (first 50 lines):"
-                head -50 "$ref" | sed 's/^/    /'
-                echo "  ... (truncated, total $FILE_LINES lines)"
-              else
-                echo "  Full content:"
-                cat "$ref" | sed 's/^/    /'
-              fi
-              
-              REFERENCED_FILES="$REFERENCED_FILES\nFile: $ref ($FILE_LINES lines)\n$(head -200 "$ref")\n"
-              ANALYSIS_CONTENT="$ANALYSIS_CONTENT\n\n--- Referenced File: $ref ---\n$(head -500 "$ref")"
+          for pattern in "database|storage" "api|backend" "frontend|ui" "auth|user" "test|qa" "deploy|ci"; do
+            if echo "$ANALYSIS_CONTENT" | grep -qiE "$pattern"; then
+              FUNCTIONAL_AREAS=$((FUNCTIONAL_AREAS + 1))
             fi
           done
           
-          if [ -z "$REFERENCED_FILES" ]; then
-            echo "No referenced files found in issue body"
-          fi
+          LINES=$(echo "$ANALYSIS_CONTENT" | wc -l)
           
-          echo ""
-          echo "=== Analyzing complexity ==="
-          
-          FUNCTIONAL_AREAS=0
-          
-          if echo "$ANALYSIS_CONTENT" | grep -qiE "database|storage|persistence|model"; then
-            FUNCTIONAL_AREAS=$((FUNCTIONAL_AREAS + 1))
-            echo "  + Database/Storage detected"
-          fi
-          if echo "$ANALYSIS_CONTENT" | grep -qiE "api|endpoint|rest|graphql|backend"; then
-            FUNCTIONAL_AREAS=$((FUNCTIONAL_AREAS + 1))
-            echo "  + API/Backend detected"
-          fi
-          if echo "$ANALYSIS_CONTENT" | grep -qiE "frontend|ui|web|react|vue|component"; then
-            FUNCTIONAL_AREAS=$((FUNCTIONAL_AREAS + 1))
-            echo "  + Frontend/UI detected"
-          fi
-          if echo "$ANALYSIS_CONTENT" | grep -qiE "auth|login|user|permission|security"; then
-            FUNCTIONAL_AREAS=$((FUNCTIONAL_AREAS + 1))
-            echo "  + Authentication/User detected"
-          fi
-          if echo "$ANALYSIS_CONTENT" | grep -qiE "integration|external|third.?party|api.*client"; then
-            FUNCTIONAL_AREAS=$((FUNCTIONAL_AREAS + 1))
-            echo "  + External Integration detected"
-          fi
-          if echo "$ANALYSIS_CONTENT" | grep -qiE "test|testing|qa|coverage"; then
-            FUNCTIONAL_AREAS=$((FUNCTIONAL_AREAS + 1))
-            echo "  + Testing infrastructure detected"
-          fi
-          if echo "$ANALYSIS_CONTENT" | grep -qiE "deploy|ci|cd|pipeline|infrastructure"; then
-            FUNCTIONAL_AREAS=$((FUNCTIONAL_AREAS + 1))
-            echo "  + DevOps/Infrastructure detected"
-          fi
-          
-          CONTENT_LINES=$(echo -e "$ANALYSIS_CONTENT" | wc -l)
-          echo ""
-          echo "Content analysis:"
-          echo "  Total lines: $CONTENT_LINES"
-          echo "  Functional areas: $FUNCTIONAL_AREAS"
-          
-          if [ "$CONTENT_LINES" -gt 300 ] || [ "$FUNCTIONAL_AREAS" -ge 3 ]; then
-            echo ""
-            echo "=== AUTO-CLASSIFY: COMPLEX ==="
-            echo "Reason: Content lines=$CONTENT_LINES (threshold: 300), Functional areas=$FUNCTIONAL_AREAS (threshold: 3)"
+          if [ "$LINES" -gt 200 ] || [ "$FUNCTIONAL_AREAS" -ge 3 ]; then
             NEEDS_DECOMP="true"
             COMPLEXITY="complex"
-            EST=$((FUNCTIONAL_AREAS + 1))
-            REASON="Large scope: $CONTENT_LINES lines of requirements, $FUNCTIONAL_AREAS functional areas"
+            REASON="$LINES lines, $FUNCTIONAL_AREAS functional areas"
           else
-            echo ""
-            echo "Analyzing with AI model: $OPENCODE_MODEL"
-            
-            PROMPT="Classify this GitHub issue. Respond with ONLY a JSON object (no markdown): {\"complexity\":\"simple\" or \"complex\",\"needs_decomposition\":true or false,\"estimated_subtasks\":0-5,\"reason\":\"brief\"}. Content lines: $CONTENT_LINES. Functional areas detected: $FUNCTIONAL_AREAS. Issue Title: $TITLE. Issue Body excerpt: $(echo -e "$ANALYSIS_CONTENT" | head -100 | tr '\n' ' ')"
-            
-            RESULT=$(opencode run --model "$OPENCODE_MODEL" "$PROMPT" 2>&1 || echo '{}')
-            
-            echo "AI Response (first 300 chars):"
-            echo "$RESULT" | head -c 300
-            echo ""
-            
-            JSON=$(echo "$RESULT" | grep -oP '\{[^{}]*\}' | tail -1 || echo '{}')
-            
-            NEEDS_DECOMP=$(echo "$JSON" | jq -r '.needs_decomposition // false')
-            COMPLEXITY=$(echo "$JSON" | jq -r '.complexity // "simple"')
-            EST=$(echo "$JSON" | jq -r '.estimated_subtasks // 0')
-            REASON=$(echo "$JSON" | jq -r '.reason // "N/A"')
+            NEEDS_DECOMP="false"
+            COMPLEXITY="simple"
+            REASON="Small scope"
           fi
           
-          echo ""
-          echo "=== ANALYSIS RESULT ==="
-          echo "  Complexity: $COMPLEXITY"
-          echo "  Decomposition: $NEEDS_DECOMP"
-          echo "  Est. Subtasks: $EST"
-          echo "  Reason: $REASON"
-          echo ""
+          echo "Complexity: $COMPLEXITY"
+          echo "Decomposition: $NEEDS_DECOMP"
           
           echo "needs_decomposition=$NEEDS_DECOMP" >> $GITHUB_OUTPUT
-          echo "parent_issue=$ISSUE_NUM" >> $GITHUB_OUTPUT
+          echo "complexity=$COMPLEXITY" >> $GITHUB_OUTPUT
           
           gh issue edit "$ISSUE_NUM" --add-label "complexity:$COMPLEXITY" || true
           
           if [ "$NEEDS_DECOMP" = "true" ]; then
-            echo "Decision: COMPLEX -> Will decompose"
-            gh issue comment "$ISSUE_NUM" --body "## Triage: Complex Task\n\nComplexity: $COMPLEXITY\nContent Lines: $CONTENT_LINES\nFunctional Areas: $FUNCTIONAL_AREAS\nDecomposition: Required\nEst. Subtasks: $EST\nReason: $REASON\n\nCreating sub-issues..."
+            gh issue comment "$ISSUE_NUM" --body "## Triage: Complex\n\n$REASON\n\nDecomposing into subtasks..."
           else
-            echo "Decision: SIMPLE -> Direct execution"
-            gh issue comment "$ISSUE_NUM" --body "## Triage: Simple Task\n\nComplexity: $COMPLEXITY\nReason: $REASON\n\nExecuting directly..."
+            gh issue comment "$ISSUE_NUM" --body "## Triage: Simple\n\nExecuting directly..."
           fi
 
   decompose:
-    needs: triage
+    needs: [planner, triage]
     if: needs.triage.outputs.needs_decomposition == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:
-      first_subtask: ${{ steps.create.outputs.first_subtask }}
-      subtask_count: ${{ steps.create.outputs.subtask_count }}
-      all_subtasks: ${{ steps.create.outputs.all_subtasks }}
+      subtasks: ${{ steps.create.outputs.subtasks }}
+      ready_now: ${{ steps.create.outputs.ready_now }}
     permissions:
       issues: write
       contents: write
     steps:
-      - name: "Start Decomposition"
-        run: "echo '=== PHASE 2: DECOMPOSITION ==='"
-
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -230,208 +262,145 @@ jobs:
         with:
           version: '3.0.23'
 
-      - name: "Create Sub-Issues"
+      - name: "Create Subtasks with Dependencies"
         id: create
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # PAT for triggering new workflows (GITHUB_TOKEN doesn't trigger workflows)
           TRIGGER_TOKEN: ${{ secrets.AMAZINGTEAM_PAT }}
           AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
-          PARENT_NUM: ${{ needs.triage.outputs.parent_issue }}
+          PARENT_NUM: ${{ needs.planner.outputs.issue_num }}
+          MAX_PARALLEL: ${{ env.MAX_PARALLEL }}
         run: |
-          echo ""
-          echo "Fetching parent #$PARENT_NUM..."
+          echo "=== DECOMPOSE: #$PARENT_NUM ==="
           
           DATA=$(gh issue view "$PARENT_NUM" --json title,body)
           TITLE=$(echo "$DATA" | jq -r '.title')
           BODY=$(echo "$DATA" | jq -r '.body')
           
-          echo "Parent: $TITLE"
-          echo ""
-          echo "Decomposing with AI..."
+          PROMPT="Decompose into 2-5 subtasks with dependencies. JSON only: {\"subtasks\":[{\"title\":\"...\",\"role\":\"architect|developer|qa\",\"depends_on\":[]}]}. Dependencies use index (0=first subtask). Task: $TITLE. Desc: $(echo "$BODY" | head -c 300 | tr '\n' ' ')"
           
-          # Create prompt with escaped content
-          PROMPT="Decompose this task into 2-4 subtasks. Respond with ONLY a JSON object (no markdown): {\"subtasks\":[{\"title\":\"[Subtask] Title\",\"role\":\"architect\" or \"developer\" or \"qa\",\"priority\":1-4}]}. Task: $TITLE. Description: $(echo "$BODY" | head -c 500 | tr '\n' ' ' | tr -d '\"')"
+          ESCAPED=$(echo "$PROMPT" | jq -Rs '.')
           
-          # Escape the prompt for JSON
-          ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs '.')
-          
-          # Use Bailian/Anthropic compatible API with glm-5 (more stable)
           RESULT=$(curl -s -X POST "https://coding.dashscope.aliyuncs.com/apps/anthropic/v1/messages" \
             -H "x-api-key: $AMAZINGTEAM_API_KEY" \
             -H "anthropic-version: 2023-06-01" \
             -H "Content-Type: application/json" \
-            -d "{
-              \"model\": \"glm-5\",
-              \"max_tokens\": 1000,
-              \"messages\": [{\"role\": \"user\", \"content\": $ESCAPED_PROMPT}]
-            }" 2>&1 || echo '{"content":[{"text":"{\"subtasks\":[]}"}]}')
+            -d "{\"model\":\"glm-5\",\"max_tokens\":1000,\"messages\":[{\"role\":\"user\",\"content\":$ESCAPED}]}" 2>&1)
           
-          echo "AI Response (first 500 chars):"
-          echo "$RESULT" | head -c 500
-          echo ""
-          
-          CONTENT=$(echo "$RESULT" | jq -r '.content[] | select(.type == "text") | .text // empty' 2>/dev/null | head -1)
-          if [ -z "$CONTENT" ]; then
-            CONTENT=$(echo "$RESULT" | jq -r '.content[0].text // "{\"subtasks\":[]}"' 2>/dev/null || echo '{"subtasks":[]}')
-          fi
+          CONTENT=$(echo "$RESULT" | jq -r '.content[] | select(.type=="text") | .text' 2>/dev/null | head -1)
           JSON=$(echo "$CONTENT" | grep -oP '\{"subtasks".*\}' | head -1 || echo '{"subtasks":[]}')
           
-          echo ""
-          echo "=== DECOMPOSITION PLAN ==="
-          echo "$JSON" | jq -r '.subtasks[]? | "  - \(.title) (\(.role), priority \(.priority // 1))"' 2>/dev/null || echo "  (Could not parse plan)"
-          echo ""
+          echo "Plan:"
+          echo "$JSON" | jq -r '.subtasks[]? | "  - \(.title) (depends: \(.depends_on // []))"'
           
-          FIRST=""
-          COUNT=0
-          ALL_ISSUES="[]"
+          mkdir -p tasks/issue-$PARENT_NUM
           
-          echo "Creating GitHub issues..."
+          cat > tasks/issue-$PARENT_NUM/task.yaml << TASK_EOF
+          id: issue-$PARENT_NUM
+          title: "$TITLE"
+          status: in_progress
+          level: 0
+          github_issue: $PARENT_NUM
           
-          BASE64_ROWS=$(echo "$JSON" | jq -r '.subtasks[]? | @base64' 2>/dev/null) || BASE64_ROWS=""
+          subtasks:
+          TASK_EOF
           
-          if [ -z "$BASE64_ROWS" ]; then
-            echo "No subtasks to create"
-          else
-            while IFS= read -r row; do
-              if [ -z "$row" ]; then continue; fi
-              
-              ST_TITLE=$(echo "$row" | base64 -d | jq -r '.title')
-              ST_ROLE=$(echo "$row" | base64 -d | jq -r '.role')
-              ST_PRIO=$(echo "$row" | base64 -d | jq -r '.priority // 1')
-              
-              echo "Creating issue: $ST_TITLE (role: $ST_ROLE)"
-              
-              URL=$(gh issue create --title "$ST_TITLE" --body "Parent: #$PARENT_NUM\nRole: $ST_ROLE\nPriority: $ST_PRIO" 2>&1 || echo "")
-              
-              if [ -n "$URL" ] && [[ "$URL" == https://* ]]; then
-                ST_NUM=$(echo "$URL" | grep -oP '\d+$')
-                echo "  Created #$ST_NUM: $ST_TITLE"
-                
-                # Add trigger comment to execute subtask automatically
-                # Use PAT if available (GITHUB_TOKEN doesn't trigger new workflows)
-                echo "  Adding trigger comment..."
-                if [ -n "$TRIGGER_TOKEN" ]; then
-                  gh issue comment "$ST_NUM" --body "/oc" --token "$TRIGGER_TOKEN" || echo "  Warning: Could not add trigger comment"
-                else
-                  echo "  Note: AMAZINGTEAM_PAT not set, skipping auto-trigger"
-                  gh issue comment "$ST_NUM" --body "/oc" || echo "  Warning: Could not add trigger comment"
-                fi
-                
-                ALL_ISSUES=$(echo "$ALL_ISSUES" | jq --arg num "$ST_NUM" '. + [$num]')
-                
-                if [ -z "$FIRST" ]; then
-                  FIRST="$ST_NUM"
-                fi
-                COUNT=$((COUNT + 1))
-              else
-                echo "  Failed to create issue: $URL"
-              fi
-            done <<< "$BASE64_ROWS"
-          fi
+          CREATED="[]"
+          READY_NOW="[]"
+          IDX=0
           
-          echo ""
-          echo "=== SUMMARY ==="
-          echo "Total subtasks: $COUNT"
-          echo "First to execute: #$FIRST"
-          echo "All issues: $ALL_ISSUES"
+          for row in $(echo "$JSON" | jq -r '.subtasks[]? | @base64'); do
+            ST_TITLE=$(echo "$row" | base64 -d | jq -r '.title')
+            ST_ROLE=$(echo "$row" | base64 -d | jq -r '.role // "developer"')
+            ST_DEPS=$(echo "$row" | base64 -d | jq -r '.depends_on // []')
+            
+            URL=$(gh issue create --title "$ST_TITLE" --body "Parent: #$PARENT_NUM\nRole: $ST_ROLE\nDependencies: $ST_DEPS")
+            ST_NUM=$(echo "$URL" | grep -oP '\d+$')
+            
+            echo "  Created #$ST_NUM: $ST_TITLE (deps: $ST_DEPS)"
+            
+            CREATED=$(echo "$CREATED" | jq --arg num "$ST_NUM" --arg title "$ST_TITLE" --arg deps "$ST_DEPS" '. + [{"issue": $num, "title": $title, "depends_on": ($deps | fromjson)}]')
+            
+            cat >> tasks/issue-$PARENT_NUM/task.yaml << EOF
+            
+              - issue: $ST_NUM
+                title: "$ST_TITLE"
+                status: pending
+                depends_on: $ST_DEPS
+          EOF
+            
+            if [ "$ST_DEPS" = "[]" ] || [ -z "$ST_DEPS" ]; then
+              READY_NOW=$(echo "$READY_NOW" | jq --arg num "$ST_NUM" '. + [$num]')
+            fi
+            
+            IDX=$((IDX + 1))
+          done
           
-          ALL_ISSUES_COMPACT=$(echo "$ALL_ISSUES" | jq -c '.')
+          echo "" >> tasks/issue-$PARENT_NUM/task.yaml
+          echo "parallel_config:" >> tasks/issue-$PARENT_NUM/task.yaml
+          echo "  max_concurrent: $MAX_PARALLEL" >> tasks/issue-$PARENT_NUM/task.yaml
           
-          echo "first_subtask=$FIRST" >> $GITHUB_OUTPUT
-          echo "subtask_count=$COUNT" >> $GITHUB_OUTPUT
-          echo "all_subtasks=$ALL_ISSUES_COMPACT" >> $GITHUB_OUTPUT
+          git add tasks/
+          git commit -m "feat(task): create task.yaml for #$PARENT_NUM" || true
+          git push || true
           
-          gh issue comment "$PARENT_NUM" --body "## Decomposed: $COUNT subtasks\n\nStarting with first subtask..."
+          echo "subtasks=$CREATED" >> $GITHUB_OUTPUT
+          echo "ready_now=$(echo "$READY_NOW" | jq -c '.')" >> $GITHUB_OUTPUT
+          
+          COUNT=$(echo "$CREATED" | jq 'length')
+          READY_COUNT=$(echo "$READY_NOW" | jq 'length')
+          
+          gh issue comment "$PARENT_NUM" --body "## Decomposed: $COUNT subtasks\n\nReady now: $READY_COUNT\n\nSee tasks/issue-$PARENT_NUM/task.yaml"
 
-  execute-direct:
-    needs: triage
-    if: always() && needs.triage.result == 'success' && needs.triage.outputs.needs_decomposition != 'true'
+  trigger-parallel:
+    needs: [planner, decompose]
+    if: needs.decompose.outputs.ready_now != '[]' && needs.decompose.outputs.ready_now != ''
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 5
     permissions:
       issues: write
-      contents: write
-      pull-requests: write
+      actions: write
     steps:
-      - name: "Start Execution"
-        run: "echo '=== PHASE 2: DIRECT EXECUTION ==='"
-
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - run: |
-          git config --global user.name "opencode-bot"
-          git config --global user.email "opencode-bot@users.noreply.github.com"
-
-      - name: "Trigger OpenCode"
+      - name: "Trigger Ready Subtasks in Parallel"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ISSUE_NUM: ${{ needs.triage.outputs.parent_issue }}
+          TRIGGER_TOKEN: ${{ secrets.AMAZINGTEAM_PAT }}
+          PARENT_NUM: ${{ needs.planner.outputs.issue_num }}
+          READY_SUBTASKS: ${{ needs.decompose.outputs.ready_now }}
         run: |
-          echo "Adding trigger comment to issue #$ISSUE_NUM..."
-          gh issue comment "$ISSUE_NUM" --body "/oc"
-
-      - name: "Run OpenCode"
-        uses: anomalyco/opencode/github@latest
-        env:
-          AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          model: bailian-coding-plan/glm-5
-          use_github_token: true
-
-      - name: "Complete"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ISSUE_NUM: ${{ needs.triage.outputs.parent_issue }}
-          COMMIT_MODE: ${{ needs.triage.outputs.commit_mode }}
-        run: |
-          echo ""
-          echo "=== EXECUTION COMPLETE ==="
-          echo "Commit Mode: $COMMIT_MODE"
+          echo "=== TRIGGER PARALLEL EXECUTION ==="
+          echo "Parent: #$PARENT_NUM"
+          echo "Ready subtasks: $READY_SUBTASKS"
           
-          if [ "$COMMIT_MODE" = "direct" ]; then
-            echo "Direct mode: changes committed directly"
-            gh issue comment "$ISSUE_NUM" --body "## Done\n\nChanges committed directly to branch.\n\nCommit Mode: direct"
-          else
-            PR=$(gh pr list --author opencode-bot --state open --json url,title,number -q '.[0]' 2>/dev/null || echo "")
+          for ST_NUM in $(echo "$READY_SUBTASKS" | jq -r '.[]'); do
+            echo "Triggering #$ST_NUM..."
             
-            if [ -n "$PR" ] && [ "$PR" != "null" ]; then
-              PR_URL=$(echo "$PR" | jq -r '.url')
-              PR_NUM=$(echo "$PR" | jq -r '.number')
-              
-              echo "PR Created: #$PR_NUM"
-              echo "URL: $PR_URL"
-              
-              gh issue comment "$ISSUE_NUM" --body "## Done\n\nPR: #$PR_NUM\n$PR_URL\n\nWill auto-close on merge."
+            if [ -n "$TRIGGER_TOKEN" ]; then
+              gh issue comment "$ST_NUM" --body "/oc" --token "$TRIGGER_TOKEN" || true
             else
-              echo "No PR created"
-              gh issue comment "$ISSUE_NUM" --body "## Done\n\nNo PR created. Check logs."
+              echo "Warning: AMAZINGTEAM_PAT not set, auto-trigger may not work"
+              gh issue comment "$ST_NUM" --body "/oc" || true
             fi
-          fi
+            
+            sleep 2
+          done
+          
+          READY_COUNT=$(echo "$READY_SUBTASKS" | jq 'length')
+          gh issue comment "$PARENT_NUM" --body "## Started $READY_COUNT parallel subtasks\n\nSubtasks triggered: $READY_SUBTASKS"
 
-  execute-subtask:
-    needs: [triage, decompose]
-    if: always() && needs.decompose.result == 'success' && needs.decompose.outputs.first_subtask != ''
+  execute:
+    needs: planner
+    if: needs.planner.outputs.action == 'execute_subtask'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     outputs:
-      executed_subtask: ${{ steps.update.outputs.executed_subtask }}
+      subtask: ${{ steps.complete.outputs.subtask }}
+      status: ${{ steps.complete.outputs.status }}
     permissions:
       issues: write
       contents: write
       pull-requests: write
     steps:
-      - name: "Start Subtask"
-        run: |
-          echo "=== PHASE 3: EXECUTE SUBTASK ==="
-          echo "Subtask: ${{ needs.decompose.outputs.first_subtask }}"
-          echo "Total: ${{ needs.decompose.outputs.subtask_count }}"
-          echo "Commit Mode: ${{ needs.triage.outputs.commit_mode }}"
-
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -441,262 +410,212 @@ jobs:
           git config --global user.name "opencode-bot"
           git config --global user.email "opencode-bot@users.noreply.github.com"
 
-      - name: "Get Subtask Details"
+      - name: "Get Task Details"
+        id: task
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SUBTASK_NUM: ${{ needs.decompose.outputs.first_subtask }}
-        id: subtask
+          ISSUE_NUM: ${{ needs.planner.outputs.issue_num }}
         run: |
-          echo "Fetching subtask #$SUBTASK_NUM details..."
-          DATA=$(gh issue view "$SUBTASK_NUM" --json title,body)
+          DATA=$(gh issue view "$ISSUE_NUM" --json title,body)
           TITLE=$(echo "$DATA" | jq -r '.title')
           BODY=$(echo "$DATA" | jq -r '.body')
-          
-          echo "Title: $TITLE"
-          echo "Body: $BODY"
           
           echo "title=$TITLE" >> $GITHUB_OUTPUT
           echo "body<<EOF" >> $GITHUB_OUTPUT
           echo "$BODY" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
+          
+          gh issue edit "$ISSUE_NUM" --add-label "status:in-progress" || true
 
       - name: "Execute with AI"
         env:
           AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
-          SUBTASK_TITLE: ${{ steps.subtask.outputs.title }}
-          SUBTASK_BODY: ${{ steps.subtask.outputs.body }}
+          TITLE: ${{ steps.task.outputs.title }}
+          BODY: ${{ steps.task.outputs.body }}
         run: |
-          echo "=== Executing Subtask with AI ==="
-          echo "Task: $SUBTASK_TITLE"
-          echo ""
+          echo "=== EXECUTE: $TITLE ==="
           
-          # Create prompt for implementation
-          PROMPT="Implement this task in the current repository. Create necessary files and code. Task: $SUBTASK_TITLE. Details: $(echo "$SUBTASK_BODY" | head -c 500 | tr '\n' ' ' | tr -d '\"')"
+          PROMPT="Implement: $TITLE. Details: $(echo "$BODY" | head -c 500 | tr '\n' ' ')"
+          ESCAPED=$(echo "$PROMPT" | jq -Rs '.')
           
-          # Escape for JSON
-          ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs '.')
-          
-          # Call API
           RESULT=$(curl -s -X POST "https://coding.dashscope.aliyuncs.com/apps/anthropic/v1/messages" \
             -H "x-api-key: $AMAZINGTEAM_API_KEY" \
             -H "anthropic-version: 2023-06-01" \
             -H "Content-Type: application/json" \
-            -d "{
-              \"model\": \"glm-5\",
-              \"max_tokens\": 4000,
-              \"messages\": [{\"role\": \"user\", \"content\": $ESCAPED_PROMPT}]
-            }" 2>&1)
+            -d "{\"model\":\"glm-5\",\"max_tokens\":3000,\"messages\":[{\"role\":\"user\",\"content\":$ESCAPED}]}" 2>&1)
           
           echo "AI Response:"
-          echo "$RESULT" | jq -r '.content[] | select(.type == "text") | .text' 2>/dev/null | head -100 || echo "$RESULT" | head -c 1000
+          echo "$RESULT" | jq -r '.content[] | select(.type=="text") | .text' 2>/dev/null | head -50 || echo "$RESULT" | head -c 500
           echo ""
-          echo "=== AI Execution Complete ==="
+          echo "=== COMPLETE ==="
 
-      - name: "Update"
-        id: update
+      - name: "Complete"
+        id: complete
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SUBTASK_NUM: ${{ needs.decompose.outputs.first_subtask }}
-          PARENT_NUM: ${{ needs.triage.outputs.parent_issue }}
-          TOTAL: ${{ needs.decompose.outputs.subtask_count }}
-          COMMIT_MODE: ${{ needs.triage.outputs.commit_mode }}
+          ISSUE_NUM: ${{ needs.planner.outputs.issue_num }}
+          PARENT_NUM: ${{ needs.planner.outputs.parent_issue }}
+          COMMIT_MODE: ${{ needs.planner.outputs.commit_mode }}
         run: |
-          echo ""
-          echo "=== SUBTASK COMPLETE ==="
-          echo "Commit Mode: $COMMIT_MODE"
+          echo "subtask=$ISSUE_NUM" >> $GITHUB_OUTPUT
           
-          gh issue edit "$SUBTASK_NUM" --add-label "status:done" || true
-          echo "executed_subtask=$SUBTASK_NUM" >> $GITHUB_OUTPUT
+          gh issue edit "$ISSUE_NUM" --add-label "status:done" || true
           
-          if [ "$COMMIT_MODE" = "direct" ]; then
-            echo "Direct mode: changes committed directly"
-            gh issue comment "$SUBTASK_NUM" --body "## Done\n\nChanges committed directly."
-            gh issue comment "$PARENT_NUM" --body "## Subtask #$SUBTASK_NUM Done\n\nProgress: 1/$TOTAL\nMode: direct (auto-continue)\n\nTriggering next subtask..."
-          else
-            PR=$(gh pr list --author opencode-bot --state open --json url,number -q '.[0]' 2>/dev/null || echo "")
+          PR=$(gh pr list --author opencode-bot --state open --json url,number -q '.[0]' 2>/dev/null || echo "")
+          
+          if [ -n "$PR" ] && [ "$PR" != "null" ]; then
+            PR_NUM=$(echo "$PR" | jq -r '.number')
+            PR_URL=$(echo "$PR" | jq -r '.url')
             
-            if [ -n "$PR" ] && [ "$PR" != "null" ]; then
-              PR_URL=$(echo "$PR" | jq -r '.url')
-              PR_NUM=$(echo "$PR" | jq -r '.number')
-              
-              echo "PR: #$PR_NUM"
-              
-              gh issue comment "$SUBTASK_NUM" --body "## Done\n\nPR: #$PR_NUM\n$PR_URL"
-              gh issue comment "$PARENT_NUM" --body "## Subtask #$SUBTASK_NUM Done\n\nProgress: 1/$TOTAL\nPR: #$PR_NUM\n\nNext auto-starts on merge."
-            else
-              echo "No PR created"
-              gh issue comment "$SUBTASK_NUM" --body "## Done\n\nNo PR. Check logs."
-            fi
+            gh pr edit "$PR_NUM" --body "$(gh pr view "$PR_NUM" --json body -q '.body')\n\nCloses #$ISSUE_NUM" || true
+            gh issue comment "$ISSUE_NUM" --body "## Done\n\nPR: #$PR_NUM\n$PR_URL"
+            echo "status=pr_created" >> $GITHUB_OUTPUT
+          else
+            gh issue comment "$ISSUE_NUM" --body "## Done\n\nNo PR created. Check logs."
+            echo "status=no_pr" >> $GITHUB_OUTPUT
           fi
 
-  continue-direct:
-    needs: [triage, decompose, execute-subtask]
-    if: always() && needs.triage.outputs.commit_mode == 'direct' && needs.execute-subtask.result == 'success'
+  on-pr-merge:
+    needs: planner
+    if: needs.planner.outputs.action == 'pr_merged'
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    outputs:
+      next_ready: ${{ steps.check.outputs.next_ready }}
+      all_done: ${{ steps.check.outputs.all_done }}
     permissions:
       issues: write
-      contents: write
+      contents: read
       actions: write
     steps:
       - uses: actions/checkout@v4
 
-      - name: "Check and Continue"
+      - name: "Close Subtask"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PARENT: ${{ needs.triage.outputs.parent_issue }}
-          DONE_SUBTASK: ${{ needs.execute-subtask.outputs.executed_subtask }}
-          ALL_SUBTASKS: ${{ needs.decompose.outputs.all_subtasks }}
+          SUBTASK: ${{ needs.planner.outputs.issue_num }}
+          PR_NUM: ${{ github.event.pull_request.number }}
         run: |
-          echo ""
-          echo "=== DIRECT MODE: AUTO-CONTINUE ==="
-          echo "Parent: #$PARENT"
-          echo "Just completed: #$DONE_SUBTASK"
-          echo ""
+          echo "=== PR MERGED: Closing #$SUBTASK ==="
+          gh issue close "$SUBTASK" --comment "Merged in PR #$PR_NUM"
+
+      - name: "Check Parent for Next Tasks"
+        id: check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PARENT: ${{ needs.planner.outputs.parent_issue }}
+          TRIGGER_TOKEN: ${{ secrets.AMAZINGTEAM_PAT }}
+        run: |
+          echo "=== CHECK PARENT #$PARENT ==="
           
-          echo "Checking remaining subtasks..."
+          if [ ! -f "tasks/issue-$PARENT/task.yaml" ]; then
+            echo "No task.yaml found"
+            echo "all_done=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
           
-          OPEN=$(gh issue list --label "type:subtask" --state open --json number,body 2>/dev/null || echo "[]")
-          FILTERED=$(echo "$OPEN" | jq --arg parent "$PARENT" '[.[] | select(.body | test("Parent: #" + $parent; "i"))]')
-          COUNT=$(echo "$FILTERED" | jq 'length')
+          OPEN_SUBTASKS=$(gh issue list --state open --json number,body 2>/dev/null | \
+            jq --arg p "$PARENT" '[.[] | select(.body | test("Parent: #" + $p)) | .number]')
           
-          echo "Remaining open subtasks: $COUNT"
+          COUNT=$(echo "$OPEN_SUBTASKS" | jq 'length')
+          echo "Open subtasks: $COUNT"
           
           if [ "$COUNT" -eq 0 ]; then
-            echo ""
-            echo "=== ALL SUBTASKS COMPLETE ==="
-            echo "Closing parent #$PARENT"
-            gh issue close "$PARENT" --comment "## All Subtasks Complete\n\nAll sub-issues resolved in direct mode."
+            echo "all_done=true" >> $GITHUB_OUTPUT
+            gh issue close "$PARENT" --comment "## All Subtasks Complete"
           else
-            NEXT=$(echo "$FILTERED" | jq -r '.[0].number')
-            echo ""
-            echo "Next subtask: #$NEXT"
-            echo "Triggering next subtask workflow..."
+            READY="[]"
             
-            gh issue comment "$PARENT" --body "## Auto-continuing to Subtask #$NEXT\n\nDirect mode: no PR merge required."
+            for ST in $(echo "$OPEN_SUBTASKS" | jq -r '.[]'); do
+              DEPS=$(grep -A3 "issue: $ST" tasks/issue-$PARENT/task.yaml 2>/dev/null | grep "depends_on" | head -1 | awk '{print $2}')
+              
+              if [ -z "$DEPS" ] || [ "$DEPS" = "[]" ]; then
+                READY=$(echo "$READY" | jq --arg st "$ST" '. + [$st]')
+              else
+                DEP_ISSUES=$(echo "$DEPS" | jq -r '.[]' 2>/dev/null)
+                ALL_DONE=true
+                
+                for DEP in $DEP_ISSUES; do
+                  STATE=$(gh issue view "$DEP" --json state -q '.state' 2>/dev/null || echo "open")
+                  if [ "$STATE" != "CLOSED" ]; then
+                    ALL_DONE=false
+                    break
+                  fi
+                done
+                
+                if [ "$ALL_DONE" = "true" ]; then
+                  READY=$(echo "$READY" | jq --arg st "$ST" '. + [$st]')
+                fi
+              fi
+            done
             
-            gh workflow run amazingteam-subtask.yml \
-              -f subtask_issue=$NEXT \
-              -f parent_issue=$PARENT \
-              -f commit_mode=direct
+            echo "Ready to start: $READY"
+            echo "next_ready=$(echo "$READY" | jq -c '.')" >> $GITHUB_OUTPUT
+            echo "all_done=false" >> $GITHUB_OUTPUT
             
-            echo "Workflow triggered"
+            READY_COUNT=$(echo "$READY" | jq 'length')
+            if [ "$READY_COUNT" -gt 0 ]; then
+              gh issue comment "$PARENT" --body "## Next Ready: $READY_COUNT subtasks\n\nTriggering..."
+              
+              for ST in $(echo "$READY" | jq -r '.[]'); do
+                if [ -n "$TRIGGER_TOKEN" ]; then
+                  gh issue comment "$ST" --body "/oc" --token "$TRIGGER_TOKEN" || true
+                fi
+                sleep 2
+              done
+            fi
           fi
 
-  on-pr-merge:
-    if: "github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.user.login == 'opencode-bot'"
+  execute-direct:
+    needs: [planner, triage]
+    if: needs.triage.outputs.needs_decomposition == 'false' && needs.planner.outputs.action == 'triage'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 30
     permissions:
       issues: write
       contents: write
-      actions: write
+      pull-requests: write
     steps:
-      - name: "PR Merged"
-        run: |
-          echo "=== PR MERGE EVENT ==="
-          echo "PR: ${{ github.event.pull_request.number }}"
-          echo "By: ${{ github.event.pull_request.merged_by.login }}"
-          echo "Author: ${{ github.event.pull_request.user.login }}"
-
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: "Find Issues"
-        id: find
+      - run: |
+          git config --global user.name "opencode-bot"
+          git config --global user.email "opencode-bot@users.noreply.github.com"
+
+      - name: "Execute Simple Task"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUM: ${{ github.event.pull_request.number }}
-          PR_BODY: ${{ github.event.pull_request.body }}
+          AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
+          ISSUE_NUM: ${{ needs.planner.outputs.issue_num }}
         run: |
-          echo "Finding related issues..."
-          echo "PR Body (first 500 chars):"
-          echo "$PR_BODY" | head -c 500
-          echo ""
+          echo "=== DIRECT EXECUTION: #$ISSUE_NUM ==="
           
-          SUBTASK=$(echo "$PR_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | grep -oE '[0-9]+' | head -1 || echo "")
+          DATA=$(gh issue view "$ISSUE_NUM" --json title,body)
+          TITLE=$(echo "$DATA" | jq -r '.title')
+          BODY=$(echo "$DATA" | jq -r '.body')
           
-          if [ -n "$SUBTASK" ]; then
-            echo "Found subtask: #$SUBTASK"
-            echo "subtask_issue=$SUBTASK" >> $GITHUB_OUTPUT
-            
-            DATA=$(gh issue view "$SUBTASK" --json body 2>/dev/null || echo "{}")
-            PARENT=$(echo "$DATA" | grep -oiE 'parent: #[0-9]+' | grep -oE '[0-9]+' || echo "")
-            
-            if [ -n "$PARENT" ]; then
-              echo "Found parent: #$PARENT"
-              echo "parent_issue=$PARENT" >> $GITHUB_OUTPUT
-            else
-              echo "No parent found in subtask body"
-              echo "parent_issue=" >> $GITHUB_OUTPUT
-            fi
-            
-            echo "Closing subtask #$SUBTASK..."
-            gh issue close "$SUBTASK" --comment "Merged in PR #$PR_NUM"
+          PROMPT="Implement: $TITLE. $(echo "$BODY" | head -c 500 | tr '\n' ' ')"
+          ESCAPED=$(echo "$PROMPT" | jq -Rs '.')
+          
+          RESULT=$(curl -s -X POST "https://coding.dashscope.aliyuncs.com/apps/anthropic/v1/messages" \
+            -H "x-api-key: $AMAZINGTEAM_API_KEY" \
+            -H "anthropic-version: 2023-06-01" \
+            -H "Content-Type: application/json" \
+            -d "{\"model\":\"glm-5\",\"max_tokens\":3000,\"messages\":[{\"role\":\"user\",\"content\":$ESCAPED}]}" 2>&1)
+          
+          echo "AI Response:"
+          echo "$RESULT" | jq -r '.content[] | select(.type=="text") | .text' 2>/dev/null | head -50 || echo "$RESULT" | head -c 500
+          
+          PR=$(gh pr list --author opencode-bot --state open --json url,number -q '.[0]' 2>/dev/null || echo "")
+          
+          if [ -n "$PR" ] && [ "$PR" != "null" ]; then
+            PR_NUM=$(echo "$PR" | jq -r '.number')
+            PR_URL=$(echo "$PR" | jq -r '.url')
+            gh pr edit "$PR_NUM" --body "$(gh pr view "$PR_NUM" --json body -q '.body')\n\nCloses #$ISSUE_NUM" || true
+            gh issue comment "$ISSUE_NUM" --body "## Done\n\nPR: #$PR_NUM\n$PR_URL"
           else
-            echo "No subtask found in PR body"
-            echo "subtask_issue=" >> $GITHUB_OUTPUT
-            echo "parent_issue=" >> $GITHUB_OUTPUT
+            gh issue comment "$ISSUE_NUM" --body "## Done\n\nNo PR created."
           fi
-
-      - name: "Check Remaining"
-        id: check
-        if: steps.find.outputs.parent_issue != ''
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PARENT: ${{ steps.find.outputs.parent_issue }}
-        run: |
-          echo ""
-          echo "Checking remaining subtasks for parent #$PARENT..."
-          
-          OPEN=$(gh issue list --label "type:subtask" --state open --json number,title,body 2>/dev/null || echo "[]")
-          
-          FILTERED=$(echo "$OPEN" | jq --arg parent "$PARENT" '[.[] | select(.body | test("Parent: #" + $parent; "i"))]')
-          COUNT=$(echo "$FILTERED" | jq 'length')
-          
-          echo "Remaining open subtasks: $COUNT"
-          
-          echo "open_count=$COUNT" >> $GITHUB_OUTPUT
-          
-          if [ "$COUNT" -eq 0 ]; then
-            echo "ALL DONE!"
-            echo "all_done=true" >> $GITHUB_OUTPUT
-          else
-            NEXT=$(echo "$FILTERED" | jq -r '.[0].number')
-            echo "Next subtask: #$NEXT"
-            echo "all_done=false" >> $GITHUB_OUTPUT
-            echo "next_subtask=$NEXT" >> $GITHUB_OUTPUT
-          fi
-
-      - name: "Close Parent"
-        if: steps.check.outputs.all_done == 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PARENT: ${{ steps.find.outputs.parent_issue }}
-        run: |
-          echo ""
-          echo "=== ALL SUBTASKS COMPLETE ==="
-          echo "Closing parent #$PARENT"
-          
-          gh issue close "$PARENT" --comment "## All Subtasks Complete\n\nAll sub-issues resolved and merged."
-
-      - name: "Execute Next"
-        if: steps.check.outputs.all_done == 'false'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PARENT: ${{ steps.find.outputs.parent_issue }}
-          NEXT: ${{ steps.check.outputs.next_subtask }}
-        run: |
-          echo ""
-          echo "=== AUTO-START NEXT SUBTASK ==="
-          echo "Parent: #$PARENT"
-          echo "Next: #$NEXT"
-          
-          gh issue comment "$PARENT" --body "## Starting Subtask #$NEXT\n\nAuto-triggered after PR merge."
-          
-          echo "Triggering amazingteam-subtask workflow..."
-          gh workflow run amazingteam-subtask.yml -f subtask_issue=$NEXT -f parent_issue=$PARENT -f commit_mode=pr
-          
-          echo "Workflow triggered successfully"
