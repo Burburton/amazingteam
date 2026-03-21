@@ -63,10 +63,15 @@ jobs:
           echo ""
           echo "Analyzing with AI model: $OPENCODE_MODEL"
           
-          PROMPT="Classify: Title: $TITLE. Body: $BODY. JSON only: {\"complexity\":\"simple|complex\",\"needs_decomposition\":true|false,\"estimated_subtasks\":0-5,\"reason\":\"brief\"}"
+          PROMPT="Classify this GitHub issue. Respond with ONLY a JSON object (no markdown, no code blocks): {\"complexity\":\"simple\" or \"complex\",\"needs_decomposition\":true or false,\"estimated_subtasks\":0-5,\"reason\":\"brief explanation\"}. Issue Title: $TITLE. Issue Body: $BODY"
           
           RESULT=$(opencode run --model "$OPENCODE_MODEL" "$PROMPT" 2>&1 || echo '{}')
-          JSON=$(echo "$RESULT" | grep -oP '\{[^}]+\}' | tail -1 || echo '{}')
+          
+          echo "AI Response (first 500 chars):"
+          echo "$RESULT" | head -c 500
+          echo ""
+          
+          JSON=$(echo "$RESULT" | grep -oP '\{[^{}]*\}' | tail -1 || echo '{}')
           
           NEEDS_DECOMP=$(echo "$JSON" | jq -r '.needs_decomposition // false')
           COMPLEXITY=$(echo "$JSON" | jq -r '.complexity // "simple"')
@@ -88,10 +93,10 @@ jobs:
           
           if [ "$NEEDS_DECOMP" = "true" ]; then
             echo "Decision: COMPLEX -> Will decompose"
-            gh issue comment "$ISSUE_NUM" --body "## Triage: Complex Task\n\nComplexity: $COMPLEXITY\nDecomposition: Required\nEst. Subtasks: $EST\n\nCreating sub-issues..."
+            gh issue comment "$ISSUE_NUM" --body "## Triage: Complex Task\n\nComplexity: $COMPLEXITY\nDecomposition: Required\nEst. Subtasks: $EST\nReason: $REASON\n\nCreating sub-issues..."
           else
             echo "Decision: SIMPLE -> Direct execution"
-            gh issue comment "$ISSUE_NUM" --body "## Triage: Simple Task\n\nComplexity: $COMPLEXITY\n\nExecuting directly..."
+            gh issue comment "$ISSUE_NUM" --body "## Triage: Simple Task\n\nComplexity: $COMPLEXITY\nReason: $REASON\n\nExecuting directly..."
           fi
 
   decompose:
@@ -139,14 +144,19 @@ jobs:
           echo ""
           echo "Decomposing with AI..."
           
-          PROMPT="Decompose into 2-4 subtasks. Title: $TITLE. JSON: {subtasks:[{title,role,priority}]}. Roles: architect,developer,qa."
+          PROMPT="Decompose this task into 2-4 subtasks. Respond with ONLY a JSON object (no markdown): {\"subtasks\":[{\"title\":\"[Subtask] Title\",\"role\":\"architect\" or \"developer\" or \"qa\",\"priority\":1-4}]}. Task: $TITLE. Description: $BODY"
           
           RESULT=$(opencode run --model "$OPENCODE_MODEL" "$PROMPT" 2>&1 || echo '{"subtasks":[]}')
-          JSON=$(echo "$RESULT" | grep -oP '\{.*\}' | tail -1 || echo '{"subtasks":[]}')
+          
+          echo "AI Response (first 500 chars):"
+          echo "$RESULT" | head -c 500
+          echo ""
+          
+          JSON=$(echo "$RESULT" | grep -oP '\{"subtasks".*\}' | head -1 || echo '{"subtasks":[]}')
           
           echo ""
           echo "=== DECOMPOSITION PLAN ==="
-          echo "$JSON" | jq -r '.subtasks[] | "  - \(.title) (\(.role), priority \(.priority // 1))"'
+          echo "$JSON" | jq -r '.subtasks[]? | "  - \(.title) (\(.role), priority \(.priority // 1))"' 2>/dev/null || echo "  (Could not parse plan)"
           echo ""
           
           FIRST=""
@@ -154,7 +164,7 @@ jobs:
           
           echo "Creating GitHub issues..."
           
-          for row in $(echo "$JSON" | jq -r '.subtasks[] | @base64' 2>/dev/null); do
+          for row in $(echo "$JSON" | jq -r '.subtasks[]? | @base64' 2>/dev/null); do
             ST_TITLE=$(echo "$row" | base64 -d | jq -r '.title')
             ST_ROLE=$(echo "$row" | base64 -d | jq -r '.role')
             ST_PRIO=$(echo "$row" | base64 -d | jq -r '.priority // 1')
@@ -184,7 +194,7 @@ jobs:
 
   execute-direct:
     needs: triage
-    if: needs.triage.outputs.needs_decomposition != 'true'
+    if: always() && needs.triage.result == 'success' && needs.triage.outputs.needs_decomposition != 'true'
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -236,8 +246,8 @@ jobs:
           fi
 
   execute-subtask:
-    needs: decompose
-    if: needs.decompose.outputs.first_subtask != ''
+    needs: [triage, decompose]
+    if: always() && needs.decompose.result == 'success' && needs.decompose.outputs.first_subtask != ''
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -289,6 +299,7 @@ jobs:
             gh issue comment "$SUBTASK_NUM" --body "## Done\n\nPR: #$PR_NUM\n$PR_URL"
             gh issue comment "$PARENT_NUM" --body "## Subtask #$SUBTASK_NUM Done\n\nProgress: 1/$TOTAL\nPR: #$PR_NUM\n\nNext auto-starts on merge."
           else
+            echo "No PR created"
             gh issue comment "$SUBTASK_NUM" --body "## Done\n\nNo PR. Check logs."
           fi
 
@@ -298,12 +309,14 @@ jobs:
     permissions:
       issues: write
       contents: write
+      actions: write
     steps:
       - name: "PR Merged"
         run: |
           echo "=== PR MERGE EVENT ==="
           echo "PR: ${{ github.event.pull_request.number }}"
           echo "By: ${{ github.event.pull_request.merged_by.login }}"
+          echo "Author: ${{ github.event.pull_request.user.login }}"
 
       - uses: actions/checkout@v4
         with:
@@ -318,25 +331,33 @@ jobs:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: |
           echo "Finding related issues..."
+          echo "PR Body (first 500 chars):"
+          echo "$PR_BODY" | head -c 500
+          echo ""
           
-          SUBTASK=$(echo "$PR_BODY" | grep -oP '(?:Closes|Fixes|Resolves) #\K\d+' | head -1 || echo "")
+          SUBTASK=$(echo "$PR_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | grep -oE '[0-9]+' | head -1 || echo "")
           
           if [ -n "$SUBTASK" ]; then
-            echo "Subtask: #$SUBTASK"
+            echo "Found subtask: #$SUBTASK"
             echo "subtask_issue=$SUBTASK" >> $GITHUB_OUTPUT
             
             DATA=$(gh issue view "$SUBTASK" --json body 2>/dev/null || echo "{}")
-            PARENT=$(echo "$DATA" | grep -oP 'Parent: #\K\d+' || echo "")
+            PARENT=$(echo "$DATA" | grep -oiE 'parent: #[0-9]+' | grep -oE '[0-9]+' || echo "")
             
             if [ -n "$PARENT" ]; then
-              echo "Parent: #$PARENT"
+              echo "Found parent: #$PARENT"
               echo "parent_issue=$PARENT" >> $GITHUB_OUTPUT
+            else
+              echo "No parent found in subtask body"
+              echo "parent_issue=" >> $GITHUB_OUTPUT
             fi
             
-            echo "Closing subtask..."
+            echo "Closing subtask #$SUBTASK..."
             gh issue close "$SUBTASK" --comment "Merged in PR #$PR_NUM"
           else
-            echo "No subtask found"
+            echo "No subtask found in PR body"
+            echo "subtask_issue=" >> $GITHUB_OUTPUT
+            echo "parent_issue=" >> $GITHUB_OUTPUT
           fi
 
       - name: "Check Remaining"
@@ -349,19 +370,20 @@ jobs:
           echo ""
           echo "Checking remaining subtasks for parent #$PARENT..."
           
-          OPEN=$(gh issue list --label "type:subtask" --state open --json number,title,body --jq '[.[] | select(.body | contains("Parent: #$PARENT"))]')
-          COUNT=$(echo "$OPEN" | jq 'length')
+          OPEN=$(gh issue list --label "type:subtask" --state open --json number,title,body 2>/dev/null || echo "[]")
           
-          echo "Remaining: $COUNT"
+          FILTERED=$(echo "$OPEN" | jq --arg parent "$PARENT" '[.[] | select(.body | test("Parent: #" + $parent; "i"))]')
+          COUNT=$(echo "$FILTERED" | jq 'length')
+          
+          echo "Remaining open subtasks: $COUNT"
           
           echo "open_count=$COUNT" >> $GITHUB_OUTPUT
-          echo "open_issues=$OPEN" >> $GITHUB_OUTPUT
           
           if [ "$COUNT" -eq 0 ]; then
             echo "ALL DONE!"
             echo "all_done=true" >> $GITHUB_OUTPUT
           else
-            NEXT=$(echo "$OPEN" | jq -r '.[0].number')
+            NEXT=$(echo "$FILTERED" | jq -r '.[0].number')
             echo "Next subtask: #$NEXT"
             echo "all_done=false" >> $GITHUB_OUTPUT
             echo "next_subtask=$NEXT" >> $GITHUB_OUTPUT
@@ -383,16 +405,17 @@ jobs:
         if: steps.check.outputs.all_done == 'false'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
           PARENT: ${{ steps.find.outputs.parent_issue }}
           NEXT: ${{ steps.check.outputs.next_subtask }}
         run: |
           echo ""
           echo "=== AUTO-START NEXT SUBTASK ==="
+          echo "Parent: #$PARENT"
           echo "Next: #$NEXT"
           
-          gh issue comment "$PARENT" --body "## Starting Subtask #$NEXT"
+          gh issue comment "$PARENT" --body "## Starting Subtask #$NEXT\n\nAuto-triggered after PR merge."
           
+          echo "Triggering amazingteam-subtask workflow..."
           gh workflow run amazingteam-subtask.yml -f subtask_issue=$NEXT -f parent_issue=$PARENT
           
-          echo "Workflow triggered"
+          echo "Workflow triggered successfully"
