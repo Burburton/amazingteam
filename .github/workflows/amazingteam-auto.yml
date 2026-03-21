@@ -274,7 +274,16 @@ jobs:
           if [ -z "$CONTENT" ]; then
             CONTENT=$(echo "$RESULT" | jq -r '.content[0].text // "{\"subtasks\":[]}"' 2>/dev/null || echo '{"subtasks":[]}')
           fi
+          
+          echo "Extracted content (first 300 chars):"
+          echo "$CONTENT" | head -c 300
+          echo ""
+          
           JSON=$(echo "$CONTENT" | grep -oP '\{"subtasks".*\}' | head -1 || echo '{"subtasks":[]}')
+          
+          echo "Parsed JSON:"
+          echo "$JSON"
+          echo ""
           
           echo ""
           echo "=== DECOMPOSITION PLAN ==="
