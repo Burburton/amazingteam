@@ -5,6 +5,17 @@ All notable changes to the AmazingTeam will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.19] - 2026-03-21
+
+### Fixed
+
+- **OpenCode provider configuration**: Add default Bailian provider config with `{env:AMAZINGTEAM_API_KEY}`
+  - Fixes `undefined is not an object (evaluating 'octoRest.rest')` error in CI
+  - `@ai-sdk/anthropic` now correctly reads API key from `AMAZINGTEAM_API_KEY` environment variable
+  - Includes default models: qwen3.5-plus, qwen3-coder-plus, glm-5, glm-4.7
+
+---
+
 ## [3.0.18] - 2026-03-21
 
 ### Fixed
