@@ -593,20 +593,6 @@ jobs:
           version: '3.0.23'
           config: 'amazingteam.config.yaml'
 
-      - name: "Prepare OpenCode Auth"
-        env:
-          API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
-        run: |
-          # Create OpenCode auth directory and configure custom provider
-          mkdir -p ~/.local/share/opencode
-          cat > ~/.local/share/opencode/auth.json << EOF
-          {
-            "bailian-coding-plan": {
-              "apiKey": "$API_KEY"
-            }
-          }
-          EOF
-
       - name: "Prepare Prompt"
         id: prompt
         env:
@@ -632,6 +618,7 @@ jobs:
           use_github_token: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
         continue-on-error: true
 
       - name: "Handle Result"
@@ -740,20 +727,6 @@ jobs:
           version: '3.0.23'
           config: 'amazingteam.config.yaml'
 
-      - name: "Prepare OpenCode Auth"
-        env:
-          API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
-        run: |
-          # Create OpenCode auth directory and configure custom provider
-          mkdir -p ~/.local/share/opencode
-          cat > ~/.local/share/opencode/auth.json << EOF
-          {
-            "bailian-coding-plan": {
-              "apiKey": "$API_KEY"
-            }
-          }
-          EOF
-
       - name: "Prepare Prompt"
         id: prompt
         env:
@@ -779,6 +752,7 @@ jobs:
           use_github_token: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
         continue-on-error: true
 
       - name: "Handle Result"

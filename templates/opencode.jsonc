@@ -19,7 +19,8 @@
       "npm": "@ai-sdk/anthropic",
       "name": "Alibaba Cloud Bailian Coding Plan",
       "options": {
-        "baseURL": "https://coding.dashscope.aliyuncs.com/apps/anthropic/v1"
+        "baseURL": "https://coding.dashscope.aliyuncs.com/apps/anthropic/v1",
+        "apiKey": "{env:AMAZINGTEAM_API_KEY}"
       },
       "models": {
         "qwen3.5-plus": {
