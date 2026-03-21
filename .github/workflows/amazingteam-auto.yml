@@ -13,7 +13,7 @@ env:
 
 jobs:
   triage:
-    if: github.event_name == 'issue_comment' && (startsWith(github.event.comment.body, '/ai') || startsWith(github.event.comment.body, '/oc') || startsWith(github.event.comment.body, '/opencode')) || (github.event_name == 'issues' && github.event.label.name == 'ai:process')
+    if: github.event_name == 'issues' && github.event.label.name == 'ai:process' || github.event_name == 'issue_comment' && contains(github.event.comment.body, '/ai') || github.event_name == 'issue_comment' && contains(github.event.comment.body, '/oc') || github.event_name == 'issue_comment' && contains(github.event.comment.body, '/opencode')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
