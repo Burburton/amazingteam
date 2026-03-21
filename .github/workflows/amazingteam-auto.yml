@@ -306,6 +306,10 @@ jobs:
             -H "Content-Type: application/json" \
             -d "{\"model\":\"glm-5\",\"max_tokens\":1000,\"messages\":[{\"role\":\"user\",\"content\":$ESCAPED}]}" 2>&1)
           
+          echo "Raw API Response (first 500 chars):"
+          echo "$RESULT" | head -c 500
+          echo ""
+          
           CONTENT=$(echo "$RESULT" | jq -r '.content[] | select(.type=="text") | .text' 2>/dev/null | head -1)
           
           if [ -z "$CONTENT" ]; then
