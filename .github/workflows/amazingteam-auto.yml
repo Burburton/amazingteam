@@ -5,6 +5,8 @@ on:
     types: [created]
   issues:
     types: [labeled]
+  pull_request:
+    types: [closed]
 
 env:
   OPENCODE_MODEL: bailian-coding-plan/glm-5
@@ -21,6 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       needs_decomposition: ${{ steps.analyze.outputs.needs_decomposition }}
+      parent_issue: ${{ steps.analyze.outputs.parent_issue }}
     permissions:
       issues: write
       contents: read
@@ -49,7 +52,7 @@ jobs:
           TITLE=$(echo "$DATA" | jq -r '.title')
           BODY=$(echo "$DATA" | jq -r '.body')
           
-          PROMPT="Classify this issue. Title: $TITLE. Body: $BODY. Respond ONLY with JSON: {\"complexity\":\"simple|complex\",\"needs_decomposition\":true|false}. Complex if: 3+ modules, needs design, multiple PRs."
+          PROMPT="Classify: Title: $TITLE. Body: $BODY. JSON only: {\"complexity\":\"simple|complex\",\"needs_decomposition\":true|false,\"estimated_subtasks\":0-5}"
           
           RESULT=$(opencode run --model "$OPENCODE_MODEL" "$PROMPT" 2>&1 || echo '{}')
           JSON=$(echo "$RESULT" | grep -oP '\{[^}]+\}' | tail -1 || echo '{}')
@@ -58,13 +61,14 @@ jobs:
           COMPLEXITY=$(echo "$JSON" | jq -r '.complexity // "simple"')
           
           echo "needs_decomposition=$NEEDS_DECOMP" >> $GITHUB_OUTPUT
+          echo "parent_issue=$ISSUE_NUM" >> $GITHUB_OUTPUT
           
           gh issue edit "$ISSUE_NUM" --add-label "complexity:$COMPLEXITY" || true
           
           if [ "$NEEDS_DECOMP" = "true" ]; then
-            gh issue comment "$ISSUE_NUM" --body "## Triage: Complex Task\n\nCreating sub-issues..."
+            gh issue comment "$ISSUE_NUM" --body "## Complex Task\n\nCreating sub-issues..."
           else
-            gh issue comment "$ISSUE_NUM" --body "## Triage: Simple Task\n\nProceeding to implementation..."
+            gh issue comment "$ISSUE_NUM" --body "## Simple Task\n\nExecuting..."
           fi
 
   decompose:
@@ -95,13 +99,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
-          PARENT_NUM: ${{ github.event.issue.number }}
+          PARENT_NUM: ${{ needs.triage.outputs.parent_issue }}
         run: |
           DATA=$(gh issue view "$PARENT_NUM" --json title,body)
           TITLE=$(echo "$DATA" | jq -r '.title')
           BODY=$(echo "$DATA" | jq -r '.body')
           
-          PROMPT="Decompose into 2-4 subtasks. Parent: $TITLE. Body: $BODY. JSON: {subtasks:[{title,role}]}. Roles: architect,developer,qa."
+          PROMPT="Decompose into 2-4 subtasks. Title: $TITLE. JSON: {subtasks:[{title,role,priority}]}. Roles: architect,developer,qa. Priority: 1=highest."
           
           RESULT=$(opencode run --model "$OPENCODE_MODEL" "$PROMPT" 2>&1 || echo '{"subtasks":[]}')
           JSON=$(echo "$RESULT" | grep -oP '\{.*\}' | tail -1 || echo '{"subtasks":[]}')
@@ -119,11 +123,11 @@ jobs:
           done
           
           echo "first_subtask=$FIRST" >> $GITHUB_OUTPUT
-          gh issue comment "$PARENT_NUM" --body "## Decomposed\n\nSub-issues created. Starting with first subtask..."
+          gh issue comment "$PARENT_NUM" --body "## Sub-issues created\n\nStarting first subtask..."
 
-  execute:
-    needs: [triage, decompose]
-    if: always() && needs.triage.outputs.needs_decomposition != 'true'
+  execute-direct:
+    needs: triage
+    if: needs.triage.outputs.needs_decomposition != 'true'
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -149,10 +153,10 @@ jobs:
 
       - env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ISSUE_NUM: ${{ github.event.issue.number }}
+          ISSUE_NUM: ${{ needs.triage.outputs.parent_issue }}
         run: |
           PR=$(gh pr list --author opencode-bot --state open --json url -q '.[0].url' 2>/dev/null || echo "")
-          gh issue comment "$ISSUE_NUM" --body "## Done\n\nPR: ${PR:-None}" || true
+          gh issue comment "$ISSUE_NUM" --body "## Done\n\nPR: ${PR:-None}\n\nWill auto-close on merge."
 
   execute-subtask:
     needs: decompose
@@ -183,8 +187,84 @@ jobs:
       - env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SUBTASK_NUM: ${{ needs.decompose.outputs.first_subtask }}
-          PARENT_NUM: ${{ github.event.issue.number }}
+          PARENT_NUM: ${{ needs.triage.outputs.parent_issue }}
         run: |
           PR=$(gh pr list --author opencode-bot --state open --json url -q '.[0].url' 2>/dev/null || echo "")
-          gh issue comment "$SUBTASK_NUM" --body "## Done\n\nPR: ${PR:-None}" || true
-          gh issue comment "$PARENT_NUM" --body "## Subtask #$SUBTASK_NUM Complete\n\nPR: ${PR:-None}\n\nUse \`/dispatch\` for next subtask after merge." || true
+          gh issue comment "$SUBTASK_NUM" --body "## Done\n\nPR: ${PR:-None}"
+          gh issue comment "$PARENT_NUM" --body "## Subtask #$SUBTASK_NUM done\n\nPR: ${PR:-None}\n\nNext subtask auto-starts on merge."
+
+  on-pr-merge:
+    if: |
+      github.event_name == 'pull_request' && 
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.user.login == 'opencode-bot'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Find issues
+        id: find
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUM: ${{ github.event.pull_request.number }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          SUBTASK=$(echo "$PR_BODY" | grep -oP '(?:Closes|Fixes|Resolves) #\K\d+' | head -1 || echo "")
+          echo "subtask_issue=$SUBTASK" >> $GITHUB_OUTPUT
+          
+          if [ -n "$SUBTASK" ]; then
+            DATA=$(gh issue view "$SUBTASK" --json body 2>/dev/null || echo "{}")
+            PARENT=$(echo "$DATA" | grep -oP 'Parent: #\K\d+' || echo "")
+            echo "parent_issue=$PARENT" >> $GITHUB_OUTPUT
+            gh issue close "$SUBTASK" --comment "Merged in #$PR_NUM"
+          fi
+
+      - name: Check remaining
+        id: check
+        if: steps.find.outputs.parent_issue != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PARENT: ${{ steps.find.outputs.parent_issue }}
+        run: |
+          OPEN=$(gh issue list --label "type:subtask" --state open --json number,body --jq '[.[] | select(.body | contains("Parent: #$PARENT")) | .number]')
+          COUNT=$(echo "$OPEN" | jq 'length')
+          
+          echo "open_count=$COUNT" >> $GITHUB_OUTPUT
+          echo "open_issues=$OPEN" >> $GITHUB_OUTPUT
+          
+          if [ "$COUNT" -eq 0 ]; then
+            echo "all_done=true" >> $GITHUB_OUTPUT
+          else
+            echo "all_done=false" >> $GITHUB_OUTPUT
+            NEXT=$(echo "$OPEN" | jq -r '.[0]')
+            echo "next_subtask=$NEXT" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Close parent
+        if: steps.check.outputs.all_done == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PARENT: ${{ steps.find.outputs.parent_issue }}
+        run: |
+          gh issue close "$PARENT" --comment "## All subtasks completed"
+
+      - name: Execute next
+        if: steps.check.outputs.all_done == 'false'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
+          PARENT: ${{ steps.find.outputs.parent_issue }}
+          NEXT: ${{ steps.check.outputs.next_subtask }}
+        run: |
+          gh issue comment "$PARENT" --body "## Auto-starting subtask #$NEXT"
+          
+          gh workflow run amazingteam-subtask.yml \
+            -f subtask_issue=$NEXT \
+            -f parent_issue=$PARENT

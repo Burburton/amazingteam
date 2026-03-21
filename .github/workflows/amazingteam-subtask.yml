@@ -1,0 +1,47 @@
+name: AmazingTeam Subtask
+
+on:
+  workflow_dispatch:
+    inputs:
+      subtask_issue:
+        required: true
+      parent_issue:
+        required: true
+
+env:
+  OPENCODE_MODEL: bailian-coding-plan/glm-5
+
+jobs:
+  execute:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: |
+          git config --global user.name "opencode-bot"
+          git config --global user.email "opencode-bot@users.noreply.github.com"
+
+      - uses: anomalyco/opencode/github@latest
+        env:
+          AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          model: bailian-coding-plan/glm-5
+          use_github_token: true
+
+      - name: Update status
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUBTASK: ${{ github.event.inputs.subtask_issue }}
+          PARENT: ${{ github.event.inputs.parent_issue }}
+        run: |
+          PR=$(gh pr list --author opencode-bot --state open --json url -q '.[0].url' 2>/dev/null || echo "")
+          gh issue comment "$SUBTASK" --body "## Done\n\nPR: ${PR:-None}"
+          gh issue comment "$PARENT" --body "## Subtask #$SUBTASK done\n\nPR: ${PR:-None}\n\nNext auto-starts on merge."
