@@ -593,12 +593,31 @@ jobs:
           version: '3.0.23'
           config: 'amazingteam.config.yaml'
 
+      - name: "Prepare Prompt"
+        id: prompt
+        env:
+          ISSUE_NUM: ${{ steps.context.outputs.issue_num }}
+        run: |
+          # Read context file and prepare prompt
+          if [ -f "tasks/issue-$ISSUE_NUM/context.md" ]; then
+            PROMPT=$(cat "tasks/issue-$ISSUE_NUM/context.md")
+          else
+            PROMPT="Implement the task for issue #$ISSUE_NUM. Create a branch, make changes, and create a PR."
+          fi
+          
+          # Write prompt to file for multiline support
+          echo "$PROMPT" > /tmp/opencode_prompt.txt
+          echo "prompt_file=/tmp/opencode_prompt.txt" >> $GITHUB_OUTPUT
+
       - name: "Run OpenCode"
         id: opencode
         uses: anomalyco/opencode/github@latest
+        with:
+          model: bailian-coding-plan/glm-5
+          prompt: ${{ steps.prompt.outputs.prompt_file }}
+          use_github_token: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OPENCODE_MODEL: bailian-coding-plan/glm-5
         continue-on-error: true
 
       - name: "Handle Result"
@@ -707,12 +726,31 @@ jobs:
           version: '3.0.23'
           config: 'amazingteam.config.yaml'
 
+      - name: "Prepare Prompt"
+        id: prompt
+        env:
+          ISSUE_NUM: ${{ steps.context.outputs.issue_num }}
+        run: |
+          # Read context file and prepare prompt
+          if [ -f "tasks/issue-$ISSUE_NUM/context.md" ]; then
+            PROMPT=$(cat "tasks/issue-$ISSUE_NUM/context.md")
+          else
+            PROMPT="Implement the task for issue #$ISSUE_NUM. Create a branch, make changes, and create a PR."
+          fi
+          
+          # Write prompt to file for multiline support
+          echo "$PROMPT" > /tmp/opencode_prompt.txt
+          echo "prompt_file=/tmp/opencode_prompt.txt" >> $GITHUB_OUTPUT
+
       - name: "Run OpenCode"
         id: opencode
         uses: anomalyco/opencode/github@latest
+        with:
+          model: bailian-coding-plan/glm-5
+          prompt: ${{ steps.prompt.outputs.prompt_file }}
+          use_github_token: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OPENCODE_MODEL: bailian-coding-plan/glm-5
         continue-on-error: true
 
       - name: "Handle Result"
