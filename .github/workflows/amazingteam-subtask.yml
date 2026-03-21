@@ -17,6 +17,7 @@ env:
 jobs:
   execute:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     outputs:
       executed_subtask: ${{ steps.update.outputs.executed_subtask }}
     permissions:

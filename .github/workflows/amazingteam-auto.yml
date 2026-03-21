@@ -15,6 +15,7 @@ jobs:
   triage:
     if: "(github.event_name == 'issue_comment' && (startsWith(github.event.comment.body, '/ai') || startsWith(github.event.comment.body, '/oc') || startsWith(github.event.comment.body, '/opencode'))) || (github.event_name == 'issues' && github.event.label.name == 'ai:process')"
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       needs_decomposition: ${{ steps.analyze.outputs.needs_decomposition }}
       parent_issue: ${{ steps.analyze.outputs.parent_issue }}
@@ -39,9 +40,9 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - uses: Burburton/amazingteam-action@v3.0.22
+      - uses: Burburton/amazingteam-action@v3.0.23
         with:
-          version: '3.0.22'
+          version: '3.0.23'
 
       - name: "Read Config"
         id: config
@@ -204,6 +205,7 @@ jobs:
     needs: triage
     if: needs.triage.outputs.needs_decomposition == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     outputs:
       first_subtask: ${{ steps.create.outputs.first_subtask }}
       subtask_count: ${{ steps.create.outputs.subtask_count }}
@@ -224,9 +226,9 @@ jobs:
           git config --global user.name "opencode-bot"
           git config --global user.email "opencode-bot@users.noreply.github.com"
 
-      - uses: Burburton/amazingteam-action@v3.0.22
+      - uses: Burburton/amazingteam-action@v3.0.23
         with:
-          version: '3.0.22'
+          version: '3.0.23'
 
       - name: "Create Sub-Issues"
         id: create
@@ -303,6 +305,7 @@ jobs:
     needs: triage
     if: always() && needs.triage.result == 'success' && needs.triage.outputs.needs_decomposition != 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       issues: write
       contents: write
@@ -363,6 +366,7 @@ jobs:
     needs: [triage, decompose]
     if: always() && needs.decompose.result == 'success' && needs.decompose.outputs.first_subtask != ''
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     outputs:
       executed_subtask: ${{ steps.update.outputs.executed_subtask }}
     permissions:
@@ -436,6 +440,7 @@ jobs:
     needs: [triage, decompose, execute-subtask]
     if: always() && needs.triage.outputs.commit_mode == 'direct' && needs.execute-subtask.result == 'success'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       issues: write
       contents: write
@@ -488,6 +493,7 @@ jobs:
   on-pr-merge:
     if: "github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.user.login == 'opencode-bot'"
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       issues: write
       contents: write
