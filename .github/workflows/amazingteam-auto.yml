@@ -296,6 +296,11 @@ jobs:
           
           echo "Creating GitHub issues..."
           
+          echo "DEBUG: Testing jq base64 encoding..."
+          echo "$JSON" | jq -r '.subtasks[]? | @base64' 2>&1 | head -5
+          echo "DEBUG: Done"
+          echo ""
+          
           for row in $(echo "$JSON" | jq -r '.subtasks[]? | @base64' 2>/dev/null); do
             ST_TITLE=$(echo "$row" | base64 -d | jq -r '.title')
             ST_ROLE=$(echo "$row" | base64 -d | jq -r '.role')
