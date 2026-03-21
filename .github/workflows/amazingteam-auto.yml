@@ -28,7 +28,6 @@ jobs:
       issue_num: ${{ steps.decide.outputs.issue_num }}
       parent_issue: ${{ steps.decide.outputs.parent_issue }}
       commit_mode: ${{ steps.config.outputs.commit_mode }}
-      ready_subtasks: ${{ steps.decide.outputs.ready_subtasks }}
     permissions:
       issues: write
       contents: read
@@ -49,15 +48,11 @@ jobs:
         run: |
           if [ -f "amazingteam.config.yaml" ]; then
             MODE=$(grep -A10 "workflow:" amazingteam.config.yaml 2>/dev/null | grep "commit_mode:" | head -1 | awk '{print $2}' | tr -d '"' || echo "pr")
-            MAX_PAR=$(grep -A10 "workflow:" amazingteam.config.yaml 2>/dev/null | grep "max_concurrent:" | head -1 | awk '{print $2}' || echo "3")
           else
             MODE="pr"
-            MAX_PAR="3"
           fi
           echo "Commit Mode: $MODE"
-          echo "Max Parallel: $MAX_PAR"
           echo "commit_mode=$MODE" >> $GITHUB_OUTPUT
-          echo "max_parallel=$MAX_PAR" >> $GITHUB_OUTPUT
 
       - name: "Decide Action"
         id: decide
@@ -190,7 +185,6 @@ jobs:
         id: analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
           ISSUE_NUM: ${{ needs.planner.outputs.issue_num }}
         run: |
           echo "=== TRIAGE: #$ISSUE_NUM ==="
@@ -285,7 +279,6 @@ jobs:
         id: create
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TRIGGER_TOKEN: ${{ secrets.AMAZINGTEAM_PAT }}
           AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
           PARENT_NUM: ${{ needs.planner.outputs.issue_num }}
           MAX_PARALLEL: ${{ env.MAX_PARALLEL }}
@@ -296,8 +289,7 @@ jobs:
           TITLE=$(echo "$DATA" | jq -r '.title')
           BODY=$(echo "$DATA" | jq -r '.body')
           
-          # Prompt explicitly requests JSON after reasoning
-          PROMPT="Task: $TITLE. Description: $(echo "$BODY" | head -c 300 | tr '\n' ' '). Decompose into 2-5 subtasks with dependencies. First think about the decomposition, then output ONLY a JSON object with this exact structure (no markdown, no code blocks): {\"subtasks\":[{\"title\":\"...\",\"role\":\"architect|developer|qa\",\"depends_on\":[]}]}. Dependencies use index numbers (0=first subtask, 1=second, etc). Empty depends_on means no dependencies."
+          PROMPT="Task: $TITLE. Description: $(echo "$BODY" | head -c 300 | tr '\n' ' '). Decompose into 2-5 subtasks with dependencies. Output ONLY JSON: {\"subtasks\":[{\"title\":\"...\",\"role\":\"architect|developer|qa\",\"depends_on\":[]}]}. Dependencies use index (0=first). Empty depends_on means no dependencies."
           
           ESCAPED=$(echo "$PROMPT" | jq -Rs '.')
           
@@ -308,12 +300,11 @@ jobs:
             -H "Content-Type: application/json" \
             -d "{\"model\":\"glm-5\",\"max_tokens\":2000,\"messages\":[{\"role\":\"user\",\"content\":$ESCAPED}]}" 2>&1)
           
-          echo "=== Raw API Response ==="
+          echo "=== Raw API Response (first 1000 chars) ==="
           echo "$RESULT" | head -c 1000
           echo ""
           echo "======================="
           
-          # Check if response has content array
           CONTENT_COUNT=$(echo "$RESULT" | jq '.content | length' 2>/dev/null || echo "0")
           echo "Content blocks: $CONTENT_COUNT"
           
@@ -330,55 +321,20 @@ jobs:
               BLOCK_CONTENT=$(echo "$RESULT" | jq -r ".content[$i].thinking" 2>/dev/null)
             fi
             
-            if [ -n "$BLOCK_CONTENT" ]; then
-              echo "Block $i content length: $(echo "$BLOCK_CONTENT" | wc -c) chars"
-              
-              # Try to find and extract valid JSON from this block
-              if echo "$BLOCK_CONTENT" | jq -e '.subtasks' > /dev/null 2>&1; then
-                CONTENT="$BLOCK_CONTENT"
-                echo "Found valid JSON object in block $i ($BLOCK_TYPE)"
-                break
-              fi
+            if [ -n "$BLOCK_CONTENT" ] && echo "$BLOCK_CONTENT" | jq -e '.subtasks' > /dev/null 2>&1; then
+              CONTENT="$BLOCK_CONTENT"
+              echo "Found valid JSON in block $i"
+              break
             fi
           done
           
-          if [ -z "$CONTENT" ]; then
-            echo "No valid JSON found in content blocks"
-          fi
-          
-          echo ""
-          echo "=== Extracted Content (first 500 chars) ==="
-          echo "$CONTENT" | head -c 500
-          echo ""
-          echo "=========================================="
-          
-          # Extract JSON from content - try direct parse first
           JSON='{"subtasks":[]}'
           
-          # Method 1: Try to parse content directly as JSON
-          if echo "$CONTENT" | jq -e '.subtasks' > /dev/null 2>&1; then
+          if [ -n "$CONTENT" ] && echo "$CONTENT" | jq -e '.subtasks' > /dev/null 2>&1; then
             JSON=$(echo "$CONTENT" | jq -c '{subtasks: .subtasks}')
-            echo "Parsed JSON directly from content"
-          # Method 2: Extract JSON object from content
-          elif echo "$CONTENT" | grep -q '"subtasks"'; then
-            # Find JSON object starting with { and containing subtasks
-            EXTRACTED=$(echo "$CONTENT" | grep -oE '\{[^{}]*"subtasks"[^{}]*\[.*\][^{}]*\}' | head -1)
-            if [ -n "$EXTRACTED" ] && echo "$EXTRACTED" | jq -e '.subtasks' > /dev/null 2>&1; then
-              JSON="$EXTRACTED"
-              echo "Extracted JSON via grep"
-            else
-              # Try a more lenient extraction - find anything that looks like JSON
-              EXTRACTED=$(echo "$CONTENT" | tr -d '\n' | grep -oE '\{.*"subtasks".*\}' | head -1)
-              if [ -n "$EXTRACTED" ] && echo "$EXTRACTED" | jq -e '.subtasks' > /dev/null 2>&1; then
-                JSON="$EXTRACTED"
-                echo "Extracted JSON via lenient grep"
-              fi
-            fi
-          fi
-          
-          # Validate JSON - if still empty, use default
-          if [ "$JSON" = '{"subtasks":[]}' ] || ! echo "$JSON" | jq -e '.subtasks' > /dev/null 2>&1; then
-            echo "Warning: Could not extract valid JSON, using default decomposition"
+            echo "Parsed JSON directly"
+          else
+            echo "Warning: Using default decomposition"
             JSON='{"subtasks":[{"title":"Analyze and design","role":"architect","depends_on":[]},{"title":"Implement solution","role":"developer","depends_on":[0]},{"title":"Test and validate","role":"qa","depends_on":[1]}]}'
           fi
           
@@ -393,7 +349,6 @@ jobs:
           id: issue-$PARENT_NUM
           title: "$TITLE"
           status: in_progress
-          level: 0
           github_issue: $PARENT_NUM
           
           subtasks:
@@ -401,25 +356,23 @@ jobs:
           
           CREATED="[]"
           READY_NOW="[]"
-          IDX=0
           INDEX_MAP="[]"
           
+          # First pass: create all issues
           for row in $(echo "$JSON" | jq -r '.subtasks[]? | @base64'); do
             ST_TITLE=$(echo "$row" | base64 -d | jq -r '.title')
             ST_ROLE=$(echo "$row" | base64 -d | jq -r '.role // "developer"')
-            ST_DEPS_IDX=$(echo "$row" | base64 -d | jq -c '.depends_on // []')
             
-            URL=$(gh issue create --title "$ST_TITLE" --body "Parent: #$PARENT_NUM\nRole: $ST_ROLE\nDependencies: (to be updated)")
-            ST_NUM=$(echo "$URL" | grep -oP '\d+$')
+            URL=$(gh issue create --title "$ST_TITLE" --body "Parent: #$PARENT_NUM\nRole: $ST_ROLE\nDependencies: (pending)")
+            ST_NUM=$(echo "$URL" | grep -oE '[0-9]+$')
             
             INDEX_MAP=$(echo "$INDEX_MAP" | jq --arg num "$ST_NUM" '. + [$num]')
-            
-            IDX=$((IDX + 1))
           done
           
           echo "Index mapping: $INDEX_MAP"
-          IDX=0
           
+          # Second pass: update with dependencies and create context files
+          IDX=0
           for row in $(echo "$JSON" | jq -r '.subtasks[]? | @base64'); do
             ST_TITLE=$(echo "$row" | base64 -d | jq -r '.title')
             ST_ROLE=$(echo "$row" | base64 -d | jq -r '.role // "developer"')
@@ -437,17 +390,48 @@ jobs:
             
             echo "  #$ST_NUM: $ST_TITLE (deps: $ST_DEPS)"
             
+            # Update issue body
             gh issue edit "$ST_NUM" --body "Parent: #$PARENT_NUM\nRole: $ST_ROLE\nDependencies: $ST_DEPS"
             
-            CREATED=$(echo "$CREATED" | jq -c --arg num "$ST_NUM" --arg title "$ST_TITLE" --argjson deps "$ST_DEPS" '. + [{"issue": $num, "title": $title, "depends_on": $deps}]')
+            # Create context file
+            mkdir -p "tasks/issue-$ST_NUM"
+            cat > "tasks/issue-$ST_NUM/context.md" << CTX_EOF
+          # Task: $ST_TITLE
+          
+          ## Issue Number
+          $ST_NUM
+          
+          ## Parent Issue
+          #$PARENT_NUM
+          
+          ## Role
+          $ST_ROLE
+          
+          ## Dependencies
+          $ST_DEPS
+          
+          ## Task Description
+          $ST_TITLE - Part of parent issue #$PARENT_NUM
+          
+          ## Instructions for AI
+          1. Read the task description above
+          2. Create a branch: \`ai/issue-$ST_NUM\`
+          3. Implement the changes
+          4. Create a PR
+          5. Reference this issue: "Closes #$ST_NUM"
+          CTX_EOF
             
+            # Update task.yaml
             cat >> tasks/issue-$PARENT_NUM/task.yaml << EOF
             
               - issue: $ST_NUM
                 title: "$ST_TITLE"
                 status: pending
+                retry_count: 0
                 depends_on: $ST_DEPS
           EOF
+            
+            CREATED=$(echo "$CREATED" | jq -c --arg num "$ST_NUM" --arg title "$ST_TITLE" --argjson deps "$ST_DEPS" '. + [{"issue": $num, "title": $title, "depends_on": $deps}]')
             
             if [ "$ST_DEPS" = "[]" ]; then
               READY_NOW=$(echo "$READY_NOW" | jq -c --arg num "$ST_NUM" '. + [$num]')
@@ -461,7 +445,7 @@ jobs:
           echo "  max_concurrent: $MAX_PARALLEL" >> tasks/issue-$PARENT_NUM/task.yaml
           
           git add tasks/
-          git commit -m "feat(task): create task.yaml for #$PARENT_NUM" || true
+          git commit -m "feat(task): create task.yaml and context files for #$PARENT_NUM" || true
           git push || true
           
           echo "subtasks=$CREATED" >> $GITHUB_OUTPUT
@@ -502,17 +486,21 @@ jobs:
           gh issue comment "$PARENT_NUM" --repo "$REPO" --body "## Started $READY_COUNT parallel subtasks\n\nSubtasks triggered: $READY_SUBTASKS"
 
   execute:
-    needs: planner
-    if: needs.planner.outputs.action == 'execute_subtask'
+    needs: [planner, triage]
+    if: |
+      needs.planner.outputs.action == 'execute_subtask' ||
+      (needs.triage.outputs.needs_decomposition == 'false' && needs.triage.result == 'success')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     outputs:
-      subtask: ${{ steps.complete.outputs.subtask }}
-      status: ${{ steps.complete.outputs.status }}
+      issue_num: ${{ steps.context.outputs.issue_num }}
+      status: ${{ steps.result.outputs.status }}
+      retry_count: ${{ steps.context.outputs.retry_count }}
     permissions:
       issues: write
       contents: write
       pull-requests: write
+      actions: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -523,84 +511,244 @@ jobs:
           git config --global user.name "opencode-bot"
           git config --global user.email "opencode-bot@users.noreply.github.com"
 
-      - name: "Get Task Details"
-        id: task
+      - name: "Determine Issue"
+        id: issue
+        run: |
+          echo "issue_num=${{ needs.planner.outputs.issue_num }}" >> $GITHUB_OUTPUT
+
+      - name: "Prepare Context & Determine Base Branch"
+        id: context
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ISSUE_NUM: ${{ needs.planner.outputs.issue_num }}
+          ISSUE_NUM: ${{ steps.issue.outputs.issue_num }}
         run: |
-          DATA=$(gh issue view "$ISSUE_NUM" --json title,body)
-          TITLE=$(echo "$DATA" | jq -r '.title')
-          BODY=$(echo "$DATA" | jq -r '.body')
+          echo "=== PREPARE CONTEXT: #$ISSUE_NUM ==="
           
-          echo "title=$TITLE" >> $GITHUB_OUTPUT
-          echo "body<<EOF" >> $GITHUB_OUTPUT
-          echo "$BODY" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          ISSUE_DATA=$(gh issue view "$ISSUE_NUM" --json title,body,state)
+          TITLE=$(echo "$ISSUE_DATA" | jq -r '.title')
+          BODY=$(echo "$ISSUE_DATA" | jq -r '.body')
+          
+          # Extract dependencies from body
+          DEPS=$(echo "$BODY" | grep -oE 'Dependencies: \[[0-9,\s]*\]' | grep -oE '\[[0-9,\s]*\]' || echo "[]")
+          
+          # Use existing context file or create one
+          if [ ! -f "tasks/issue-$ISSUE_NUM/context.md" ]; then
+            mkdir -p "tasks/issue-$ISSUE_NUM"
+            cat > "tasks/issue-$ISSUE_NUM/context.md" << EOF
+          # Task: $TITLE
+          
+          ## Issue Number
+          $ISSUE_NUM
+          
+          ## Task Description
+          $BODY
+          
+          ## Dependencies
+          $DEPS
+          
+          ## Instructions for AI
+          1. Read the task description above
+          2. Create a branch: \`ai/issue-$ISSUE_NUM\`
+          3. Implement the changes
+          4. Create a PR
+          5. Reference this issue: "Closes #$ISSUE_NUM"
+          EOF
+            echo "Created context file"
+          else
+            echo "Using existing context file"
+          fi
+          
+          # Determine base branch based on dependencies
+          if [ "$DEPS" = "[]" ] || [ -z "$DEPS" ]; then
+            BASE_BRANCH="main"
+            echo "No dependencies, using main branch"
+          else
+            LAST_DEP=$(echo "$DEPS" | jq -r '.[-1]')
+            DEP_BRANCH="ai/issue-$LAST_DEP"
+            
+            # Check if dependency branch exists
+            if git ls-remote --heads origin "$DEP_BRANCH" 2>/dev/null | grep -q .; then
+              BASE_BRANCH="$DEP_BRANCH"
+              echo "Dependency branch exists: $DEP_BRANCH"
+            else
+              BASE_BRANCH="main"
+              echo "Dependency branch not found, using main"
+            fi
+          fi
+          
+          echo "Base branch: $BASE_BRANCH"
+          echo "base_branch=$BASE_BRANCH" >> $GITHUB_OUTPUT
+          echo "issue_num=$ISSUE_NUM" >> $GITHUB_OUTPUT
+          
+          # Get retry count from task.yaml
+          RETRY_COUNT=0
+          if [ -f "tasks/issue-$ISSUE_NUM/task.yaml" ]; then
+            RETRY_COUNT=$(grep "retry_count:" tasks/issue-$ISSUE_NUM/task.yaml 2>/dev/null | awk '{print $2}' || echo "0")
+          fi
+          echo "Retry count: ${RETRY_COUNT:-0}"
+          echo "retry_count=${RETRY_COUNT:-0}" >> $GITHUB_OUTPUT
           
           gh issue edit "$ISSUE_NUM" --add-label "status:in-progress" || true
 
-      - name: "Execute with AI"
+      - uses: Burburton/amazingteam-action@v3.0.23
+        with:
+          version: '3.0.23'
+          config: 'amazingteam.config.yaml'
+
+      - name: "Run OpenCode"
+        id: opencode
+        uses: anomalyco/opencode/github@latest
         env:
-          AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
-          TITLE: ${{ steps.task.outputs.title }}
-          BODY: ${{ steps.task.outputs.body }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENCODE_MODEL: bailian-coding-plan/glm-5
+        continue-on-error: true
+
+      - name: "Handle Result"
+        id: result
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUM: ${{ steps.context.outputs.issue_num }}
+          OPENCODE_OUTCOME: ${{ steps.opencode.outcome }}
         run: |
-          echo "=== EXECUTE: $TITLE ==="
+          echo "=== HANDLE RESULT ==="
+          echo "OpenCode outcome: $OPENCODE_OUTCOME"
           
-          PROMPT="Implement: $TITLE. Details: $(echo "$BODY" | head -c 500 | tr '\n' ' ')"
+          if [ "$OPENCODE_OUTCOME" = "success" ]; then
+            PR=$(gh pr list --author opencode-bot --state open --json url,number -q '.[0]' 2>/dev/null || echo "")
+            
+            if [ -n "$PR" ] && [ "$PR" != "null" ]; then
+              PR_NUM=$(echo "$PR" | jq -r '.number')
+              PR_URL=$(echo "$PR" | jq -r '.url')
+              gh issue comment "$ISSUE_NUM" --body "## ✅ Implementation Complete\n\nPR: #$PR_NUM\n$PR_URL\n\nWaiting for review and merge."
+              echo "status=pr_created" >> $GITHUB_OUTPUT
+            else
+              gh issue comment "$ISSUE_NUM" --body "## ✅ Implementation Complete\n\nNo PR was created. Check logs."
+              echo "status=no_pr" >> $GITHUB_OUTPUT
+            fi
+          else
+            gh issue comment "$ISSUE_NUM" --body "## ⚠️ Execution Failed\n\nOpenCode encountered an error. CI Analyst will investigate."
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: "Update Task Status"
+        if: always()
+        env:
+          ISSUE_NUM: ${{ steps.context.outputs.issue_num }}
+          STATUS: ${{ steps.result.outputs.status }}
+          RETRY_COUNT: ${{ steps.context.outputs.retry_count }}
+        run: |
+          if [ -f "tasks/issue-$ISSUE_NUM/task.yaml" ]; then
+            if [ "$STATUS" = "failed" ]; then
+              NEW_RETRY=$((RETRY_COUNT + 1))
+              sed -i "s/retry_count:.*/retry_count: $NEW_RETRY/" tasks/issue-$ISSUE_NUM/task.yaml 2>/dev/null || \
+                echo "retry_count: $NEW_RETRY" >> tasks/issue-$ISSUE_NUM/task.yaml
+            fi
+            git add tasks/ && git commit -m "chore: update task status for #$ISSUE_NUM" || true
+            git push || true
+          fi
+
+  ci-analyst:
+    needs: execute
+    if: needs.execute.outputs.status == 'failed'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      issues: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: "Analyze Failure"
+        id: analyze
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUM: ${{ needs.execute.outputs.issue_num }}
+          RETRY_COUNT: ${{ needs.execute.outputs.retry_count }}
+          AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
+        run: |
+          echo "=== CI ANALYST: Analyzing Failure #$ISSUE_NUM ==="
+          echo "Retry count: $RETRY_COUNT/3"
+          
+          CONTEXT=$(cat tasks/issue-$ISSUE_NUM/context.md 2>/dev/null || echo "No context file")
+          
+          PROMPT="Analyze this OpenCode execution failure and suggest a fix:
+
+          Issue: #$ISSUE_NUM
+          Retry: $RETRY_COUNT/3
+          
+          Context:
+          $CONTEXT
+          
+          Suggest:
+          1. What went wrong
+          2. How to fix it
+          3. Whether human intervention is needed"
+          
           ESCAPED=$(echo "$PROMPT" | jq -Rs '.')
           
           RESULT=$(curl -s -X POST "https://coding.dashscope.aliyuncs.com/apps/anthropic/v1/messages" \
             -H "x-api-key: $AMAZINGTEAM_API_KEY" \
             -H "anthropic-version: 2023-06-01" \
             -H "Content-Type: application/json" \
-            -d "{\"model\":\"glm-5\",\"max_tokens\":3000,\"messages\":[{\"role\":\"user\",\"content\":$ESCAPED}]}" 2>&1)
+            -d "{\"model\":\"glm-5\",\"max_tokens\":1000,\"messages\":[{\"role\":\"user\",\"content\":$ESCAPED}]}" 2>&1)
           
-          echo "=== AI Response ==="
+          ANALYSIS=$(echo "$RESULT" | jq -r '.content[0].text // .content[0].thinking // "Analysis failed"' 2>/dev/null | head -100)
           
-          # Try to find text content first
-          RESPONSE=$(echo "$RESULT" | jq -r '.content[] | select(.type=="text") | .text' 2>/dev/null | head -50)
-          
-          # If no text, try thinking content
-          if [ -z "$RESPONSE" ]; then
-            RESPONSE=$(echo "$RESULT" | jq -r '.content[] | select(.type=="thinking") | .thinking' 2>/dev/null | head -50)
-          fi
-          
-          # Fallback
-          if [ -z "$RESPONSE" ]; then
-            RESPONSE=$(echo "$RESULT" | jq -r '.content[0].text // .content[0].thinking // "No response"' 2>/dev/null)
-          fi
-          
-          echo "$RESPONSE"
-          echo ""
-          echo "=== COMPLETE ==="
+          echo "analysis<<EOF" >> $GITHUB_OUTPUT
+          echo "$ANALYSIS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: "Complete"
-        id: complete
+      - name: "Check Retry Limit"
+        id: check
+        run: |
+          RETRY_COUNT="${{ needs.execute.outputs.retry_count }}"
+          if [ "${RETRY_COUNT:-0}" -ge 3 ]; then
+            echo "max_retries=true" >> $GITHUB_OUTPUT
+          else
+            echo "max_retries=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: "Notify Human (Max Retries Exceeded)"
+        if: steps.check.outputs.max_retries == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ISSUE_NUM: ${{ needs.planner.outputs.issue_num }}
-          PARENT_NUM: ${{ needs.planner.outputs.parent_issue }}
-          COMMIT_MODE: ${{ needs.planner.outputs.commit_mode }}
+          ISSUE_NUM: ${{ needs.execute.outputs.issue_num }}
         run: |
-          echo "subtask=$ISSUE_NUM" >> $GITHUB_OUTPUT
+          echo "=== MAX RETRIES EXCEEDED ==="
           
-          gh issue edit "$ISSUE_NUM" --add-label "status:done" || true
+          gh issue edit "$ISSUE_NUM" --add-label "status:blocked" || true
           
-          PR=$(gh pr list --author opencode-bot --state open --json url,number -q '.[0]' 2>/dev/null || echo "")
+          gh issue comment "$ISSUE_NUM" --body "## 🚫 Max Retries Exceeded
+
+          After 3 attempts, this issue could not be completed automatically.
+
+          ### Analysis
+          ${{ steps.analyze.outputs.analysis }}
+
+          ### Action Required
+          Human intervention needed. Downstream issues are blocked until this is resolved.
+
+          - Comment \`/oc\` to retry manually
+          - Comment \`/skip\` to skip this issue and unblock downstream"
+
+      - name: "Retry Execution"
+        if: steps.check.outputs.max_retries == 'false'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUM: ${{ needs.execute.outputs.issue_num }}
+        run: |
+          echo "=== RETRYING EXECUTION ==="
           
-          if [ -n "$PR" ] && [ "$PR" != "null" ]; then
-            PR_NUM=$(echo "$PR" | jq -r '.number')
-            PR_URL=$(echo "$PR" | jq -r '.url')
-            
-            gh pr edit "$PR_NUM" --body "$(gh pr view "$PR_NUM" --json body -q '.body')\n\nCloses #$ISSUE_NUM" || true
-            gh issue comment "$ISSUE_NUM" --body "## Done\n\nPR: #$PR_NUM\n$PR_URL"
-            echo "status=pr_created" >> $GITHUB_OUTPUT
-          else
-            gh issue comment "$ISSUE_NUM" --body "## Done\n\nNo PR created. Check logs."
-            echo "status=no_pr" >> $GITHUB_OUTPUT
-          fi
+          gh issue comment "$ISSUE_NUM" --body "## 🔄 Retrying
+
+          Analysis complete. Retrying execution...
+
+          ### Analysis
+          ${{ steps.analyze.outputs.analysis }}"
+          
+          sleep 5
+          gh issue comment "$ISSUE_NUM" --body "/oc"
 
   on-pr-merge:
     needs: planner
@@ -648,7 +796,7 @@ jobs:
           
           if [ "$COUNT" -eq 0 ]; then
             echo "all_done=true" >> $GITHUB_OUTPUT
-            gh issue close "$PARENT" --comment "## All Subtasks Complete"
+            gh issue close "$PARENT" --comment "## ✅ All Subtasks Complete"
           else
             READY="[]"
             
@@ -690,70 +838,70 @@ jobs:
             fi
           fi
 
-  execute-direct:
-    needs: [planner, triage]
-    if: needs.triage.outputs.needs_decomposition == 'false' && needs.planner.outputs.action == 'triage'
+  check-parent:
+    needs: planner
+    if: needs.planner.outputs.action == 'check_parent'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 5
     permissions:
       issues: write
-      contents: write
-      pull-requests: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: |
-          git config --global user.name "opencode-bot"
-          git config --global user.email "opencode-bot@users.noreply.github.com"
-
-      - name: "Execute Simple Task"
+      - name: "Check Parent for Next Tasks"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
-          ISSUE_NUM: ${{ needs.planner.outputs.issue_num }}
+          GH_TOKEN: ${{ secrets.AMAZINGTEAM_PAT || secrets.GITHUB_TOKEN }}
+          PARENT: ${{ needs.planner.outputs.parent_issue }}
         run: |
-          echo "=== DIRECT EXECUTION: #$ISSUE_NUM ==="
+          echo "=== CHECK PARENT #$PARENT ==="
           
-          DATA=$(gh issue view "$ISSUE_NUM" --json title,body)
-          TITLE=$(echo "$DATA" | jq -r '.title')
-          BODY=$(echo "$DATA" | jq -r '.body')
-          
-          PROMPT="Implement: $TITLE. $(echo "$BODY" | head -c 500 | tr '\n' ' ')"
-          ESCAPED=$(echo "$PROMPT" | jq -Rs '.')
-          
-          RESULT=$(curl -s -X POST "https://coding.dashscope.aliyuncs.com/apps/anthropic/v1/messages" \
-            -H "x-api-key: $AMAZINGTEAM_API_KEY" \
-            -H "anthropic-version: 2023-06-01" \
-            -H "Content-Type: application/json" \
-            -d "{\"model\":\"glm-5\",\"max_tokens\":3000,\"messages\":[{\"role\":\"user\",\"content\":$ESCAPED}]}" 2>&1)
-          
-          echo "=== AI Response ==="
-          
-          # Try to find text content first
-          RESPONSE=$(echo "$RESULT" | jq -r '.content[] | select(.type=="text") | .text' 2>/dev/null | head -50)
-          
-          # If no text, try thinking content
-          if [ -z "$RESPONSE" ]; then
-            RESPONSE=$(echo "$RESULT" | jq -r '.content[] | select(.type=="thinking") | .thinking' 2>/dev/null | head -50)
+          if [ ! -f "tasks/issue-$PARENT/task.yaml" ]; then
+            echo "No task.yaml found"
+            exit 0
           fi
           
-          # Fallback
-          if [ -z "$RESPONSE" ]; then
-            RESPONSE=$(echo "$RESULT" | jq -r '.content[0].text // .content[0].thinking // "No response"' 2>/dev/null)
-          fi
+          OPEN_SUBTASKS=$(gh issue list --state open --json number,body 2>/dev/null | \
+            jq --arg p "$PARENT" '[.[] | select(.body | test("Parent: #" + $p)) | .number]')
           
-          echo "$RESPONSE"
+          COUNT=$(echo "$OPEN_SUBTASKS" | jq 'length')
+          echo "Open subtasks: $COUNT"
           
-          PR=$(gh pr list --author opencode-bot --state open --json url,number -q '.[0]' 2>/dev/null || echo "")
-          
-          if [ -n "$PR" ] && [ "$PR" != "null" ]; then
-            PR_NUM=$(echo "$PR" | jq -r '.number')
-            PR_URL=$(echo "$PR" | jq -r '.url')
-            gh pr edit "$PR_NUM" --body "$(gh pr view "$PR_NUM" --json body -q '.body')\n\nCloses #$ISSUE_NUM" || true
-            gh issue comment "$ISSUE_NUM" --body "## Done\n\nPR: #$PR_NUM\n$PR_URL"
+          if [ "$COUNT" -eq 0 ]; then
+            gh issue close "$PARENT" --comment "## ✅ All Subtasks Complete"
           else
-            gh issue comment "$ISSUE_NUM" --body "## Done\n\nNo PR created."
+            READY="[]"
+            
+            for ST in $(echo "$OPEN_SUBTASKS" | jq -r '.[]'); do
+              DEPS=$(grep -A3 "issue: $ST" tasks/issue-$PARENT/task.yaml 2>/dev/null | grep "depends_on" | head -1 | awk '{print $2}')
+              
+              if [ -z "$DEPS" ] || [ "$DEPS" = "[]" ]; then
+                READY=$(echo "$READY" | jq --arg st "$ST" '. + [$st]')
+              else
+                DEP_ISSUES=$(echo "$DEPS" | jq -r '.[]' 2>/dev/null)
+                ALL_DONE=true
+                
+                for DEP in $DEP_ISSUES; do
+                  STATE=$(gh issue view "$DEP" --json state -q '.state' 2>/dev/null || echo "open")
+                  if [ "$STATE" != "CLOSED" ]; then
+                    ALL_DONE=false
+                    break
+                  fi
+                done
+                
+                if [ "$ALL_DONE" = "true" ]; then
+                  READY=$(echo "$READY" | jq --arg st "$ST" '. + [$st]')
+                fi
+              fi
+            done
+            
+            READY_COUNT=$(echo "$READY" | jq 'length')
+            if [ "$READY_COUNT" -gt 0 ]; then
+              gh issue comment "$PARENT" --body "## Next Ready: $READY_COUNT subtasks\n\nTriggering..."
+              
+              for ST in $(echo "$READY" | jq -r '.[]'); do
+                gh issue comment "$ST" --body "/oc" || true
+                sleep 2
+              done
+            fi
           fi

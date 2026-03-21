@@ -33,6 +33,8 @@ subtasks:
     status: pending
     level: 1
     execution_order: 1
+    retry_count: 0
+    last_error: null
     depends_on: []
     acceptance_criteria:
       - Analysis document created
@@ -46,6 +48,8 @@ subtasks:
     status: pending
     level: 1
     execution_order: 2
+    retry_count: 0
+    last_error: null
     depends_on: [issue-000-subtask-01]
     acceptance_criteria:
       - Design document created
@@ -59,6 +63,8 @@ subtasks:
     status: pending
     level: 1
     execution_order: 3
+    retry_count: 0
+    last_error: null
     depends_on: [issue-000-subtask-02]
     acceptance_criteria:
       - Code implemented
@@ -72,6 +78,8 @@ subtasks:
     status: pending
     level: 1
     execution_order: 4
+    retry_count: 0
+    last_error: null
     depends_on: [issue-000-subtask-03]
     acceptance_criteria:
       - All tests pass
