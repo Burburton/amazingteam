@@ -25,7 +25,16 @@ on:
 jobs:
   basic-tests:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    
+    outputs:
+      install: ${{ steps.collect.outputs.install }}
+      init: ${{ steps.collect.outputs.init }}
+      config: ${{ steps.collect.outputs.config }}
+      skills: ${{ steps.collect.outputs.skills }}
+      agent: ${{ steps.collect.outputs.agent }}
+      pass_count: ${{ steps.collect.outputs.pass_count }}
+      fail_count: ${{ steps.collect.outputs.fail_count }}
+      overall: ${{ steps.collect.outputs.overall }}
     
     steps:
       - name: Checkout repository
@@ -44,27 +53,31 @@ jobs:
         
       - name: Run install test
         id: test-install
-        run: |
-          ./tests/e2e/scripts/test-install.sh
+        run: ./tests/e2e/scripts/test-install.sh
         continue-on-error: true
         
       - name: Run init test
         id: test-init
-        run: |
-          ./tests/e2e/scripts/test-init.sh
+        run: ./tests/e2e/scripts/test-init.sh
         continue-on-error: true
         
       - name: Run config test
         id: test-config
-        run: |
-          ./tests/e2e/scripts/test-config.sh
+        run: ./tests/e2e/scripts/test-config.sh
         continue-on-error: true
         
-      - name: Run skills test
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.test_scope == 'all' || github.event_name == 'schedule'
+      - name: Run skills test (all/schedule only)
+        if: "(github.event_name == 'workflow_dispatch' && github.event.inputs.test_scope == 'all') || github.event_name == 'schedule'"
         id: test-skills
-        run: |
-          ./tests/e2e/scripts/test-skills.sh
+        run: ./tests/e2e/scripts/test-skills.sh
+        continue-on-error: true
+        
+      - name: Run agent test (all/schedule only)
+        if: "(github.event_name == 'workflow_dispatch' && github.event.inputs.test_scope == 'all') || github.event_name == 'schedule'"
+        id: test-agent
+        env:
+          AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
+        run: ./tests/e2e/scripts/test-agent.sh
         continue-on-error: true
         
       - name: Collect test results
@@ -72,7 +85,9 @@ jobs:
         run: |
           PASS_COUNT=0
           FAIL_COUNT=0
+          SKIPPED_COUNT=0
           
+          # Install test
           if [ "${{ steps.test-install.outcome }}" == "success" ]; then
             PASS_COUNT=$((PASS_COUNT + 1))
             echo "install=pass" >> $GITHUB_OUTPUT
@@ -81,6 +96,7 @@ jobs:
             echo "install=fail" >> $GITHUB_OUTPUT
           fi
           
+          # Init test
           if [ "${{ steps.test-init.outcome }}" == "success" ]; then
             PASS_COUNT=$((PASS_COUNT + 1))
             echo "init=pass" >> $GITHUB_OUTPUT
@@ -89,12 +105,40 @@ jobs:
             echo "init=fail" >> $GITHUB_OUTPUT
           fi
           
+          # Config test
           if [ "${{ steps.test-config.outcome }}" == "success" ]; then
             PASS_COUNT=$((PASS_COUNT + 1))
             echo "config=pass" >> $GITHUB_OUTPUT
           else
             FAIL_COUNT=$((FAIL_COUNT + 1))
             echo "config=fail" >> $GITHUB_OUTPUT
+          fi
+          
+          # Skills test (may be skipped)
+          SCOPE="${{ github.event.inputs.test_scope }}"
+          if [ "$SCOPE" == "all" ] || [ "${{ github.event_name }}" == "schedule" ]; then
+            if [ "${{ steps.test-skills.outcome }}" == "success" ]; then
+              PASS_COUNT=$((PASS_COUNT + 1))
+              echo "skills=pass" >> $GITHUB_OUTPUT
+            else
+              FAIL_COUNT=$((FAIL_COUNT + 1))
+              echo "skills=fail" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "skills=skip" >> $GITHUB_OUTPUT
+          fi
+          
+          # Agent test (may be skipped)
+          if [ "$SCOPE" == "all" ] || [ "${{ github.event_name }}" == "schedule" ]; then
+            if [ "${{ steps.test-agent.outcome }}" == "success" ]; then
+              PASS_COUNT=$((PASS_COUNT + 1))
+              echo "agent=pass" >> $GITHUB_OUTPUT
+            else
+              FAIL_COUNT=$((FAIL_COUNT + 1))
+              echo "agent=fail" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "agent=skip" >> $GITHUB_OUTPUT
           fi
           
           echo "pass_count=$PASS_COUNT" >> $GITHUB_OUTPUT
@@ -139,8 +183,16 @@ jobs:
             const install = '${{ needs.basic-tests.outputs.install }}' || 'unknown';
             const init = '${{ needs.basic-tests.outputs.init }}' || 'unknown';
             const config = '${{ needs.basic-tests.outputs.config }}' || 'unknown';
+            const skills = '${{ needs.basic-tests.outputs.skills }}' || 'skip';
+            const agent = '${{ needs.basic-tests.outputs.agent }}' || 'skip';
             
             const statusEmoji = overall === 'pass' ? '✅' : '❌';
+            
+            function formatStatus(status) {
+              if (status === 'pass') return '✅ PASS';
+              if (status === 'fail') return '❌ FAIL';
+              return '⏭️ SKIP';
+            }
             
             const body = `## 🧪 E2E Test Results
             
@@ -149,12 +201,13 @@ jobs:
             
             | Test | Status |
             |------|--------|
-            | NPM Install | ${install === 'pass' ? '✅ PASS' : '❌ FAIL'} |
-            | CLI Init | ${init === 'pass' ? '✅ PASS' : '❌ FAIL'} |
-            | Config Validation | ${config === 'pass' ? '✅ PASS' : '❌ FAIL'} |
+            | NPM Install | ${formatStatus(install)} |
+            | CLI Init | ${formatStatus(init)} |
+            | Config Validation | ${formatStatus(config)} |
+            | Skills Loading | ${formatStatus(skills)} |
+            | Agent Response | ${formatStatus(agent)} |
             
             ### Summary
-            - **Total**: ${parseInt(passCount) + parseInt(failCount)} tests
             - **Passed**: ${passCount} ✅
             - **Failed**: ${failCount}
             - **Result**: ${statusEmoji} ${overall.toUpperCase()}
@@ -196,11 +249,15 @@ jobs:
             const install = '${{ needs.basic-tests.outputs.install }}' || 'unknown';
             const init = '${{ needs.basic-tests.outputs.init }}' || 'unknown';
             const config = '${{ needs.basic-tests.outputs.config }}' || 'unknown';
+            const skills = '${{ needs.basic-tests.outputs.skills }}' || 'skip';
+            const agent = '${{ needs.basic-tests.outputs.agent }}' || 'skip';
             
             const failedTests = [];
-            if (install !== 'pass') failedTests.push('NPM Install');
-            if (init !== 'pass') failedTests.push('CLI Init');
-            if (config !== 'pass') failedTests.push('Config Validation');
+            if (install !== 'pass' && install !== 'skip') failedTests.push('NPM Install');
+            if (init !== 'pass' && init !== 'skip') failedTests.push('CLI Init');
+            if (config !== 'pass' && config !== 'skip') failedTests.push('Config Validation');
+            if (skills !== 'pass' && skills !== 'skip') failedTests.push('Skills Loading');
+            if (agent !== 'pass' && agent !== 'skip') failedTests.push('Agent Response');
             
             const body = `## 🚨 E2E Test Failure
             
@@ -214,6 +271,16 @@ jobs:
             ### Failed Tests
             
             ${failedTests.map(t => `- ❌ ${t}`).join('\n')}
+            
+            ### Test Results
+            
+            | Test | Status |
+            |------|--------|
+            | NPM Install | ${install} |
+            | CLI Init | ${init} |
+            | Config Validation | ${config} |
+            | Skills Loading | ${skills} |
+            | Agent Response | ${agent} |
             
             ### Actions
             
