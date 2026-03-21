@@ -309,7 +309,11 @@ jobs:
           CONTENT=$(echo "$RESULT" | jq -r '.content[] | select(.type=="text") | .text' 2>/dev/null | head -1)
           
           if [ -z "$CONTENT" ]; then
-            CONTENT=$(echo "$RESULT" | jq -r '.content[0].text // ""' 2>/dev/null)
+            CONTENT=$(echo "$RESULT" | jq -r '.content[0].text // .content[0].thinking // ""' 2>/dev/null)
+          fi
+          
+          if [ -z "$CONTENT" ]; then
+            CONTENT=$(echo "$RESULT" | jq -r '.content[] | .text // .thinking // empty' 2>/dev/null | head -1)
           fi
           
           CONTENT=$(echo "$CONTENT" | sed 's/```json//g' | sed 's/```//g' | tr -d '\n')
@@ -318,7 +322,11 @@ jobs:
           echo "$CONTENT" | head -c 200
           echo ""
           
-          JSON=$(echo "$CONTENT" | grep -oE '\{"subtasks"[^\[]*\[[^\]]*\][^\}]*\}' | head -1 || echo '{"subtasks":[]}')
+          if echo "$CONTENT" | grep -q "subtasks"; then
+            JSON=$(echo "$CONTENT" | grep -oE '\{"subtasks"[^\[]*\[.*\][^\}]*\}' | head -1 || echo '{"subtasks":[]}')
+          else
+            JSON='{"subtasks":[]}'
+          fi
           
           echo "Plan:"
           echo "$JSON" | jq -r '.subtasks[]? | "  - \(.title) (depends: \(.depends_on // []))"'
