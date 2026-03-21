@@ -18,6 +18,7 @@ jobs:
     outputs:
       needs_decomposition: ${{ steps.analyze.outputs.needs_decomposition }}
       parent_issue: ${{ steps.analyze.outputs.parent_issue }}
+      commit_mode: ${{ steps.config.outputs.commit_mode }}
     permissions:
       issues: write
       contents: read
@@ -41,6 +42,22 @@ jobs:
       - uses: Burburton/amazingteam-action@v3.0.20
         with:
           version: '3.0.20'
+
+      - name: "Read Config"
+        id: config
+        run: |
+          echo "Reading workflow configuration..."
+          
+          if [ -f "amazingteam.config.yaml" ]; then
+            MODE=$(grep -A5 "workflow:" amazingteam.config.yaml 2>/dev/null | grep "commit_mode:" | head -1 | awk '{print $2}' | tr -d '"' || echo "pr")
+          elif [ -f "amazing-team.config.yaml" ]; then
+            MODE=$(grep -A5 "workflow:" amazing-team.config.yaml 2>/dev/null | grep "commit_mode:" | head -1 | awk '{print $2}' | tr -d '"' || echo "pr")
+          else
+            MODE="pr"
+          fi
+          
+          echo "Commit Mode: $MODE"
+          echo "commit_mode=$MODE" >> $GITHUB_OUTPUT
 
       - name: "Analyze"
         id: analyze
@@ -106,6 +123,7 @@ jobs:
     outputs:
       first_subtask: ${{ steps.create.outputs.first_subtask }}
       subtask_count: ${{ steps.create.outputs.subtask_count }}
+      all_subtasks: ${{ steps.create.outputs.all_subtasks }}
     permissions:
       issues: write
       contents: write
@@ -161,6 +179,7 @@ jobs:
           
           FIRST=""
           COUNT=0
+          ALL_ISSUES="[]"
           
           echo "Creating GitHub issues..."
           
@@ -169,11 +188,13 @@ jobs:
             ST_ROLE=$(echo "$row" | base64 -d | jq -r '.role')
             ST_PRIO=$(echo "$row" | base64 -d | jq -r '.priority // 1')
             
-            URL=$(gh issue create --title "$ST_TITLE" --body "Parent: #$PARENT_NUM\nRole: $ST_ROLE\nPriority: $ST_PRIO" --label "type:subtask,role:$ST_ROLE" 2>/dev/null || echo "")
+            URL=$(gh issue create --title "$ST_TITLE" --body "Parent: #$PARENT_NUM\nRole: $ST_ROLE\nPriority: $ST_PRIO" --label "type:subtask,role:$ST_ROLE,status:pending" 2>/dev/null || echo "")
             
             if [ -n "$URL" ]; then
               ST_NUM=$(echo "$URL" | grep -oP '\d+$')
               echo "  Created #$ST_NUM: $ST_TITLE"
+              
+              ALL_ISSUES=$(echo "$ALL_ISSUES" | jq --arg num "$ST_NUM" '. + [$num]')
               
               if [ -z "$FIRST" ]; then
                 FIRST="$ST_NUM"
@@ -186,9 +207,11 @@ jobs:
           echo "=== SUMMARY ==="
           echo "Total subtasks: $COUNT"
           echo "First to execute: #$FIRST"
+          echo "All issues: $ALL_ISSUES"
           
           echo "first_subtask=$FIRST" >> $GITHUB_OUTPUT
           echo "subtask_count=$COUNT" >> $GITHUB_OUTPUT
+          echo "all_subtasks=$ALL_ISSUES" >> $GITHUB_OUTPUT
           
           gh issue comment "$PARENT_NUM" --body "## Decomposed: $COUNT subtasks\n\nStarting with first subtask..."
 
@@ -226,29 +249,38 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUM: ${{ needs.triage.outputs.parent_issue }}
+          COMMIT_MODE: ${{ needs.triage.outputs.commit_mode }}
         run: |
           echo ""
           echo "=== EXECUTION COMPLETE ==="
+          echo "Commit Mode: $COMMIT_MODE"
           
-          PR=$(gh pr list --author opencode-bot --state open --json url,title,number -q '.[0]' 2>/dev/null || echo "")
-          
-          if [ -n "$PR" ] && [ "$PR" != "null" ]; then
-            PR_URL=$(echo "$PR" | jq -r '.url')
-            PR_NUM=$(echo "$PR" | jq -r '.number')
-            
-            echo "PR Created: #$PR_NUM"
-            echo "URL: $PR_URL"
-            
-            gh issue comment "$ISSUE_NUM" --body "## Done\n\nPR: #$PR_NUM\n$PR_URL\n\nWill auto-close on merge."
+          if [ "$COMMIT_MODE" = "direct" ]; then
+            echo "Direct mode: changes committed directly"
+            gh issue comment "$ISSUE_NUM" --body "## Done\n\nChanges committed directly to branch.\n\nCommit Mode: direct"
           else
-            echo "No PR created"
-            gh issue comment "$ISSUE_NUM" --body "## Done\n\nNo PR created. Check logs."
+            PR=$(gh pr list --author opencode-bot --state open --json url,title,number -q '.[0]' 2>/dev/null || echo "")
+            
+            if [ -n "$PR" ] && [ "$PR" != "null" ]; then
+              PR_URL=$(echo "$PR" | jq -r '.url')
+              PR_NUM=$(echo "$PR" | jq -r '.number')
+              
+              echo "PR Created: #$PR_NUM"
+              echo "URL: $PR_URL"
+              
+              gh issue comment "$ISSUE_NUM" --body "## Done\n\nPR: #$PR_NUM\n$PR_URL\n\nWill auto-close on merge."
+            else
+              echo "No PR created"
+              gh issue comment "$ISSUE_NUM" --body "## Done\n\nNo PR created. Check logs."
+            fi
           fi
 
   execute-subtask:
     needs: [triage, decompose]
     if: always() && needs.decompose.result == 'success' && needs.decompose.outputs.first_subtask != ''
     runs-on: ubuntu-latest
+    outputs:
+      executed_subtask: ${{ steps.update.outputs.executed_subtask }}
     permissions:
       issues: write
       contents: write
@@ -259,6 +291,7 @@ jobs:
           echo "=== PHASE 3: EXECUTE SUBTASK ==="
           echo "Subtask: ${{ needs.decompose.outputs.first_subtask }}"
           echo "Total: ${{ needs.decompose.outputs.subtask_count }}"
+          echo "Commit Mode: ${{ needs.triage.outputs.commit_mode }}"
 
       - uses: actions/checkout@v4
         with:
@@ -279,28 +312,95 @@ jobs:
           use_github_token: true
 
       - name: "Update"
+        id: update
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SUBTASK_NUM: ${{ needs.decompose.outputs.first_subtask }}
           PARENT_NUM: ${{ needs.triage.outputs.parent_issue }}
           TOTAL: ${{ needs.decompose.outputs.subtask_count }}
+          COMMIT_MODE: ${{ needs.triage.outputs.commit_mode }}
         run: |
           echo ""
           echo "=== SUBTASK COMPLETE ==="
+          echo "Commit Mode: $COMMIT_MODE"
           
-          PR=$(gh pr list --author opencode-bot --state open --json url,number -q '.[0]' 2>/dev/null || echo "")
+          gh issue edit "$SUBTASK_NUM" --add-label "status:done" || true
+          echo "executed_subtask=$SUBTASK_NUM" >> $GITHUB_OUTPUT
           
-          if [ -n "$PR" ] && [ "$PR" != "null" ]; then
-            PR_URL=$(echo "$PR" | jq -r '.url')
-            PR_NUM=$(echo "$PR" | jq -r '.number')
-            
-            echo "PR: #$PR_NUM"
-            
-            gh issue comment "$SUBTASK_NUM" --body "## Done\n\nPR: #$PR_NUM\n$PR_URL"
-            gh issue comment "$PARENT_NUM" --body "## Subtask #$SUBTASK_NUM Done\n\nProgress: 1/$TOTAL\nPR: #$PR_NUM\n\nNext auto-starts on merge."
+          if [ "$COMMIT_MODE" = "direct" ]; then
+            echo "Direct mode: changes committed directly"
+            gh issue comment "$SUBTASK_NUM" --body "## Done\n\nChanges committed directly."
+            gh issue comment "$PARENT_NUM" --body "## Subtask #$SUBTASK_NUM Done\n\nProgress: 1/$TOTAL\nMode: direct (auto-continue)\n\nTriggering next subtask..."
           else
-            echo "No PR created"
-            gh issue comment "$SUBTASK_NUM" --body "## Done\n\nNo PR. Check logs."
+            PR=$(gh pr list --author opencode-bot --state open --json url,number -q '.[0]' 2>/dev/null || echo "")
+            
+            if [ -n "$PR" ] && [ "$PR" != "null" ]; then
+              PR_URL=$(echo "$PR" | jq -r '.url')
+              PR_NUM=$(echo "$PR" | jq -r '.number')
+              
+              echo "PR: #$PR_NUM"
+              
+              gh issue comment "$SUBTASK_NUM" --body "## Done\n\nPR: #$PR_NUM\n$PR_URL"
+              gh issue comment "$PARENT_NUM" --body "## Subtask #$SUBTASK_NUM Done\n\nProgress: 1/$TOTAL\nPR: #$PR_NUM\n\nNext auto-starts on merge."
+            else
+              echo "No PR created"
+              gh issue comment "$SUBTASK_NUM" --body "## Done\n\nNo PR. Check logs."
+            fi
+          fi
+
+  continue-direct:
+    needs: [triage, decompose, execute-subtask]
+    if: always() && needs.triage.outputs.commit_mode == 'direct' && needs.execute-subtask.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: "Check and Continue"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PARENT: ${{ needs.triage.outputs.parent_issue }}
+          DONE_SUBTASK: ${{ needs.execute-subtask.outputs.executed_subtask }}
+          ALL_SUBTASKS: ${{ needs.decompose.outputs.all_subtasks }}
+        run: |
+          echo ""
+          echo "=== DIRECT MODE: AUTO-CONTINUE ==="
+          echo "Parent: #$PARENT"
+          echo "Just completed: #$DONE_SUBTASK"
+          echo ""
+          
+          echo "Checking remaining subtasks..."
+          
+          REMAINING=$(gh issue list --label "type:subtask" --state open --json number 2>/dev/null | jq --arg parent "$PARENT" '[.[] | select(.body | test("Parent: #" + $parent; "i"))]' || echo "[]")
+          
+          OPEN=$(gh issue list --label "type:subtask" --state open --json number,body 2>/dev/null || echo "[]")
+          FILTERED=$(echo "$OPEN" | jq --arg parent "$PARENT" '[.[] | select(.body | test("Parent: #" + $parent; "i"))]')
+          COUNT=$(echo "$FILTERED" | jq 'length')
+          
+          echo "Remaining open subtasks: $COUNT"
+          
+          if [ "$COUNT" -eq 0 ]; then
+            echo ""
+            echo "=== ALL SUBTASKS COMPLETE ==="
+            echo "Closing parent #$PARENT"
+            gh issue close "$PARENT" --comment "## All Subtasks Complete\n\nAll sub-issues resolved in direct mode."
+          else
+            NEXT=$(echo "$FILTERED" | jq -r '.[0].number')
+            echo ""
+            echo "Next subtask: #$NEXT"
+            echo "Triggering next subtask workflow..."
+            
+            gh issue comment "$PARENT" --body "## Auto-continuing to Subtask #$NEXT\n\nDirect mode: no PR merge required."
+            
+            gh workflow run amazingteam-subtask.yml \
+              -f subtask_issue=$NEXT \
+              -f parent_issue=$PARENT \
+              -f commit_mode=direct
+            
+            echo "Workflow triggered"
           fi
 
   on-pr-merge:
@@ -416,6 +516,6 @@ jobs:
           gh issue comment "$PARENT" --body "## Starting Subtask #$NEXT\n\nAuto-triggered after PR merge."
           
           echo "Triggering amazingteam-subtask workflow..."
-          gh workflow run amazingteam-subtask.yml -f subtask_issue=$NEXT -f parent_issue=$PARENT
+          gh workflow run amazingteam-subtask.yml -f subtask_issue=$NEXT -f parent_issue=$PARENT -f commit_mode=pr
           
           echo "Workflow triggered successfully"
