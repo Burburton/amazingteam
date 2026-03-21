@@ -494,8 +494,7 @@ jobs:
     steps:
       - name: "Trigger Ready Subtasks in Parallel"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TRIGGER_TOKEN: ${{ secrets.AMAZINGTEAM_PAT }}
+          GH_TOKEN: ${{ secrets.AMAZINGTEAM_PAT || secrets.GITHUB_TOKEN }}
           PARENT_NUM: ${{ needs.planner.outputs.issue_num }}
           READY_SUBTASKS: ${{ needs.decompose.outputs.ready_now }}
         run: |
@@ -505,13 +504,9 @@ jobs:
           
           for ST_NUM in $(echo "$READY_SUBTASKS" | jq -r '.[]'); do
             echo "Triggering #$ST_NUM..."
-            
-            if [ -n "$TRIGGER_TOKEN" ]; then
-              gh issue comment "$ST_NUM" --body "/oc" --token "$TRIGGER_TOKEN" || true
-            else
-              echo "Warning: AMAZINGTEAM_PAT not set, auto-trigger may not work"
-              gh issue comment "$ST_NUM" --body "/oc" || true
-            fi
+            gh issue comment "$ST_NUM" --body "/oc" || echo "Warning: Failed to trigger #$ST_NUM"
+            sleep 2
+          done
             
             sleep 2
           done
@@ -647,9 +642,8 @@ jobs:
       - name: "Check Parent for Next Tasks"
         id: check
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.AMAZINGTEAM_PAT || secrets.GITHUB_TOKEN }}
           PARENT: ${{ needs.planner.outputs.parent_issue }}
-          TRIGGER_TOKEN: ${{ secrets.AMAZINGTEAM_PAT }}
         run: |
           echo "=== CHECK PARENT #$PARENT ==="
           
@@ -703,9 +697,7 @@ jobs:
               gh issue comment "$PARENT" --body "## Next Ready: $READY_COUNT subtasks\n\nTriggering..."
               
               for ST in $(echo "$READY" | jq -r '.[]'); do
-                if [ -n "$TRIGGER_TOKEN" ]; then
-                  gh issue comment "$ST" --body "/oc" --token "$TRIGGER_TOKEN" || true
-                fi
+                gh issue comment "$ST" --body "/oc" || echo "Warning: Failed to trigger #$ST"
                 sleep 2
               done
             fi
