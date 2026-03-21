@@ -1,7 +1,4 @@
 #!/bin/bash
-# AmazingTeam E2E Test: Skills Loading
-# Tests that all 13 skills load successfully
-
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -32,13 +29,13 @@ echo "Start: $(date)" >> "$LOG_FILE"
 
 log_info "Starting test: $TEST_NAME"
 
-PROJECT_ROOT="$(dirname "$(dirname "$(dirname "$E2E_DIR")")")"
-cd "$PROJECT_ROOT"
+cd "$E2E_DIR/../.."
+PROJECT_ROOT=$(pwd)
+log_info "Project root: $PROJECT_ROOT"
 
-SKILLS_DIR=".opencode/skills"
+SKILLS_DIR="$PROJECT_ROOT/.opencode/skills"
 ERRORS=()
 LOADED_COUNT=0
-TOTAL_COUNT=0
 
 EXPECTED_SKILLS=(
     "requirements-discussion"
@@ -59,7 +56,6 @@ EXPECTED_SKILLS=(
 log_info "Checking ${#EXPECTED_SKILLS[@]} expected skills..."
 
 for skill in "${EXPECTED_SKILLS[@]}"; do
-    TOTAL_COUNT=$((TOTAL_COUNT + 1))
     SKILL_PATH="$SKILLS_DIR/$skill"
     
     if [ -d "$SKILL_PATH" ]; then
@@ -69,77 +65,29 @@ for skill in "${EXPECTED_SKILLS[@]}"; do
             if head -10 "$SKILL_FILE" | grep -q "^name:"; then
                 log_info "✓ $skill - valid SKILL.md"
                 LOADED_COUNT=$((LOADED_COUNT + 1))
-                echo "LOADED: $skill" >> "$LOG_FILE"
             else
                 ERRORS+=("$skill: SKILL.md missing 'name' field")
                 log_error "$skill: invalid SKILL.md"
-                echo "INVALID: $skill (no name field)" >> "$LOG_FILE"
             fi
         else
             ERRORS+=("$skill: SKILL.md not found")
             log_error "$skill: SKILL.md missing"
-            echo "MISSING: $skill/SKILL.md" >> "$LOG_FILE"
         fi
     else
         ERRORS+=("$skill: directory not found")
         log_error "$skill: directory missing"
-        echo "MISSING: $skill directory" >> "$LOG_FILE"
-    fi
-done
-
-ADDITIONAL_SKILLS=$(find "$SKILLS_DIR" -maxdepth 1 -type d ! -path "$SKILLS_DIR" -exec basename {} \; 2>/dev/null | sort)
-
-for skill in $ADDITIONAL_SKILLS; do
-    if [[ ! " ${EXPECTED_SKILLS[@]} " =~ " ${skill} " ]]; then
-        log_info "Found additional skill: $skill"
-        echo "ADDITIONAL: $skill" >> "$LOG_FILE"
     fi
 done
 
 END_TIME=$(date +%s)
 DURATION=$((END_TIME - START_TIME))
 
-{
-    echo ""
-    echo "=== Summary ==="
-    echo "Expected skills: ${#EXPECTED_SKILES[@]}"
-    echo "Loaded: $LOADED_COUNT"
-    echo "Errors: ${#ERRORS[@]}"
-} >> "$LOG_FILE"
-
 if [ ${#ERRORS[@]} -eq 0 ]; then
-    log_info "✅ $TEST_NAME PASSED (${DURATION}s) - $LOADED_COUNT/$TOTAL_COUNT skills"
-    
-    cat > "$REPORT_FILE" << EOF
-{
-  "test_id": "$TEST_ID",
-  "test_name": "$TEST_NAME",
-  "status": "pass",
-  "duration_seconds": $DURATION,
-  "skills_expected": ${#EXPECTED_SKILLS[@]},
-  "skills_loaded": $LOADED_COUNT,
-  "timestamp": "$(date -Iseconds)"
-}
-EOF
-    
-    echo "=== TEST PASSED ===" >> "$LOG_FILE"
+    log_info "✅ $TEST_NAME PASSED (${DURATION}s) - $LOADED_COUNT/${#EXPECTED_SKILLS[@]} skills"
+    echo "{\"test_id\":\"$TEST_ID\",\"test_name\":\"$TEST_NAME\",\"status\":\"pass\",\"duration_seconds\":$DURATION,\"skills_expected\":${#EXPECTED_SKILLS[@]},\"skills_loaded\":$LOADED_COUNT}" > "$REPORT_FILE"
     exit 0
 else
-    log_error "❌ $TEST_NAME FAILED (${DURATION}s) - $LOADED_COUNT/$TOTAL_COUNT skills"
-    
-    cat > "$REPORT_FILE" << EOF
-{
-  "test_id": "$TEST_ID",
-  "test_name": "$TEST_NAME",
-  "status": "fail",
-  "duration_seconds": $DURATION,
-  "skills_expected": ${#EXPECTED_SKILLS[@]},
-  "skills_loaded": $LOADED_COUNT,
-  "errors": $(printf '%s\n' "${ERRORS[@]}" | jq -R . | jq -s .),
-  "timestamp": "$(date -Iseconds)"
-}
-EOF
-    
-    echo "=== TEST FAILED ===" >> "$LOG_FILE"
+    log_error "❌ $TEST_NAME FAILED (${DURATION}s) - $LOADED_COUNT/${#EXPECTED_SKILLS[@]} skills"
+    echo "{\"test_id\":\"$TEST_ID\",\"test_name\":\"$TEST_NAME\",\"status\":\"fail\",\"duration_seconds\":$DURATION,\"skills_expected\":${#EXPECTED_SKILLS[@]},\"skills_loaded\":$LOADED_COUNT,\"errors\":${#ERRORS[@]}}" > "$REPORT_FILE"
     exit 1
 fi
