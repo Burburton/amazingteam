@@ -5,6 +5,34 @@ All notable changes to the AmazingTeam will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.17] - 2026-03-21
+
+### Added
+
+- **E2E Testing System**:
+  - Complete E2E test suite for AmazingTeam Foundation
+  - `test-install.sh`: NPM installation verification
+  - `test-init.sh`: CLI initialization test
+  - `test-config.sh`: Configuration validation
+  - `test-skills.sh`: Skills loading verification (13 skills)
+  - `test-agent.sh`: Real Agent API connection test with 4 phases:
+    - Phase 1: Agent definition validation (7 agents)
+    - Phase 2: Agent memory structure validation (8 directories)
+    - Phase 3: API connection test with real HTTP request
+    - Phase 4: OpenCode CLI integration test
+
+- **GitHub Actions E2E Workflow**:
+  - `.github/workflows/e2e-test.yml` for automated testing
+  - PR comment with test results
+  - Auto-create issue on test failure
+  - Support for `basic` and `all` test scopes
+
+### Changed
+
+- Improved agent test to actually call LLM API instead of just checking file existence
+
+---
+
 ## [3.0.16] - 2026-03-21
 
 ### Added
