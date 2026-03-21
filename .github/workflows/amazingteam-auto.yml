@@ -234,6 +234,8 @@ jobs:
         id: create
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # PAT for triggering new workflows (GITHUB_TOKEN doesn't trigger workflows)
+          TRIGGER_TOKEN: ${{ secrets.AMAZINGTEAM_PAT }}
           AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
           PARENT_NUM: ${{ needs.triage.outputs.parent_issue }}
         run: |
@@ -307,8 +309,14 @@ jobs:
                 echo "  Created #$ST_NUM: $ST_TITLE"
                 
                 # Add trigger comment to execute subtask automatically
+                # Use PAT if available (GITHUB_TOKEN doesn't trigger new workflows)
                 echo "  Adding trigger comment..."
-                gh issue comment "$ST_NUM" --body "/oc" || echo "  Warning: Could not add trigger comment"
+                if [ -n "$TRIGGER_TOKEN" ]; then
+                  gh issue comment "$ST_NUM" --body "/oc" --token "$TRIGGER_TOKEN" || echo "  Warning: Could not add trigger comment"
+                else
+                  echo "  Note: AMAZINGTEAM_PAT not set, skipping auto-trigger"
+                  gh issue comment "$ST_NUM" --body "/oc" || echo "  Warning: Could not add trigger comment"
+                fi
                 
                 ALL_ISSUES=$(echo "$ALL_ISSUES" | jq --arg num "$ST_NUM" '. + [$num]')
                 
