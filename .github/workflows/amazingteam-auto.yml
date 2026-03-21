@@ -363,25 +363,33 @@ jobs:
           echo ""
           echo "=========================================="
           
-          # Extract JSON from content - look for the subtasks object
-          if echo "$CONTENT" | grep -qE '\{.*"subtasks".*\[.*\].*\}'; then
-            # Try to extract the full JSON object
-            JSON=$(echo "$CONTENT" | grep -oP '\{[^{}]*"subtasks"[^{}]*\[.*?\][^{}]*\}' | tail -1 || echo '{"subtasks":[]}')
-            
-            # If grep failed, try jq to parse
-            if [ "$JSON" = '{"subtasks":[]}' ]; then
-              # Clean content and try jq parse
-              CLEANED=$(echo "$CONTENT" | sed 's/```json//g' | sed 's/```//g')
-              JSON=$(echo "$CLEANED" | jq -c '{subtasks: .subtasks}' 2>/dev/null || echo '{"subtasks":[]}')
+          # Extract JSON from content - try direct parse first
+          JSON='{"subtasks":[]}'
+          
+          # Method 1: Try to parse content directly as JSON
+          if echo "$CONTENT" | jq -e '.subtasks' > /dev/null 2>&1; then
+            JSON=$(echo "$CONTENT" | jq -c '{subtasks: .subtasks}')
+            echo "Parsed JSON directly from content"
+          # Method 2: Extract JSON object from content
+          elif echo "$CONTENT" | grep -q '"subtasks"'; then
+            # Find JSON object starting with { and containing subtasks
+            EXTRACTED=$(echo "$CONTENT" | grep -oE '\{[^{}]*"subtasks"[^{}]*\[.*\][^{}]*\}' | head -1)
+            if [ -n "$EXTRACTED" ] && echo "$EXTRACTED" | jq -e '.subtasks' > /dev/null 2>&1; then
+              JSON="$EXTRACTED"
+              echo "Extracted JSON via grep"
+            else
+              # Try a more lenient extraction - find anything that looks like JSON
+              EXTRACTED=$(echo "$CONTENT" | tr -d '\n' | grep -oE '\{.*"subtasks".*\}' | head -1)
+              if [ -n "$EXTRACTED" ] && echo "$EXTRACTED" | jq -e '.subtasks' > /dev/null 2>&1; then
+                JSON="$EXTRACTED"
+                echo "Extracted JSON via lenient grep"
+              fi
             fi
-          else
-            echo "Warning: No subtasks JSON found in response"
-            JSON='{"subtasks":[]}'
           fi
           
-          # Validate JSON
-          if ! echo "$JSON" | jq -e '.subtasks' > /dev/null 2>&1; then
-            echo "Invalid JSON, creating default decomposition"
+          # Validate JSON - if still empty, use default
+          if [ "$JSON" = '{"subtasks":[]}' ] || ! echo "$JSON" | jq -e '.subtasks' > /dev/null 2>&1; then
+            echo "Warning: Could not extract valid JSON, using default decomposition"
             JSON='{"subtasks":[{"title":"Analyze and design","role":"architect","depends_on":[]},{"title":"Implement solution","role":"developer","depends_on":[0]},{"title":"Test and validate","role":"qa","depends_on":[1]}]}'
           fi
           
@@ -409,14 +417,14 @@ jobs:
           for row in $(echo "$JSON" | jq -r '.subtasks[]? | @base64'); do
             ST_TITLE=$(echo "$row" | base64 -d | jq -r '.title')
             ST_ROLE=$(echo "$row" | base64 -d | jq -r '.role // "developer"')
-            ST_DEPS=$(echo "$row" | base64 -d | jq -r '.depends_on // []')
+            ST_DEPS=$(echo "$row" | base64 -d | jq -c '.depends_on // []')
             
             URL=$(gh issue create --title "$ST_TITLE" --body "Parent: #$PARENT_NUM\nRole: $ST_ROLE\nDependencies: $ST_DEPS")
             ST_NUM=$(echo "$URL" | grep -oP '\d+$')
             
             echo "  Created #$ST_NUM: $ST_TITLE (deps: $ST_DEPS)"
             
-            CREATED=$(echo "$CREATED" | jq --arg num "$ST_NUM" --arg title "$ST_TITLE" --arg deps "$ST_DEPS" '. + [{"issue": $num, "title": $title, "depends_on": ($deps | fromjson)}]')
+            CREATED=$(echo "$CREATED" | jq -c --arg num "$ST_NUM" --arg title "$ST_TITLE" --argjson deps "$ST_DEPS" '. + [{"issue": $num, "title": $title, "depends_on": $deps}]')
             
             cat >> tasks/issue-$PARENT_NUM/task.yaml << EOF
             
@@ -426,8 +434,8 @@ jobs:
                 depends_on: $ST_DEPS
           EOF
             
-            if [ "$ST_DEPS" = "[]" ] || [ -z "$ST_DEPS" ]; then
-              READY_NOW=$(echo "$READY_NOW" | jq --arg num "$ST_NUM" '. + [$num]')
+            if [ "$ST_DEPS" = "[]" ]; then
+              READY_NOW=$(echo "$READY_NOW" | jq -c --arg num "$ST_NUM" '. + [$num]')
             fi
             
             IDX=$((IDX + 1))
