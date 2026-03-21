@@ -312,11 +312,13 @@ jobs:
             CONTENT=$(echo "$RESULT" | jq -r '.content[0].text // ""' 2>/dev/null)
           fi
           
+          CONTENT=$(echo "$CONTENT" | sed 's/```json//g' | sed 's/```//g' | tr -d '\n')
+          
           echo "AI Response (first 200 chars):"
           echo "$CONTENT" | head -c 200
           echo ""
           
-          JSON=$(echo "$CONTENT" | tr -d '\n' | grep -oE '\{"subtasks"[^}]*\[[^\]]*\][^}]*\}' | head -1 || echo '{"subtasks":[]}')
+          JSON=$(echo "$CONTENT" | grep -oE '\{"subtasks"[^\[]*\[[^\]]*\][^\}]*\}' | head -1 || echo '{"subtasks":[]}')
           
           echo "Plan:"
           echo "$JSON" | jq -r '.subtasks[]? | "  - \(.title) (depends: \(.depends_on // []))"'
