@@ -413,16 +413,42 @@ jobs:
           CREATED="[]"
           READY_NOW="[]"
           IDX=0
+          INDEX_MAP="[]"
           
           for row in $(echo "$JSON" | jq -r '.subtasks[]? | @base64'); do
             ST_TITLE=$(echo "$row" | base64 -d | jq -r '.title')
             ST_ROLE=$(echo "$row" | base64 -d | jq -r '.role // "developer"')
-            ST_DEPS=$(echo "$row" | base64 -d | jq -c '.depends_on // []')
+            ST_DEPS_IDX=$(echo "$row" | base64 -d | jq -c '.depends_on // []')
             
-            URL=$(gh issue create --title "$ST_TITLE" --body "Parent: #$PARENT_NUM\nRole: $ST_ROLE\nDependencies: $ST_DEPS")
+            URL=$(gh issue create --title "$ST_TITLE" --body "Parent: #$PARENT_NUM\nRole: $ST_ROLE\nDependencies: (to be updated)")
             ST_NUM=$(echo "$URL" | grep -oP '\d+$')
             
-            echo "  Created #$ST_NUM: $ST_TITLE (deps: $ST_DEPS)"
+            INDEX_MAP=$(echo "$INDEX_MAP" | jq --arg num "$ST_NUM" '. + [$num]')
+            
+            IDX=$((IDX + 1))
+          done
+          
+          echo "Index mapping: $INDEX_MAP"
+          IDX=0
+          
+          for row in $(echo "$JSON" | jq -r '.subtasks[]? | @base64'); do
+            ST_TITLE=$(echo "$row" | base64 -d | jq -r '.title')
+            ST_ROLE=$(echo "$row" | base64 -d | jq -r '.role // "developer"')
+            ST_DEPS_IDX=$(echo "$row" | base64 -d | jq -c '.depends_on // []')
+            
+            ST_NUM=$(echo "$INDEX_MAP" | jq -r ".[$IDX]")
+            
+            ST_DEPS="[]"
+            if [ "$ST_DEPS_IDX" != "[]" ]; then
+              for dep_idx in $(echo "$ST_DEPS_IDX" | jq -r '.[]'); do
+                DEP_NUM=$(echo "$INDEX_MAP" | jq -r ".[$dep_idx]")
+                ST_DEPS=$(echo "$ST_DEPS" | jq --arg dep "$DEP_NUM" '. + [$dep]')
+              done
+            fi
+            
+            echo "  #$ST_NUM: $ST_TITLE (deps: $ST_DEPS)"
+            
+            gh issue edit "$ST_NUM" --body "Parent: #$PARENT_NUM\nRole: $ST_ROLE\nDependencies: $ST_DEPS"
             
             CREATED=$(echo "$CREATED" | jq -c --arg num "$ST_NUM" --arg title "$ST_TITLE" --argjson deps "$ST_DEPS" '. + [{"issue": $num, "title": $title, "depends_on": $deps}]')
             
