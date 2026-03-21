@@ -317,44 +317,40 @@ jobs:
           CONTENT_COUNT=$(echo "$RESULT" | jq '.content | length' 2>/dev/null || echo "0")
           echo "Content blocks: $CONTENT_COUNT"
           
-          # Try to find text content (actual output after thinking)
           CONTENT=""
+          FOUND_VALID_CONTENT=false
           
-          # Method 1: Look for type="text" content block (actual output)
-          if [ -z "$CONTENT" ]; then
-            CONTENT=$(echo "$RESULT" | jq -r '.content[] | select(.type=="text") | .text' 2>/dev/null | head -1)
-            if [ -n "$CONTENT" ]; then
-              echo "Found text block"
+          for i in $(seq 0 $((CONTENT_COUNT - 1))); do
+            BLOCK_TYPE=$(echo "$RESULT" | jq -r ".content[$i].type" 2>/dev/null)
+            echo "Block $i type: $BLOCK_TYPE"
+            
+            BLOCK_CONTENT=""
+            if [ "$BLOCK_TYPE" = "text" ]; then
+              BLOCK_CONTENT=$(echo "$RESULT" | jq -r ".content[$i].text" 2>/dev/null)
+            elif [ "$BLOCK_TYPE" = "thinking" ]; then
+              BLOCK_CONTENT=$(echo "$RESULT" | jq -r ".content[$i].thinking" 2>/dev/null)
             fi
-          fi
-          
-          # Method 2: Look at all content blocks and try to extract JSON from any
-          if [ -z "$CONTENT" ]; then
-            for i in $(seq 0 $((CONTENT_COUNT - 1))); do
-              BLOCK_TYPE=$(echo "$RESULT" | jq -r ".content[$i].type" 2>/dev/null)
-              echo "Block $i type: $BLOCK_TYPE"
+            
+            if [ -n "$BLOCK_CONTENT" ]; then
+              echo "Block $i content length: $(echo "$BLOCK_CONTENT" | wc -c) chars"
               
-              if [ "$BLOCK_TYPE" = "text" ]; then
-                CONTENT=$(echo "$RESULT" | jq -r ".content[$i].text" 2>/dev/null)
-                if [ -n "$CONTENT" ]; then
-                  echo "Found text in block $i"
-                  break
-                fi
-              elif [ "$BLOCK_TYPE" = "thinking" ]; then
-                THINKING_CONTENT=$(echo "$RESULT" | jq -r ".content[$i].thinking" 2>/dev/null)
-                # Check if thinking contains JSON
-                if echo "$THINKING_CONTENT" | grep -q '{"subtasks"'; then
-                  CONTENT="$THINKING_CONTENT"
-                  echo "Found JSON in thinking block $i"
-                  break
-                fi
+              if echo "$BLOCK_CONTENT" | jq -e '.subtasks' > /dev/null 2>&1; then
+                CONTENT="$BLOCK_CONTENT"
+                FOUND_VALID_CONTENT=true
+                echo "Found valid JSON in block $i ($BLOCK_TYPE)"
+                break
+              elif echo "$BLOCK_CONTENT" | grep -q '"subtasks"'; then
+                CONTENT="$BLOCK_CONTENT"
+                FOUND_VALID_CONTENT=true
+                echo "Found JSON-like content in block $i ($BLOCK_TYPE)"
+                break
               fi
-            done
-          fi
+            fi
+          done
           
-          # Method 3: Fallback - try any field
-          if [ -z "$CONTENT" ]; then
-            CONTENT=$(echo "$RESULT" | jq -r '.content[0].thinking // .content[0].text // .content[0].content // empty' 2>/dev/null)
+          if [ "$FOUND_VALID_CONTENT" = "false" ]; then
+            echo "No valid JSON found in any block, using fallback"
+            CONTENT=$(echo "$RESULT" | jq -r '.content[0].thinking // .content[0].text // empty' 2>/dev/null)
           fi
           
           echo ""
@@ -505,9 +501,6 @@ jobs:
           for ST_NUM in $(echo "$READY_SUBTASKS" | jq -r '.[]'); do
             echo "Triggering #$ST_NUM..."
             gh issue comment "$ST_NUM" --body "/oc" || echo "Warning: Failed to trigger #$ST_NUM"
-            sleep 2
-          done
-            
             sleep 2
           done
           
