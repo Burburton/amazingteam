@@ -354,6 +354,14 @@ jobs:
           git config --global user.name "opencode-bot"
           git config --global user.email "opencode-bot@users.noreply.github.com"
 
+      - name: "Trigger OpenCode"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUM: ${{ needs.triage.outputs.parent_issue }}
+        run: |
+          echo "Adding trigger comment to issue #$ISSUE_NUM..."
+          gh issue comment "$ISSUE_NUM" --body "/oc"
+
       - name: "Run OpenCode"
         uses: anomalyco/opencode/github@latest
         env:
@@ -420,6 +428,14 @@ jobs:
       - run: |
           git config --global user.name "opencode-bot"
           git config --global user.email "opencode-bot@users.noreply.github.com"
+
+      - name: "Trigger OpenCode"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUBTASK_NUM: ${{ needs.decompose.outputs.first_subtask }}
+        run: |
+          echo "Adding trigger comment to subtask #$SUBTASK_NUM..."
+          gh issue comment "$SUBTASK_NUM" --body "/oc"
 
       - name: "Run OpenCode"
         uses: anomalyco/opencode/github@latest
