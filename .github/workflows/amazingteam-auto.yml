@@ -269,8 +269,11 @@ jobs:
           echo "$RESULT" | head -c 500
           echo ""
           
-          # Extract content from Anthropic API response
-          CONTENT=$(echo "$RESULT" | jq -r '.content[0].text // "{\"subtasks\":[]}"' 2>/dev/null || echo '{"subtasks":[]}')
+          # Extract text content from Anthropic API response (skip thinking blocks)
+          CONTENT=$(echo "$RESULT" | jq -r '.content[] | select(.type == "text") | .text // empty' 2>/dev/null | head -1)
+          if [ -z "$CONTENT" ]; then
+            CONTENT=$(echo "$RESULT" | jq -r '.content[0].text // "{\"subtasks\":[]}"' 2>/dev/null || echo '{"subtasks":[]}')
+          fi
           JSON=$(echo "$CONTENT" | grep -oP '\{"subtasks".*\}' | head -1 || echo '{"subtasks":[]}')
           
           echo ""
