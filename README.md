@@ -266,13 +266,62 @@ amazingteam init my-project \
 
 创建 Issue 后，评论命令触发 AI：
 
-**推荐：一条命令自动完成全流程**
+**触发命令：**
+
+| 命令 | 作用 |
+|------|------|
+| `/ai`, `/oc`, `/opencode` | 触发自动工作流（推荐） |
+| `ai:process` label | 给 Issue 添加此标签触发 |
+
+**工作流程：**
 
 ```
-/oc /auto
+Issue 创建 → 评论 /ai
+       │
+       ▼
+┌─────────────────────────────────────────────────────┐
+│  GitHub Actions Workflow                            │
+│      │                                              │
+│      ├── Triage (AI 分析复杂度)                     │
+│      │    ├── 简单任务 → 直接执行 → 创建 PR         │
+│      │    └── 复杂任务 → 创建子Issue → 逐个执行     │
+│      │                                              │
+│      ├── 执行子任务 #1 → 创建 PR/直接提交           │
+│      ├── PR 合并 / Direct 模式完成                  │
+│      ├── 自动触发子任务 #2                          │
+│      └── ... 直到所有子任务完成                     │
+│                                                     │
+│      └── 自动关闭父 Issue                           │
+└─────────────────────────────────────────────────────┘
+       │
+       ▼
+┌─────────────┐
+│   Human     │ ─── 审核 PR（仅 PR 模式）
+└─────────────┘
 ```
 
-这会自动执行：Triage → Design → Implement → Test → Create PR，等待人工审核合并。
+**提交模式配置：**
+
+在 `amazingteam.config.yaml` 中设置：
+
+```yaml
+workflow:
+  commit_mode: pr  # 或 direct
+
+  # PR 模式配置
+  pr:
+    require_review: true
+    auto_merge: false
+
+  # Direct 模式配置  
+  direct:
+    require_ci_pass: true
+```
+
+| 模式 | 触发下一个子任务 | 适用场景 |
+|------|------------------|----------|
+| `pr` (默认) | PR merge 后 | 团队项目，需要代码审查 |
+| `direct` | 执行完成后立即 | 个人项目，快速迭代 |
 
 **手动分步流程（高级用户）：**
 
@@ -1071,6 +1120,27 @@ A: 以下情况建议分解：
 欢迎提交 Issue 和 Pull Request！
 
 ## 版本历史
+
+### v3.0.21 - 自动分解工作流
+
+**新增：**
+- **GitHub Actions 自动分解工作流**：`amazingteam-auto.yml`
+  - Triage 阶段：AI 分析任务复杂度
+  - Decompose 阶段：复杂任务自动创建 GitHub sub-issues
+  - Execute 阶段：逐个执行 subtask，自动触发下一个
+  - 自动关闭父 issue 当所有 subtask 完成
+- **Direct 模式支持**：`commit_mode: direct`
+  - 执行完成后立即触发下一个 subtask
+  - 无需等待 PR merge
+  - 适合个人项目和快速迭代
+- **详细日志**：每个阶段都有清晰的状态输出
+- **E2E 测试系统**：真实的 Agent API 连接测试
+
+**触发命令：**
+- `/ai`, `/oc`, `/opencode` - 触发自动工作流
+- `ai:process` label - 给 Issue 添加标签触发
+
+---
 
 ### v3.0.4 - 安装文档完善
 
