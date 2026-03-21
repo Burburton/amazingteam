@@ -19,6 +19,15 @@ jobs:
       contents: write
       pull-requests: write
     steps:
+      - name: "Start"
+        run: |
+          echo "============================================"
+          echo "  AmazingTeam Subtask Execution"
+          echo "============================================"
+          echo ""
+          echo "Subtask: ${{ github.event.inputs.subtask_issue }}"
+          echo "Parent: ${{ github.event.inputs.parent_issue }}"
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -27,8 +36,10 @@ jobs:
       - run: |
           git config --global user.name "opencode-bot"
           git config --global user.email "opencode-bot@users.noreply.github.com"
+          echo "Git configured for opencode-bot"
 
-      - uses: anomalyco/opencode/github@latest
+      - name: "Run OpenCode"
+        uses: anomalyco/opencode/github@latest
         env:
           AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -36,12 +47,27 @@ jobs:
           model: bailian-coding-plan/glm-5
           use_github_token: true
 
-      - name: Update status
+      - name: "Update Status"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SUBTASK: ${{ github.event.inputs.subtask_issue }}
           PARENT: ${{ github.event.inputs.parent_issue }}
         run: |
-          PR=$(gh pr list --author opencode-bot --state open --json url -q '.[0].url' 2>/dev/null || echo "")
-          gh issue comment "$SUBTASK" --body "## Done\n\nPR: ${PR:-None}"
-          gh issue comment "$PARENT" --body "## Subtask #$SUBTASK done\n\nPR: ${PR:-None}\n\nNext auto-starts on merge."
+          echo ""
+          echo "=== EXECUTION COMPLETE ==="
+          
+          PR=$(gh pr list --author opencode-bot --state open --json url,number -q '.[0]' 2>/dev/null || echo "")
+          
+          if [ -n "$PR" ] && [ "$PR" != "null" ]; then
+            PR_URL=$(echo "$PR" | jq -r '.url')
+            PR_NUM=$(echo "$PR" | jq -r '.number')
+            
+            echo "PR Created: #$PR_NUM"
+            echo "URL: $PR_URL"
+            
+            gh issue comment "$SUBTASK" --body "## Done\n\nPR: #$PR_NUM\n$PR_URL"
+            gh issue comment "$PARENT" --body "## Subtask #$SUBTASK Done\n\nPR: #$PR_NUM\n\nNext auto-starts on merge."
+          else
+            echo "No PR created"
+            gh issue comment "$SUBTASK" --body "## Done\n\nNo PR. Check logs."
+          fi
