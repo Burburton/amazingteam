@@ -5,6 +5,23 @@ All notable changes to the AmazingTeam will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.22] - 2026-03-21
+
+### Changed
+
+- **Documentation**: Updated README.md with auto-decomposition workflow usage
+  - Added trigger commands table (`/ai`, `/oc`, `/opencode`, `ai:process` label)
+  - Added workflow diagram showing GitHub Actions flow
+  - Added commit mode configuration (`pr` vs `direct`)
+  - Added version history for v3.0.21
+
+### Fixed
+
+- **Workflow**: Updated action version references from 3.0.20 to 3.0.21
+- **Workflow**: Removed unused REMAINING variable in continue-direct job
+
+---
+
 ## [3.0.21] - 2026-03-21
 
 ### Added
