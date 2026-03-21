@@ -202,8 +202,24 @@ jobs:
           echo "Title: $TITLE"
           echo "Body: $(echo "$BODY" | wc -c) chars"
           
-          FUNCTIONAL_AREAS=0
           ANALYSIS_CONTENT="$TITLE $BODY"
+          
+          REF_FILES=$(echo "$BODY" | grep -oE '[a-zA-Z0-9_/.-]+\.(md|txt|yaml|yml|json)' | sort -u || echo "")
+          
+          for ref in $REF_FILES; do
+            if [ -f "$ref" ]; then
+              FILE_LINES=$(wc -l < "$ref")
+              echo "Found referenced file: $ref ($FILE_LINES lines)"
+              
+              if [ "$FILE_LINES" -gt 50 ]; then
+                ANALYSIS_CONTENT="$ANALYSIS_CONTENT $(head -200 "$ref")"
+              else
+                ANALYSIS_CONTENT="$ANALYSIS_CONTENT $(cat "$ref")"
+              fi
+            fi
+          done
+          
+          FUNCTIONAL_AREAS=0
           
           for pattern in "database|storage" "api|backend" "frontend|ui" "auth|user" "test|qa" "deploy|ci"; do
             if echo "$ANALYSIS_CONTENT" | grep -qiE "$pattern"; then
@@ -212,11 +228,14 @@ jobs:
           done
           
           LINES=$(echo "$ANALYSIS_CONTENT" | wc -l)
+          CHARS=$(echo "$ANALYSIS_CONTENT" | wc -c)
           
-          if [ "$LINES" -gt 200 ] || [ "$FUNCTIONAL_AREAS" -ge 3 ]; then
+          echo "Analysis: $LINES lines, $CHARS chars, $FUNCTIONAL_AREAS functional areas"
+          
+          if [ "$LINES" -gt 200 ] || [ "$CHARS" -gt 5000 ] || [ "$FUNCTIONAL_AREAS" -ge 3 ]; then
             NEEDS_DECOMP="true"
             COMPLEXITY="complex"
-            REASON="$LINES lines, $FUNCTIONAL_AREAS functional areas"
+            REASON="$LINES lines, $CHARS chars, $FUNCTIONAL_AREAS functional areas"
           else
             NEEDS_DECOMP="false"
             COMPLEXITY="simple"
