@@ -1,9 +1,0 @@
-{
-  "test_id": "install",
-  "test_name": "NPM Install",
-  "status": "pass",
-  "duration_seconds": 10,
-  "version": "latest",
-  "files_verified": 4,
-  "timestamp": "2026-03-21T13:01:12+08:00"
-}
