@@ -1,0 +1,240 @@
+name: E2E Tests
+
+on:
+  pull_request:
+    branches: [main]
+    
+  push:
+    branches: [main]
+    
+  workflow_dispatch:
+    inputs:
+      test_scope:
+        description: 'Test scope'
+        required: true
+        default: 'basic'
+        type: choice
+        options:
+          - basic
+          - all
+          - install-only
+          
+  schedule:
+    - cron: '0 2 * * *'
+
+env:
+  CREATE_ISSUE_ON_FAILURE: true
+  AUTO_LABEL_ENABLED: true
+  PR_COMMENT_ENABLED: true
+
+jobs:
+  basic-tests:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Make test scripts executable
+        run: chmod +x tests/e2e/scripts/*.sh tests/e2e/local/*.sh
+        
+      - name: Run install test
+        id: test-install
+        run: |
+          ./tests/e2e/scripts/test-install.sh
+        continue-on-error: true
+        
+      - name: Run init test
+        id: test-init
+        run: |
+          ./tests/e2e/scripts/test-init.sh
+        continue-on-error: true
+        
+      - name: Run config test
+        id: test-config
+        run: |
+          ./tests/e2e/scripts/test-config.sh
+        continue-on-error: true
+        
+      - name: Run skills test
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.test_scope == 'all' || github.event_name == 'schedule'
+        id: test-skills
+        run: |
+          ./tests/e2e/scripts/test-skills.sh
+        continue-on-error: true
+        
+      - name: Collect test results
+        id: collect
+        run: |
+          PASS_COUNT=0
+          FAIL_COUNT=0
+          
+          if [ "${{ steps.test-install.outcome }}" == "success" ]; then
+            PASS_COUNT=$((PASS_COUNT + 1))
+            echo "install=pass" >> $GITHUB_OUTPUT
+          else
+            FAIL_COUNT=$((FAIL_COUNT + 1))
+            echo "install=fail" >> $GITHUB_OUTPUT
+          fi
+          
+          if [ "${{ steps.test-init.outcome }}" == "success" ]; then
+            PASS_COUNT=$((PASS_COUNT + 1))
+            echo "init=pass" >> $GITHUB_OUTPUT
+          else
+            FAIL_COUNT=$((FAIL_COUNT + 1))
+            echo "init=fail" >> $GITHUB_OUTPUT
+          fi
+          
+          if [ "${{ steps.test-config.outcome }}" == "success" ]; then
+            PASS_COUNT=$((PASS_COUNT + 1))
+            echo "config=pass" >> $GITHUB_OUTPUT
+          else
+            FAIL_COUNT=$((FAIL_COUNT + 1))
+            echo "config=fail" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "pass_count=$PASS_COUNT" >> $GITHUB_OUTPUT
+          echo "fail_count=$FAIL_COUNT" >> $GITHUB_OUTPUT
+          
+          if [ $FAIL_COUNT -gt 0 ]; then
+            echo "overall=fail" >> $GITHUB_OUTPUT
+          else
+            echo "overall=pass" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Upload test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-logs
+          path: tests/e2e/logs/
+          retention-days: 30
+          
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-reports
+          path: tests/e2e/reports/
+          retention-days: 30
+
+  pr-comment:
+    runs-on: ubuntu-latest
+    needs: basic-tests
+    if: always() && github.event_name == 'pull_request' && env.PR_COMMENT_ENABLED == 'true'
+    
+    steps:
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const passCount = '${{ needs.basic-tests.outputs.pass_count }}' || '0';
+            const failCount = '${{ needs.basic-tests.outputs.fail_count }}' || '0';
+            const overall = '${{ needs.basic-tests.outputs.overall }}' || 'unknown';
+            
+            const install = '${{ needs.basic-tests.outputs.install }}' || 'unknown';
+            const init = '${{ needs.basic-tests.outputs.init }}' || 'unknown';
+            const config = '${{ needs.basic-tests.outputs.config }}' || 'unknown';
+            
+            const statusEmoji = overall === 'pass' ? '✅' : '❌';
+            
+            const body = `## 🧪 E2E Test Results
+            
+            **Commit**: \`${{ github.sha }}\`
+            **Branch**: \`${{ github.ref_name }}\`
+            
+            | Test | Status |
+            |------|--------|
+            | NPM Install | ${install === 'pass' ? '✅ PASS' : '❌ FAIL'} |
+            | CLI Init | ${init === 'pass' ? '✅ PASS' : '❌ FAIL'} |
+            | Config Validation | ${config === 'pass' ? '✅ PASS' : '❌ FAIL'} |
+            
+            ### Summary
+            - **Total**: ${parseInt(passCount) + parseInt(failCount)} tests
+            - **Passed**: ${passCount} ✅
+            - **Failed**: ${failCount}
+            - **Result**: ${statusEmoji} ${overall.toUpperCase()}
+            
+            [📋 View Workflow](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) | [📥 Download Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}#artifacts)
+            `;
+            
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
+
+  create-issue:
+    runs-on: ubuntu-latest
+    needs: basic-tests
+    if: failure() && github.event_name != 'pull_request' && env.CREATE_ISSUE_ON_FAILURE == 'true'
+    
+    steps:
+      - name: Determine issue label
+        id: label
+        run: |
+          FAIL_COUNT=${{ needs.basic-tests.outputs.fail_count }}
+          
+          if [ "$FAIL_COUNT" -le 1 ]; then
+            echo "label=auto-fix" >> $GITHUB_OUTPUT
+            echo "priority=low" >> $GITHUB_OUTPUT
+          else
+            echo "label=needs-triage" >> $GITHUB_OUTPUT
+            echo "priority=high" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Create GitHub Issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const label = '${{ steps.label.outputs.label }}' || 'needs-triage';
+            const install = '${{ needs.basic-tests.outputs.install }}' || 'unknown';
+            const init = '${{ needs.basic-tests.outputs.init }}' || 'unknown';
+            const config = '${{ needs.basic-tests.outputs.config }}' || 'unknown';
+            
+            const failedTests = [];
+            if (install !== 'pass') failedTests.push('NPM Install');
+            if (init !== 'pass') failedTests.push('CLI Init');
+            if (config !== 'pass') failedTests.push('Config Validation');
+            
+            const body = `## 🚨 E2E Test Failure
+            
+            **Priority**: ${{ steps.label.outputs.priority }}
+            **Workflow**: e2e-test.yml
+            **Run ID**: ${{ github.run_id }}
+            **Commit**: \`${{ github.sha }}\`
+            **Branch**: \`${{ github.ref_name }}\`
+            **Triggered by**: ${{ github.event_name }}
+            
+            ### Failed Tests
+            
+            ${failedTests.map(t => `- ❌ ${t}`).join('\n')}
+            
+            ### Actions
+            
+            - [View Workflow Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            - [Download Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}#artifacts)
+            - [Re-run Tests](${{ github.server_url }}/${{ github.repository }}/actions/workflows/e2e-test.yml)
+            
+            ---
+            *This issue was automatically created by E2E Test Workflow*
+            `;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚨 E2E Test Failure: ${failedTests.join(', ')}`,
+              body: body,
+              labels: ['bug', 'e2e-test', label],
+              assignees: ['${{ github.actor }}']
+            });

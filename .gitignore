@@ -6,3 +6,8 @@ coverage/
 *.log
 .DS_Store
 *.stackdump
+
+# E2E Test temporary files
+tests/e2e/local/tmp/
+tests/e2e/local/reports/
+tests/e2e/logs/*.log

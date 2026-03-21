@@ -1,0 +1,19 @@
+{
+  "name": "amazingteam-e2e-tests",
+  "version": "1.0.0",
+  "description": "End-to-end tests for AmazingTeam Foundation",
+  "private": true,
+  "scripts": {
+    "test": "./local/run-all.sh",
+    "test:install": "./scripts/test-install.sh",
+    "test:init": "./scripts/test-init.sh",
+    "test:config": "./scripts/test-config.sh",
+    "test:skills": "./scripts/test-skills.sh",
+    "test:agent": "./scripts/test-agent.sh",
+    "report": "./scripts/generate-report.sh"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "js-yaml": "^4.1.0"
+  }
+}
