@@ -5,6 +5,22 @@ All notable changes to the AmazingTeam will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.23] - 2026-03-21
+
+### Changed
+
+- **Triage Logic Improvement**: Enhanced complexity detection based on actual implementation scope
+  - Detects referenced files in issue body (.md, .txt, .yaml, .json)
+  - Reads file contents (up to 500 lines) for accurate scope assessment
+  - Counts functional areas: database, api, frontend, auth, integration, testing, devops
+  - Auto-classifies as COMPLEX when:
+    - Content lines > 300, OR
+    - Functional areas >= 3
+  - Falls back to AI analysis only for smaller tasks
+  - Outputs detailed analysis with reasoning
+
+---
+
 ## [3.0.22] - 2026-03-21
 
 ### Changed

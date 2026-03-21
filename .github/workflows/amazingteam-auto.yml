@@ -41,7 +41,7 @@ jobs:
 
       - uses: Burburton/amazingteam-action@v3.0.22
         with:
-          version: '3.0.21'
+          version: '3.0.22'
 
       - name: "Read Config"
         id: config
@@ -77,23 +77,107 @@ jobs:
           
           echo "Title: $TITLE"
           echo "Body length: $(echo "$BODY" | wc -c) chars"
+          
+          ANALYSIS_CONTENT="$TITLE\n\n$BODY"
+          REFERENCED_FILES=""
+          
           echo ""
-          echo "Analyzing with AI model: $OPENCODE_MODEL"
+          echo "=== Checking for referenced files ==="
           
-          PROMPT="Classify this GitHub issue. Respond with ONLY a JSON object (no markdown, no code blocks): {\"complexity\":\"simple\" or \"complex\",\"needs_decomposition\":true or false,\"estimated_subtasks\":0-5,\"reason\":\"brief explanation\"}. Issue Title: $TITLE. Issue Body: $BODY"
+          REF_PATHS=$(echo "$BODY" | grep -oE '[a-zA-Z0-9_/.-]+\.(md|txt|yaml|yml|json)' | sort -u || echo "")
           
-          RESULT=$(opencode run --model "$OPENCODE_MODEL" "$PROMPT" 2>&1 || echo '{}')
+          for ref in $REF_PATHS; do
+            if [ -f "$ref" ]; then
+              echo "Found referenced file: $ref"
+              FILE_LINES=$(wc -l < "$ref")
+              FILE_SIZE=$(wc -c < "$ref")
+              echo "  Lines: $FILE_LINES, Size: $FILE_SIZE bytes"
+              
+              if [ "$FILE_LINES" -gt 100 ]; then
+                echo "  Content preview (first 50 lines):"
+                head -50 "$ref" | sed 's/^/    /'
+                echo "  ... (truncated, total $FILE_LINES lines)"
+              else
+                echo "  Full content:"
+                cat "$ref" | sed 's/^/    /'
+              fi
+              
+              REFERENCED_FILES="$REFERENCED_FILES\nFile: $ref ($FILE_LINES lines)\n$(head -200 "$ref")\n"
+              ANALYSIS_CONTENT="$ANALYSIS_CONTENT\n\n--- Referenced File: $ref ---\n$(head -500 "$ref")"
+            fi
+          done
           
-          echo "AI Response (first 500 chars):"
-          echo "$RESULT" | head -c 500
+          if [ -z "$REFERENCED_FILES" ]; then
+            echo "No referenced files found in issue body"
+          fi
+          
           echo ""
+          echo "=== Analyzing complexity ==="
           
-          JSON=$(echo "$RESULT" | grep -oP '\{[^{}]*\}' | tail -1 || echo '{}')
+          FUNCTIONAL_AREAS=0
           
-          NEEDS_DECOMP=$(echo "$JSON" | jq -r '.needs_decomposition // false')
-          COMPLEXITY=$(echo "$JSON" | jq -r '.complexity // "simple"')
-          EST=$(echo "$JSON" | jq -r '.estimated_subtasks // 0')
-          REASON=$(echo "$JSON" | jq -r '.reason // "N/A"')
+          if echo "$ANALYSIS_CONTENT" | grep -qiE "database|storage|persistence|model"; then
+            FUNCTIONAL_AREAS=$((FUNCTIONAL_AREAS + 1))
+            echo "  + Database/Storage detected"
+          fi
+          if echo "$ANALYSIS_CONTENT" | grep -qiE "api|endpoint|rest|graphql|backend"; then
+            FUNCTIONAL_AREAS=$((FUNCTIONAL_AREAS + 1))
+            echo "  + API/Backend detected"
+          fi
+          if echo "$ANALYSIS_CONTENT" | grep -qiE "frontend|ui|web|react|vue|component"; then
+            FUNCTIONAL_AREAS=$((FUNCTIONAL_AREAS + 1))
+            echo "  + Frontend/UI detected"
+          fi
+          if echo "$ANALYSIS_CONTENT" | grep -qiE "auth|login|user|permission|security"; then
+            FUNCTIONAL_AREAS=$((FUNCTIONAL_AREAS + 1))
+            echo "  + Authentication/User detected"
+          fi
+          if echo "$ANALYSIS_CONTENT" | grep -qiE "integration|external|third.?party|api.*client"; then
+            FUNCTIONAL_AREAS=$((FUNCTIONAL_AREAS + 1))
+            echo "  + External Integration detected"
+          fi
+          if echo "$ANALYSIS_CONTENT" | grep -qiE "test|testing|qa|coverage"; then
+            FUNCTIONAL_AREAS=$((FUNCTIONAL_AREAS + 1))
+            echo "  + Testing infrastructure detected"
+          fi
+          if echo "$ANALYSIS_CONTENT" | grep -qiE "deploy|ci|cd|pipeline|infrastructure"; then
+            FUNCTIONAL_AREAS=$((FUNCTIONAL_AREAS + 1))
+            echo "  + DevOps/Infrastructure detected"
+          fi
+          
+          CONTENT_LINES=$(echo -e "$ANALYSIS_CONTENT" | wc -l)
+          echo ""
+          echo "Content analysis:"
+          echo "  Total lines: $CONTENT_LINES"
+          echo "  Functional areas: $FUNCTIONAL_AREAS"
+          
+          if [ "$CONTENT_LINES" -gt 300 ] || [ "$FUNCTIONAL_AREAS" -ge 3 ]; then
+            echo ""
+            echo "=== AUTO-CLASSIFY: COMPLEX ==="
+            echo "Reason: Content lines=$CONTENT_LINES (threshold: 300), Functional areas=$FUNCTIONAL_AREAS (threshold: 3)"
+            NEEDS_DECOMP="true"
+            COMPLEXITY="complex"
+            EST=$((FUNCTIONAL_AREAS + 1))
+            REASON="Large scope: $CONTENT_LINES lines of requirements, $FUNCTIONAL_AREAS functional areas"
+          else
+            echo ""
+            echo "Analyzing with AI model: $OPENCODE_MODEL"
+            
+            PROMPT="Classify this GitHub issue. Respond with ONLY a JSON object (no markdown): {\"complexity\":\"simple\" or \"complex\",\"needs_decomposition\":true or false,\"estimated_subtasks\":0-5,\"reason\":\"brief\"}. Content lines: $CONTENT_LINES. Functional areas detected: $FUNCTIONAL_AREAS. Issue Title: $TITLE. Issue Body excerpt: $(echo -e "$ANALYSIS_CONTENT" | head -100 | tr '\n' ' ')"
+            
+            RESULT=$(opencode run --model "$OPENCODE_MODEL" "$PROMPT" 2>&1 || echo '{}')
+            
+            echo "AI Response (first 300 chars):"
+            echo "$RESULT" | head -c 300
+            echo ""
+            
+            JSON=$(echo "$RESULT" | grep -oP '\{[^{}]*\}' | tail -1 || echo '{}')
+            
+            NEEDS_DECOMP=$(echo "$JSON" | jq -r '.needs_decomposition // false')
+            COMPLEXITY=$(echo "$JSON" | jq -r '.complexity // "simple"')
+            EST=$(echo "$JSON" | jq -r '.estimated_subtasks // 0')
+            REASON=$(echo "$JSON" | jq -r '.reason // "N/A"')
+          fi
           
           echo ""
           echo "=== ANALYSIS RESULT ==="
@@ -110,7 +194,7 @@ jobs:
           
           if [ "$NEEDS_DECOMP" = "true" ]; then
             echo "Decision: COMPLEX -> Will decompose"
-            gh issue comment "$ISSUE_NUM" --body "## Triage: Complex Task\n\nComplexity: $COMPLEXITY\nDecomposition: Required\nEst. Subtasks: $EST\nReason: $REASON\n\nCreating sub-issues..."
+            gh issue comment "$ISSUE_NUM" --body "## Triage: Complex Task\n\nComplexity: $COMPLEXITY\nContent Lines: $CONTENT_LINES\nFunctional Areas: $FUNCTIONAL_AREAS\nDecomposition: Required\nEst. Subtasks: $EST\nReason: $REASON\n\nCreating sub-issues..."
           else
             echo "Decision: SIMPLE -> Direct execution"
             gh issue comment "$ISSUE_NUM" --body "## Triage: Simple Task\n\nComplexity: $COMPLEXITY\nReason: $REASON\n\nExecuting directly..."
@@ -142,7 +226,7 @@ jobs:
 
       - uses: Burburton/amazingteam-action@v3.0.22
         with:
-          version: '3.0.21'
+          version: '3.0.22'
 
       - name: "Create Sub-Issues"
         id: create
