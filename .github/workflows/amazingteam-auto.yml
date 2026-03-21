@@ -310,14 +310,14 @@ jobs:
           echo "$RESULT" | head -c 500
           echo ""
           
-          CONTENT=$(echo "$RESULT" | jq -r '.content[] | select(.type=="text") | .text' 2>/dev/null | head -1)
+          CONTENT=$(echo "$RESULT" | jq -r '.content[0].thinking // .content[0].text // empty' 2>/dev/null)
           
           if [ -z "$CONTENT" ]; then
             CONTENT=$(echo "$RESULT" | jq -r '.content[] | select(.type=="thinking") | .thinking' 2>/dev/null | head -1)
           fi
           
           if [ -z "$CONTENT" ]; then
-            CONTENT=$(echo "$RESULT" | jq -r '.content[0].text // .content[0].thinking // ""' 2>/dev/null)
+            CONTENT=$(echo "$RESULT" | jq -r '.content[] | select(.type=="text") | .text' 2>/dev/null | head -1)
           fi
           
           if [ -z "$CONTENT" ]; then
