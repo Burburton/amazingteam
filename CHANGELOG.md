@@ -5,6 +5,42 @@ All notable changes to the AmazingTeam will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.21] - 2026-03-21
+
+### Added
+
+- **Auto-Decomposition Workflow**: Intelligent task decomposition and execution
+  - `amazingteam-auto.yml`: Complete automated workflow
+  - Triage phase: Analyze task complexity (simple vs complex)
+  - Decompose phase: Create GitHub sub-issues for complex tasks
+  - Execute phase: Run subtasks sequentially with dependency awareness
+  - Auto-close parent issue when all subtasks complete
+
+- **Direct Mode Support**: Support for `commit_mode: direct` in config
+  - PR mode: Wait for merge to trigger next subtask
+  - Direct mode: Auto-trigger next subtask immediately after completion
+  - No manual intervention needed in either mode
+
+- **Detailed Logging**: Clear status and progress feedback in workflow
+  - Phase headers and separators
+  - Analysis results with reasoning
+  - Decomposition plan visualization
+  - Progress tracking (X/Y subtasks)
+
+### Fixed
+
+- **E2E Testing**: Real Agent API connection test
+  - Actually calls LLM API to verify API key validity
+  - 4-phase test: Agent definitions, Memory structure, API connection, CLI integration
+
+- **amazingteam-action**: Bundle dependencies with ncc
+  - Fixed `Cannot find module '@actions/core'` error
+
+- **OpenCode provider configuration**: `{env:AMAZINGTEAM_API_KEY}` syntax
+  - Fixes API key not being read from environment variable
+
+---
+
 ## [3.0.20] - 2026-03-21
 
 ### Fixed
