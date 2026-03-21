@@ -306,6 +306,10 @@ jobs:
                 ST_NUM=$(echo "$URL" | grep -oP '\d+$')
                 echo "  Created #$ST_NUM: $ST_TITLE"
                 
+                # Add trigger comment to execute subtask automatically
+                echo "  Adding trigger comment..."
+                gh issue comment "$ST_NUM" --body "/oc" || echo "  Warning: Could not add trigger comment"
+                
                 ALL_ISSUES=$(echo "$ALL_ISSUES" | jq --arg num "$ST_NUM" '. + [$num]')
                 
                 if [ -z "$FIRST" ]; then
@@ -429,22 +433,56 @@ jobs:
           git config --global user.name "opencode-bot"
           git config --global user.email "opencode-bot@users.noreply.github.com"
 
-      - name: "Trigger OpenCode"
+      - name: "Get Subtask Details"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SUBTASK_NUM: ${{ needs.decompose.outputs.first_subtask }}
+        id: subtask
         run: |
-          echo "Adding trigger comment to subtask #$SUBTASK_NUM..."
-          gh issue comment "$SUBTASK_NUM" --body "/oc"
+          echo "Fetching subtask #$SUBTASK_NUM details..."
+          DATA=$(gh issue view "$SUBTASK_NUM" --json title,body)
+          TITLE=$(echo "$DATA" | jq -r '.title')
+          BODY=$(echo "$DATA" | jq -r '.body')
+          
+          echo "Title: $TITLE"
+          echo "Body: $BODY"
+          
+          echo "title=$TITLE" >> $GITHUB_OUTPUT
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "$BODY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: "Run OpenCode"
-        uses: anomalyco/opencode/github@latest
+      - name: "Execute with AI"
         env:
           AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          model: bailian-coding-plan/glm-5
-          use_github_token: true
+          SUBTASK_TITLE: ${{ steps.subtask.outputs.title }}
+          SUBTASK_BODY: ${{ steps.subtask.outputs.body }}
+        run: |
+          echo "=== Executing Subtask with AI ==="
+          echo "Task: $SUBTASK_TITLE"
+          echo ""
+          
+          # Create prompt for implementation
+          PROMPT="Implement this task in the current repository. Create necessary files and code. Task: $SUBTASK_TITLE. Details: $(echo "$SUBTASK_BODY" | head -c 500 | tr '\n' ' ' | tr -d '\"')"
+          
+          # Escape for JSON
+          ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs '.')
+          
+          # Call API
+          RESULT=$(curl -s -X POST "https://coding.dashscope.aliyuncs.com/apps/anthropic/v1/messages" \
+            -H "x-api-key: $AMAZINGTEAM_API_KEY" \
+            -H "anthropic-version: 2023-06-01" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"model\": \"glm-5\",
+              \"max_tokens\": 4000,
+              \"messages\": [{\"role\": \"user\", \"content\": $ESCAPED_PROMPT}]
+            }" 2>&1)
+          
+          echo "AI Response:"
+          echo "$RESULT" | jq -r '.content[] | select(.type == "text") | .text' 2>/dev/null | head -100 || echo "$RESULT" | head -c 1000
+          echo ""
+          echo "=== AI Execution Complete ==="
 
       - name: "Update"
         id: update
