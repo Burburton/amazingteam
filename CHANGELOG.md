@@ -5,6 +5,17 @@ All notable changes to the AmazingTeam will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.18] - 2026-03-21
+
+### Fixed
+
+- **amazingteam-action**: Bundle dependencies with ncc to fix `Cannot find module '@actions/core'` error
+  - Added `@vercel/ncc` for bundling
+  - Changed `main` from `index.js` to `dist/index.js`
+  - All dependencies now included in single file
+
+---
+
 ## [3.0.17] - 2026-03-21
 
 ### Added
