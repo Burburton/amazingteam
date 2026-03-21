@@ -486,10 +486,8 @@ jobs:
           gh issue comment "$PARENT_NUM" --repo "$REPO" --body "## Started $READY_COUNT parallel subtasks\n\nSubtasks triggered: $READY_SUBTASKS"
 
   execute:
-    needs: [planner, triage]
-    if: |
-      needs.planner.outputs.action == 'execute_subtask' ||
-      (needs.triage.outputs.needs_decomposition == 'false' && needs.triage.result == 'success')
+    needs: planner
+    if: needs.planner.outputs.action == 'execute_subtask'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     outputs:
@@ -646,6 +644,103 @@ jobs:
             fi
             git add tasks/ && git commit -m "chore: update task status for #$ISSUE_NUM" || true
             git push || true
+          fi
+
+  execute-simple:
+    needs: [planner, triage]
+    if: needs.planner.outputs.action == 'triage' && needs.triage.outputs.needs_decomposition == 'false'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      issue_num: ${{ steps.context.outputs.issue_num }}
+      status: ${{ steps.result.outputs.status }}
+    permissions:
+      issues: write
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: |
+          git config --global user.name "opencode-bot"
+          git config --global user.email "opencode-bot@users.noreply.github.com"
+
+      - name: "Prepare Context"
+        id: context
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUM: ${{ needs.planner.outputs.issue_num }}
+        run: |
+          echo "=== PREPARE CONTEXT: #$ISSUE_NUM ==="
+          
+          ISSUE_DATA=$(gh issue view "$ISSUE_NUM" --json title,body)
+          TITLE=$(echo "$ISSUE_DATA" | jq -r '.title')
+          BODY=$(echo "$ISSUE_DATA" | jq -r '.body')
+          
+          mkdir -p "tasks/issue-$ISSUE_NUM"
+          cat > "tasks/issue-$ISSUE_NUM/context.md" << EOF
+          # Task: $TITLE
+          
+          ## Issue Number
+          $ISSUE_NUM
+          
+          ## Task Description
+          $BODY
+          
+          ## Instructions for AI
+          1. Read the task description above
+          2. Create a branch: \`ai/issue-$ISSUE_NUM\`
+          3. Implement the changes
+          4. Create a PR
+          5. Reference this issue: "Closes #$ISSUE_NUM"
+          EOF
+          
+          echo "issue_num=$ISSUE_NUM" >> $GITHUB_OUTPUT
+          
+          gh issue edit "$ISSUE_NUM" --add-label "status:in-progress" || true
+
+      - uses: Burburton/amazingteam-action@v3.0.23
+        with:
+          version: '3.0.23'
+          config: 'amazingteam.config.yaml'
+
+      - name: "Run OpenCode"
+        id: opencode
+        uses: anomalyco/opencode/github@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENCODE_MODEL: bailian-coding-plan/glm-5
+        continue-on-error: true
+
+      - name: "Handle Result"
+        id: result
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUM: ${{ steps.context.outputs.issue_num }}
+          OPENCODE_OUTCOME: ${{ steps.opencode.outcome }}
+        run: |
+          echo "=== HANDLE RESULT ==="
+          echo "OpenCode outcome: $OPENCODE_OUTCOME"
+          
+          if [ "$OPENCODE_OUTCOME" = "success" ]; then
+            PR=$(gh pr list --author opencode-bot --state open --json url,number -q '.[0]' 2>/dev/null || echo "")
+            
+            if [ -n "$PR" ] && [ "$PR" != "null" ]; then
+              PR_NUM=$(echo "$PR" | jq -r '.number')
+              PR_URL=$(echo "$PR" | jq -r '.url')
+              gh issue comment "$ISSUE_NUM" --body "## ✅ Implementation Complete\n\nPR: #$PR_NUM\n$PR_URL\n\nWaiting for review and merge."
+              echo "status=pr_created" >> $GITHUB_OUTPUT
+            else
+              gh issue comment "$ISSUE_NUM" --body "## ✅ Implementation Complete\n\nNo PR was created. Check logs."
+              echo "status=no_pr" >> $GITHUB_OUTPUT
+            fi
+          else
+            gh issue comment "$ISSUE_NUM" --body "## ⚠️ Execution Failed\n\nPlease check the workflow logs."
+            echo "status=failed" >> $GITHUB_OUTPUT
           fi
 
   ci-analyst:
