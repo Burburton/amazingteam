@@ -269,21 +269,11 @@ jobs:
           echo "$RESULT" | head -c 500
           echo ""
           
-          # Extract text content from Anthropic API response (skip thinking blocks)
           CONTENT=$(echo "$RESULT" | jq -r '.content[] | select(.type == "text") | .text // empty' 2>/dev/null | head -1)
           if [ -z "$CONTENT" ]; then
             CONTENT=$(echo "$RESULT" | jq -r '.content[0].text // "{\"subtasks\":[]}"' 2>/dev/null || echo '{"subtasks":[]}')
           fi
-          
-          echo "Extracted content (first 300 chars):"
-          echo "$CONTENT" | head -c 300
-          echo ""
-          
           JSON=$(echo "$CONTENT" | grep -oP '\{"subtasks".*\}' | head -1 || echo '{"subtasks":[]}')
-          
-          echo "Parsed JSON:"
-          echo "$JSON"
-          echo ""
           
           echo ""
           echo "=== DECOMPOSITION PLAN ==="
@@ -296,30 +286,33 @@ jobs:
           
           echo "Creating GitHub issues..."
           
-          echo "DEBUG: Testing jq base64 encoding..."
-          echo "$JSON" | jq -r '.subtasks[]? | @base64' 2>&1 | head -5
-          echo "DEBUG: Done"
-          echo ""
+          BASE64_ROWS=$(echo "$JSON" | jq -r '.subtasks[]? | @base64' 2>/dev/null) || BASE64_ROWS=""
           
-          for row in $(echo "$JSON" | jq -r '.subtasks[]? | @base64' 2>/dev/null); do
-            ST_TITLE=$(echo "$row" | base64 -d | jq -r '.title')
-            ST_ROLE=$(echo "$row" | base64 -d | jq -r '.role')
-            ST_PRIO=$(echo "$row" | base64 -d | jq -r '.priority // 1')
-            
-            URL=$(gh issue create --title "$ST_TITLE" --body "Parent: #$PARENT_NUM\nRole: $ST_ROLE\nPriority: $ST_PRIO" --label "type:subtask,role:$ST_ROLE,status:pending" 2>/dev/null || echo "")
-            
-            if [ -n "$URL" ]; then
-              ST_NUM=$(echo "$URL" | grep -oP '\d+$')
-              echo "  Created #$ST_NUM: $ST_TITLE"
+          if [ -z "$BASE64_ROWS" ]; then
+            echo "No subtasks to create"
+          else
+            echo "$BASE64_ROWS" | while read -r row; do
+              if [ -z "$row" ]; then continue; fi
               
-              ALL_ISSUES=$(echo "$ALL_ISSUES" | jq --arg num "$ST_NUM" '. + [$num]')
+              ST_TITLE=$(echo "$row" | base64 -d | jq -r '.title')
+              ST_ROLE=$(echo "$row" | base64 -d | jq -r '.role')
+              ST_PRIO=$(echo "$row" | base64 -d | jq -r '.priority // 1')
               
-              if [ -z "$FIRST" ]; then
-                FIRST="$ST_NUM"
+              URL=$(gh issue create --title "$ST_TITLE" --body "Parent: #$PARENT_NUM\nRole: $ST_ROLE\nPriority: $ST_PRIO" --label "type:subtask,role:$ST_ROLE,status:pending" 2>/dev/null || echo "")
+              
+              if [ -n "$URL" ]; then
+                ST_NUM=$(echo "$URL" | grep -oP '\d+$')
+                echo "  Created #$ST_NUM: $ST_TITLE"
+                
+                ALL_ISSUES=$(echo "$ALL_ISSUES" | jq --arg num "$ST_NUM" '. + [$num]')
+                
+                if [ -z "$FIRST" ]; then
+                  FIRST="$ST_NUM"
+                fi
+                COUNT=$((COUNT + 1))
               fi
-              COUNT=$((COUNT + 1))
-            fi
-          done
+            done
+          fi
           
           echo ""
           echo "=== SUMMARY ==="
