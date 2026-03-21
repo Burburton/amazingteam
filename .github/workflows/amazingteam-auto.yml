@@ -248,15 +248,19 @@ jobs:
           echo ""
           echo "Decomposing with AI..."
           
-          PROMPT="Decompose this task into 2-4 subtasks. Respond with ONLY a JSON object (no markdown): {\"subtasks\":[{\"title\":\"[Subtask] Title\",\"role\":\"architect\" or \"developer\" or \"qa\",\"priority\":1-4}]}. Task: $TITLE. Description: $(echo "$BODY" | head -c 1000)"
+          # Create prompt with escaped content
+          PROMPT="Decompose this task into 2-4 subtasks. Respond with ONLY a JSON object (no markdown): {\"subtasks\":[{\"title\":\"[Subtask] Title\",\"role\":\"architect\" or \"developer\" or \"qa\",\"priority\":1-4}]}. Task: $TITLE. Description: $(echo "$BODY" | head -c 500 | tr '\n' ' ' | tr -d '\"')"
           
-          # Use curl to call API directly instead of opencode CLI
+          # Escape the prompt for JSON
+          ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs '.')
+          
+          # Use curl to call API directly
           RESULT=$(curl -s -X POST "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions" \
             -H "Authorization: Bearer $AMAZINGTEAM_API_KEY" \
             -H "Content-Type: application/json" \
             -d "{
               \"model\": \"qwen-plus\",
-              \"messages\": [{\"role\": \"user\", \"content\": \"$PROMPT\"}],
+              \"messages\": [{\"role\": \"user\", \"content\": $ESCAPED_PROMPT}],
               \"max_tokens\": 1000
             }" 2>&1 || echo '{"choices":[{"message":{"content":"{\"subtasks\":[]}"}}]}')
           
