@@ -5,6 +5,34 @@ All notable changes to the AmazingTeam will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.16] - 2026-03-21
+
+### Added
+
+- **Superpowers Integration**:
+  - Added `superpowers` plugin for systematic development workflow
+  - Added `opencode-mem` plugin for persistent semantic memory
+  - Created `docs/MEMORY.md` documenting dual memory system architecture
+  - Created `.opencode/SUPERPOWERS.md` with skill documentation
+
+- **New Skills**:
+  - `github-integration`: Systematic GitHub API operations via gh CLI (326 lines)
+  - `release-automation`: Version release workflow for single/dual repos (469 lines)
+  - `documentation-sync`: Keep documentation synchronized with code (485 lines)
+  - `requirements-discussion`: Capture user requirements through Socratic questioning
+
+- **GitHub Actions Enhancements**:
+  - Added eyes reaction to comments (visual feedback when AI starts working)
+  - Added post-summary step for PR notification
+  - Improved trigger conditions for `/ai`, `/oc`, `/opencode` commands
+
+### Changed
+
+- Enhanced `.opencode/` directory with 13 project-specific skills
+- Updated `opencode.jsonc` with superpowers and opencode-mem plugins
+
+---
+
 ## [3.0.15] - 2026-03-21
 
 ### Fixed
