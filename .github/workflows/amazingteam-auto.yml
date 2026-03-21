@@ -618,6 +618,7 @@ jobs:
           use_github_token: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
         continue-on-error: true
 
       - name: "Handle Result"
@@ -751,6 +752,7 @@ jobs:
           use_github_token: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
         continue-on-error: true
 
       - name: "Handle Result"
