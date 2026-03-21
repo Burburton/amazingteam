@@ -1,0 +1,34 @@
+{
+  // Storage location for memories
+  "storagePath": "~/.opencode-mem/data",
+  
+  // Embedding model for semantic search
+  // Options: Xenova/nomic-embed-text-v1, Xenova/all-MiniLM-L6-v2, etc.
+  "embeddingModel": "Xenova/nomic-embed-text-v1",
+  
+  // Enable web UI for memory browsing at http://127.0.0.1:4747
+  "webServerEnabled": true,
+  
+  // Maximum memories to store (0 = unlimited)
+  "maxMemories": 1000,
+  
+  // Memory compaction settings
+  "compaction": {
+    "enabled": true,
+    "memoryLimit": 100
+  },
+  
+  // Automatic memory extraction from conversations
+  "chatMessage": {
+    "enabled": true,
+    "maxMemories": 5,
+    "excludeCurrentSession": true,
+    "injectOn": "first"
+  },
+  
+  // User profile analysis interval (messages)
+  "userProfileAnalysisInterval": 10,
+  
+  // Maximum profile items to maintain
+  "maxProfileItems": 20
+}

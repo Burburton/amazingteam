@@ -5,7 +5,10 @@
   "default_agent": "build",
   "instructions": ["AGENTS.md"],
   "autoupdate": true,
-  "plugin": ["superpowers@git+https://github.com/obra/superpowers.git"],
+  "plugin": [
+    "superpowers@git+https://github.com/obra/superpowers.git",
+    "opencode-mem"
+  ],
   "permission": {
     "edit": "ask",
     "bash": "ask"
