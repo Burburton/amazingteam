@@ -39,9 +39,9 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - uses: Burburton/amazingteam-action@v3.0.20
+      - uses: Burburton/amazingteam-action@v3.0.21
         with:
-          version: '3.0.20'
+          version: '3.0.21'
 
       - name: "Read Config"
         id: config
@@ -140,9 +140,9 @@ jobs:
           git config --global user.name "opencode-bot"
           git config --global user.email "opencode-bot@users.noreply.github.com"
 
-      - uses: Burburton/amazingteam-action@v3.0.20
+      - uses: Burburton/amazingteam-action@v3.0.21
         with:
-          version: '3.0.20'
+          version: '3.0.21'
 
       - name: "Create Sub-Issues"
         id: create
@@ -373,8 +373,6 @@ jobs:
           echo ""
           
           echo "Checking remaining subtasks..."
-          
-          REMAINING=$(gh issue list --label "type:subtask" --state open --json number 2>/dev/null | jq --arg parent "$PARENT" '[.[] | select(.body | test("Parent: #" + $parent; "i"))]' || echo "[]")
           
           OPEN=$(gh issue list --label "type:subtask" --state open --json number,body 2>/dev/null || echo "[]")
           FILTERED=$(echo "$OPEN" | jq --arg parent "$PARENT" '[.[] | select(.body | test("Parent: #" + $parent; "i"))]')
