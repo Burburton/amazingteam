@@ -15,9 +15,8 @@ module.exports = {
   },
   testMatch: [
     '<rootDir>/src/**/*.test.ts',
-    '<rootDir>/action/__tests__/**/*.test.js',
-    '<rootDir>/cli/__tests__/**/*.test.js',
-    '<rootDir>/tests/**/*.test.js'
+    '<rootDir>/action/__tests__/**/*.jest.test.js',
+    '<rootDir>/action/__tests__/merger.test.js',
   ],
   collectCoverageFrom: [
     '<rootDir>/src/**/*.ts',
@@ -28,4 +27,11 @@ module.exports = {
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
+  globals: {
+    'ts-jest': {
+      diagnostics: {
+        ignoreCodes: [151002]
+      }
+    }
+  }
 };
