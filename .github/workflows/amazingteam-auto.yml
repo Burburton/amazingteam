@@ -296,48 +296,99 @@ jobs:
           TITLE=$(echo "$DATA" | jq -r '.title')
           BODY=$(echo "$DATA" | jq -r '.body')
           
-          PROMPT="Decompose into 2-5 subtasks with dependencies. JSON only: {\"subtasks\":[{\"title\":\"...\",\"role\":\"architect|developer|qa\",\"depends_on\":[]}]}. Dependencies use index (0=first subtask). Task: $TITLE. Desc: $(echo "$BODY" | head -c 300 | tr '\n' ' ')"
+          # Prompt explicitly requests JSON after reasoning
+          PROMPT="Task: $TITLE. Description: $(echo "$BODY" | head -c 300 | tr '\n' ' '). Decompose into 2-5 subtasks with dependencies. First think about the decomposition, then output ONLY a JSON object with this exact structure (no markdown, no code blocks): {\"subtasks\":[{\"title\":\"...\",\"role\":\"architect|developer|qa\",\"depends_on\":[]}]}. Dependencies use index numbers (0=first subtask, 1=second, etc). Empty depends_on means no dependencies."
           
           ESCAPED=$(echo "$PROMPT" | jq -Rs '.')
           
+          echo "Calling AI API..."
           RESULT=$(curl -s -X POST "https://coding.dashscope.aliyuncs.com/apps/anthropic/v1/messages" \
             -H "x-api-key: $AMAZINGTEAM_API_KEY" \
             -H "anthropic-version: 2023-06-01" \
             -H "Content-Type: application/json" \
-            -d "{\"model\":\"glm-5\",\"max_tokens\":1000,\"messages\":[{\"role\":\"user\",\"content\":$ESCAPED}]}" 2>&1)
+            -d "{\"model\":\"glm-5\",\"max_tokens\":2000,\"messages\":[{\"role\":\"user\",\"content\":$ESCAPED}]}" 2>&1)
           
-          echo "Raw API Response (first 500 chars):"
-          echo "$RESULT" | head -c 500
+          echo "=== Raw API Response ==="
+          echo "$RESULT" | head -c 1000
           echo ""
+          echo "======================="
           
-          CONTENT=$(echo "$RESULT" | jq -r '.content[0].thinking // .content[0].text // empty' 2>/dev/null)
+          # Check if response has content array
+          CONTENT_COUNT=$(echo "$RESULT" | jq '.content | length' 2>/dev/null || echo "0")
+          echo "Content blocks: $CONTENT_COUNT"
           
-          if [ -z "$CONTENT" ]; then
-            CONTENT=$(echo "$RESULT" | jq -r '.content[] | select(.type=="thinking") | .thinking' 2>/dev/null | head -1)
-          fi
+          # Try to find text content (actual output after thinking)
+          CONTENT=""
           
+          # Method 1: Look for type="text" content block (actual output)
           if [ -z "$CONTENT" ]; then
             CONTENT=$(echo "$RESULT" | jq -r '.content[] | select(.type=="text") | .text' 2>/dev/null | head -1)
+            if [ -n "$CONTENT" ]; then
+              echo "Found text block"
+            fi
           fi
           
+          # Method 2: Look at all content blocks and try to extract JSON from any
           if [ -z "$CONTENT" ]; then
-            CONTENT=$(echo "$RESULT" | jq -r '.content[] | .text // .thinking // empty' 2>/dev/null | head -1)
+            for i in $(seq 0 $((CONTENT_COUNT - 1))); do
+              BLOCK_TYPE=$(echo "$RESULT" | jq -r ".content[$i].type" 2>/dev/null)
+              echo "Block $i type: $BLOCK_TYPE"
+              
+              if [ "$BLOCK_TYPE" = "text" ]; then
+                CONTENT=$(echo "$RESULT" | jq -r ".content[$i].text" 2>/dev/null)
+                if [ -n "$CONTENT" ]; then
+                  echo "Found text in block $i"
+                  break
+                fi
+              elif [ "$BLOCK_TYPE" = "thinking" ]; then
+                THINKING_CONTENT=$(echo "$RESULT" | jq -r ".content[$i].thinking" 2>/dev/null)
+                # Check if thinking contains JSON
+                if echo "$THINKING_CONTENT" | grep -q '{"subtasks"'; then
+                  CONTENT="$THINKING_CONTENT"
+                  echo "Found JSON in thinking block $i"
+                  break
+                fi
+              fi
+            done
           fi
           
-          CONTENT=$(echo "$CONTENT" | sed 's/```json//g' | sed 's/```//g' | tr -d '\n')
+          # Method 3: Fallback - try any field
+          if [ -z "$CONTENT" ]; then
+            CONTENT=$(echo "$RESULT" | jq -r '.content[0].thinking // .content[0].text // .content[0].content // empty' 2>/dev/null)
+          fi
           
-          echo "AI Response (first 200 chars):"
-          echo "$CONTENT" | head -c 200
           echo ""
+          echo "=== Extracted Content (first 500 chars) ==="
+          echo "$CONTENT" | head -c 500
+          echo ""
+          echo "=========================================="
           
-          if echo "$CONTENT" | grep -q "subtasks"; then
-            JSON=$(echo "$CONTENT" | grep -oE '\{"subtasks"[^\[]*\[.*\][^\}]*\}' | head -1 || echo '{"subtasks":[]}')
+          # Extract JSON from content - look for the subtasks object
+          if echo "$CONTENT" | grep -qE '\{.*"subtasks".*\[.*\].*\}'; then
+            # Try to extract the full JSON object
+            JSON=$(echo "$CONTENT" | grep -oP '\{[^{}]*"subtasks"[^{}]*\[.*?\][^{}]*\}' | tail -1 || echo '{"subtasks":[]}')
+            
+            # If grep failed, try jq to parse
+            if [ "$JSON" = '{"subtasks":[]}' ]; then
+              # Clean content and try jq parse
+              CLEANED=$(echo "$CONTENT" | sed 's/```json//g' | sed 's/```//g')
+              JSON=$(echo "$CLEANED" | jq -c '{subtasks: .subtasks}' 2>/dev/null || echo '{"subtasks":[]}')
+            fi
           else
+            echo "Warning: No subtasks JSON found in response"
             JSON='{"subtasks":[]}'
           fi
           
-          echo "Plan:"
-          echo "$JSON" | jq -r '.subtasks[]? | "  - \(.title) (depends: \(.depends_on // []))"'
+          # Validate JSON
+          if ! echo "$JSON" | jq -e '.subtasks' > /dev/null 2>&1; then
+            echo "Invalid JSON, creating default decomposition"
+            JSON='{"subtasks":[{"title":"Analyze and design","role":"architect","depends_on":[]},{"title":"Implement solution","role":"developer","depends_on":[0]},{"title":"Test and validate","role":"qa","depends_on":[1]}]}'
+          fi
+          
+          echo ""
+          echo "=== Decomposition Plan ==="
+          echo "$JSON" | jq -r '.subtasks[]? | "  - \(.title) (\(.role), depends: \(.depends_on // []))"'
+          echo "==========================="
           
           mkdir -p tasks/issue-$PARENT_NUM
           
@@ -490,8 +541,22 @@ jobs:
             -H "Content-Type: application/json" \
             -d "{\"model\":\"glm-5\",\"max_tokens\":3000,\"messages\":[{\"role\":\"user\",\"content\":$ESCAPED}]}" 2>&1)
           
-          echo "AI Response:"
-          echo "$RESULT" | jq -r '.content[] | select(.type=="text") | .text' 2>/dev/null | head -50 || echo "$RESULT" | head -c 500
+          echo "=== AI Response ==="
+          
+          # Try to find text content first
+          RESPONSE=$(echo "$RESULT" | jq -r '.content[] | select(.type=="text") | .text' 2>/dev/null | head -50)
+          
+          # If no text, try thinking content
+          if [ -z "$RESPONSE" ]; then
+            RESPONSE=$(echo "$RESULT" | jq -r '.content[] | select(.type=="thinking") | .thinking' 2>/dev/null | head -50)
+          fi
+          
+          # Fallback
+          if [ -z "$RESPONSE" ]; then
+            RESPONSE=$(echo "$RESULT" | jq -r '.content[0].text // .content[0].thinking // "No response"' 2>/dev/null)
+          fi
+          
+          echo "$RESPONSE"
           echo ""
           echo "=== COMPLETE ==="
 
@@ -652,8 +717,22 @@ jobs:
             -H "Content-Type: application/json" \
             -d "{\"model\":\"glm-5\",\"max_tokens\":3000,\"messages\":[{\"role\":\"user\",\"content\":$ESCAPED}]}" 2>&1)
           
-          echo "AI Response:"
-          echo "$RESULT" | jq -r '.content[] | select(.type=="text") | .text' 2>/dev/null | head -50 || echo "$RESULT" | head -c 500
+          echo "=== AI Response ==="
+          
+          # Try to find text content first
+          RESPONSE=$(echo "$RESULT" | jq -r '.content[] | select(.type=="text") | .text' 2>/dev/null | head -50)
+          
+          # If no text, try thinking content
+          if [ -z "$RESPONSE" ]; then
+            RESPONSE=$(echo "$RESULT" | jq -r '.content[] | select(.type=="thinking") | .thinking' 2>/dev/null | head -50)
+          fi
+          
+          # Fallback
+          if [ -z "$RESPONSE" ]; then
+            RESPONSE=$(echo "$RESULT" | jq -r '.content[0].text // .content[0].thinking // "No response"' 2>/dev/null)
+          fi
+          
+          echo "$RESPONSE"
           
           PR=$(gh pr list --author opencode-bot --state open --json url,number -q '.[0]' 2>/dev/null || echo "")
           
