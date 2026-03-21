@@ -318,7 +318,6 @@ jobs:
           echo "Content blocks: $CONTENT_COUNT"
           
           CONTENT=""
-          FOUND_VALID_CONTENT=false
           
           for i in $(seq 0 $((CONTENT_COUNT - 1))); do
             BLOCK_TYPE=$(echo "$RESULT" | jq -r ".content[$i].type" 2>/dev/null)
@@ -334,23 +333,17 @@ jobs:
             if [ -n "$BLOCK_CONTENT" ]; then
               echo "Block $i content length: $(echo "$BLOCK_CONTENT" | wc -c) chars"
               
+              # Try to find and extract valid JSON from this block
               if echo "$BLOCK_CONTENT" | jq -e '.subtasks' > /dev/null 2>&1; then
                 CONTENT="$BLOCK_CONTENT"
-                FOUND_VALID_CONTENT=true
-                echo "Found valid JSON in block $i ($BLOCK_TYPE)"
-                break
-              elif echo "$BLOCK_CONTENT" | grep -q '"subtasks"'; then
-                CONTENT="$BLOCK_CONTENT"
-                FOUND_VALID_CONTENT=true
-                echo "Found JSON-like content in block $i ($BLOCK_TYPE)"
+                echo "Found valid JSON object in block $i ($BLOCK_TYPE)"
                 break
               fi
             fi
           done
           
-          if [ "$FOUND_VALID_CONTENT" = "false" ]; then
-            echo "No valid JSON found in any block, using fallback"
-            CONTENT=$(echo "$RESULT" | jq -r '.content[0].thinking // .content[0].text // empty' 2>/dev/null)
+          if [ -z "$CONTENT" ]; then
+            echo "No valid JSON found in content blocks"
           fi
           
           echo ""
@@ -493,6 +486,7 @@ jobs:
           GH_TOKEN: ${{ secrets.AMAZINGTEAM_PAT || secrets.GITHUB_TOKEN }}
           PARENT_NUM: ${{ needs.planner.outputs.issue_num }}
           READY_SUBTASKS: ${{ needs.decompose.outputs.ready_now }}
+          REPO: ${{ github.repository }}
         run: |
           echo "=== TRIGGER PARALLEL EXECUTION ==="
           echo "Parent: #$PARENT_NUM"
@@ -500,12 +494,12 @@ jobs:
           
           for ST_NUM in $(echo "$READY_SUBTASKS" | jq -r '.[]'); do
             echo "Triggering #$ST_NUM..."
-            gh issue comment "$ST_NUM" --body "/oc" || echo "Warning: Failed to trigger #$ST_NUM"
+            gh issue comment "$ST_NUM" --repo "$REPO" --body "/oc" || echo "Warning: Failed to trigger #$ST_NUM"
             sleep 2
           done
           
           READY_COUNT=$(echo "$READY_SUBTASKS" | jq 'length')
-          gh issue comment "$PARENT_NUM" --body "## Started $READY_COUNT parallel subtasks\n\nSubtasks triggered: $READY_SUBTASKS"
+          gh issue comment "$PARENT_NUM" --repo "$REPO" --body "## Started $READY_COUNT parallel subtasks\n\nSubtasks triggered: $READY_SUBTASKS"
 
   execute:
     needs: planner
