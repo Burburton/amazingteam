@@ -291,16 +291,18 @@ jobs:
           if [ -z "$BASE64_ROWS" ]; then
             echo "No subtasks to create"
           else
-            echo "$BASE64_ROWS" | while read -r row; do
+            while IFS= read -r row; do
               if [ -z "$row" ]; then continue; fi
               
               ST_TITLE=$(echo "$row" | base64 -d | jq -r '.title')
               ST_ROLE=$(echo "$row" | base64 -d | jq -r '.role')
               ST_PRIO=$(echo "$row" | base64 -d | jq -r '.priority // 1')
               
-              URL=$(gh issue create --title "$ST_TITLE" --body "Parent: #$PARENT_NUM\nRole: $ST_ROLE\nPriority: $ST_PRIO" --label "type:subtask,role:$ST_ROLE,status:pending" 2>/dev/null || echo "")
+              echo "Creating issue: $ST_TITLE (role: $ST_ROLE)"
               
-              if [ -n "$URL" ]; then
+              URL=$(gh issue create --title "$ST_TITLE" --body "Parent: #$PARENT_NUM\nRole: $ST_ROLE\nPriority: $ST_PRIO" --label "type:subtask,role:$ST_ROLE,status:pending" 2>&1 || echo "")
+              
+              if [ -n "$URL" ] && [[ "$URL" == https://* ]]; then
                 ST_NUM=$(echo "$URL" | grep -oP '\d+$')
                 echo "  Created #$ST_NUM: $ST_TITLE"
                 
@@ -310,8 +312,10 @@ jobs:
                   FIRST="$ST_NUM"
                 fi
                 COUNT=$((COUNT + 1))
+              else
+                echo "  Failed to create issue: $URL"
               fi
-            done
+            done <<< "$BASE64_ROWS"
           fi
           
           echo ""
