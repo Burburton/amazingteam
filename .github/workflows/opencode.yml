@@ -45,6 +45,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           model: bailian-coding-plan/glm-5
+          use_github_token: true
 
       - name: Post summary
         env:
