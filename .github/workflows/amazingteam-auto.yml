@@ -1,0 +1,190 @@
+name: AmazingTeam Auto
+
+on:
+  issue_comment:
+    types: [created]
+  issues:
+    types: [labeled]
+
+env:
+  OPENCODE_MODEL: bailian-coding-plan/glm-5
+
+jobs:
+  triage:
+    if: |
+      (github.event_name == 'issue_comment' && (
+        startsWith(github.event.comment.body, '/ai') ||
+        startsWith(github.event.comment.body, '/oc') ||
+        startsWith(github.event.comment.body, '/opencode')
+      )) ||
+      (github.event_name == 'issues' && github.event.label.name == 'ai:process')
+    runs-on: ubuntu-latest
+    outputs:
+      needs_decomposition: ${{ steps.analyze.outputs.needs_decomposition }}
+    permissions:
+      issues: write
+      contents: read
+    steps:
+      - name: React
+        if: github.event_name == 'issue_comment'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions -f content='eyes' || true
+
+      - uses: actions/checkout@v4
+
+      - uses: Burburton/amazingteam-action@v3.0.20
+        with:
+          version: '3.0.20'
+
+      - name: Analyze
+        id: analyze
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
+          ISSUE_NUM: ${{ github.event.issue.number }}
+        run: |
+          DATA=$(gh issue view "$ISSUE_NUM" --json title,body)
+          TITLE=$(echo "$DATA" | jq -r '.title')
+          BODY=$(echo "$DATA" | jq -r '.body')
+          
+          PROMPT="Classify this issue. Title: $TITLE. Body: $BODY. Respond ONLY with JSON: {\"complexity\":\"simple|complex\",\"needs_decomposition\":true|false}. Complex if: 3+ modules, needs design, multiple PRs."
+          
+          RESULT=$(opencode run --model "$OPENCODE_MODEL" "$PROMPT" 2>&1 || echo '{}')
+          JSON=$(echo "$RESULT" | grep -oP '\{[^}]+\}' | tail -1 || echo '{}')
+          
+          NEEDS_DECOMP=$(echo "$JSON" | jq -r '.needs_decomposition // false')
+          COMPLEXITY=$(echo "$JSON" | jq -r '.complexity // "simple"')
+          
+          echo "needs_decomposition=$NEEDS_DECOMP" >> $GITHUB_OUTPUT
+          
+          gh issue edit "$ISSUE_NUM" --add-label "complexity:$COMPLEXITY" || true
+          
+          if [ "$NEEDS_DECOMP" = "true" ]; then
+            gh issue comment "$ISSUE_NUM" --body "## Triage: Complex Task\n\nCreating sub-issues..."
+          else
+            gh issue comment "$ISSUE_NUM" --body "## Triage: Simple Task\n\nProceeding to implementation..."
+          fi
+
+  decompose:
+    needs: triage
+    if: needs.triage.outputs.needs_decomposition == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      first_subtask: ${{ steps.create.outputs.first_subtask }}
+    permissions:
+      issues: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: |
+          git config --global user.name "opencode-bot"
+          git config --global user.email "opencode-bot@users.noreply.github.com"
+
+      - uses: Burburton/amazingteam-action@v3.0.20
+        with:
+          version: '3.0.20'
+
+      - name: Create sub-issues
+        id: create
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
+          PARENT_NUM: ${{ github.event.issue.number }}
+        run: |
+          DATA=$(gh issue view "$PARENT_NUM" --json title,body)
+          TITLE=$(echo "$DATA" | jq -r '.title')
+          BODY=$(echo "$DATA" | jq -r '.body')
+          
+          PROMPT="Decompose into 2-4 subtasks. Parent: $TITLE. Body: $BODY. JSON: {subtasks:[{title,role}]}. Roles: architect,developer,qa."
+          
+          RESULT=$(opencode run --model "$OPENCODE_MODEL" "$PROMPT" 2>&1 || echo '{"subtasks":[]}')
+          JSON=$(echo "$RESULT" | grep -oP '\{.*\}' | tail -1 || echo '{"subtasks":[]}')
+          
+          FIRST=""
+          for row in $(echo "$JSON" | jq -r '.subtasks[] | @base64' 2>/dev/null); do
+            ST_TITLE=$(echo "$row" | base64 -d | jq -r '.title')
+            ST_ROLE=$(echo "$row" | base64 -d | jq -r '.role')
+            
+            URL=$(gh issue create --title "$ST_TITLE" --body "Parent: #$PARENT_NUM" --label "type:subtask,role:$ST_ROLE" 2>/dev/null || echo "")
+            
+            if [ -n "$URL" ] && [ -z "$FIRST" ]; then
+              FIRST=$(echo "$URL" | grep -oP '\d+$')
+            fi
+          done
+          
+          echo "first_subtask=$FIRST" >> $GITHUB_OUTPUT
+          gh issue comment "$PARENT_NUM" --body "## Decomposed\n\nSub-issues created. Starting with first subtask..."
+
+  execute:
+    needs: [triage, decompose]
+    if: always() && needs.triage.outputs.needs_decomposition != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: |
+          git config --global user.name "opencode-bot"
+          git config --global user.email "opencode-bot@users.noreply.github.com"
+
+      - uses: anomalyco/opencode/github@latest
+        env:
+          AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          model: bailian-coding-plan/glm-5
+          use_github_token: true
+
+      - env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUM: ${{ github.event.issue.number }}
+        run: |
+          PR=$(gh pr list --author opencode-bot --state open --json url -q '.[0].url' 2>/dev/null || echo "")
+          gh issue comment "$ISSUE_NUM" --body "## Done\n\nPR: ${PR:-None}" || true
+
+  execute-subtask:
+    needs: decompose
+    if: needs.decompose.outputs.first_subtask != ''
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: |
+          git config --global user.name "opencode-bot"
+          git config --global user.email "opencode-bot@users.noreply.github.com"
+
+      - uses: anomalyco/opencode/github@latest
+        env:
+          AMAZINGTEAM_API_KEY: ${{ secrets.AMAZINGTEAM_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          model: bailian-coding-plan/glm-5
+          use_github_token: true
+
+      - env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUBTASK_NUM: ${{ needs.decompose.outputs.first_subtask }}
+          PARENT_NUM: ${{ github.event.issue.number }}
+        run: |
+          PR=$(gh pr list --author opencode-bot --state open --json url -q '.[0].url' 2>/dev/null || echo "")
+          gh issue comment "$SUBTASK_NUM" --body "## Done\n\nPR: ${PR:-None}" || true
+          gh issue comment "$PARENT_NUM" --body "## Subtask #$SUBTASK_NUM Complete\n\nPR: ${PR:-None}\n\nUse \`/dispatch\` for next subtask after merge." || true
